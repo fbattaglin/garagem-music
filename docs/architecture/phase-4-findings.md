@@ -197,3 +197,38 @@ architecture is one where the human is the measurement, used sparingly, and the 
 job is to make listening efficient — good sampling, blind, pre-registered, logged — rather
 than to replace it. Phase 4's metrics criterion would then be met by a different kind of
 instrument than ADR-000 §7 imagined.
+
+## 4. The gate, re-aimed a second time: preference instead of description
+
+Decided by Fabiano on 2026-09-01, from §3's reading. The question becomes the one ADR-000
+actually specifies — **which side do you prefer** — and the metric is credited when the
+take it scores *cleaner* is the one preferred. A metric that predicts preference has
+earned its place whatever it is called; one that matches a vocabulary has earned nothing.
+
+**Pre-registered, in the source, before the first note:** the cleaner take preferred in
+**≥ 12 of 16**. P(≥ 12 of 16 under a coin) = 0.038.
+
+Three limitations stated in advance, because a limitation found afterwards is an excuse:
+
+- **Power is 0.63** if collisions cost preference 75% of the time, and 0.92 at 85%. This
+  run can find a strong effect and is weak against a moderate one. The ceiling is the
+  corpus, not a preference for small samples: **17 pairs remain** whose briefings the
+  superseded run did not already play, and re-using the others would be asking about music
+  he has already judged on another axis.
+- **The sample is 12 chorus, 2 verse, 2 bridge**, and that is by construction: busier
+  sections have more slots to collide in, so the widest gaps live there. Both sides of a
+  pair are the same briefing, so this bounds what the answer covers — busy sections first —
+  rather than confounding the comparison.
+- **§3's 6 of 10 is not this run's baseline.** It asked a different question, and treating
+  it as a prior for this one would be reading a label test as a preference test.
+
+The reason menu is copied from `ab_section.py` unchanged. Two vocabularies would make the
+two runs impossible to compare, and grouping losses by reason is the only thing that has
+ever produced a mechanism in this project (§16).
+
+    uv run python scripts/calibrate_metrics.py --dry-run   # the selection, no Live
+    uv run python scripts/calibrate_metrics.py             # Live open, ~30 minutes
+
+**If this one also misses, that is two failed hypotheses and a failed reformulation**, and
+the honest conclusion moves from "we have not found the metric yet" to "there may be no
+cheap proxy, and the architecture should say so" (§3's closing note).

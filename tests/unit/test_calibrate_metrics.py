@@ -38,15 +38,32 @@ cal = _load()
 
 def test_the_threshold_is_in_the_source_and_not_in_a_flag() -> None:
     """A threshold that can be passed on the command line is a threshold chosen after."""
-    assert (cal.PAIRS, cal.THRESHOLD) == (10, 8)
+    assert (cal.PAIRS, cal.THRESHOLD) == (16, 12)
 
 
 def test_the_threshold_is_harder_than_a_coin() -> None:
-    """P(>= 8 of 10) = 0.055 under a coin. Computed here rather than trusted."""
+    """P(>= 12 of 16) = 0.038 under a coin. Computed here rather than trusted."""
+    assert cal._coin_tail(cal.THRESHOLD, cal.PAIRS) < 0.05
+
+
+def test_the_power_is_what_was_claimed_before_the_run() -> None:
+    """Stated up front because a limitation found afterwards is an excuse.
+
+    This design can find a strong effect and is weak against a moderate one. The ceiling
+    is the corpus: only 17 pairs remain that the superseded run did not already play.
+    """
     from math import comb
 
-    tail = sum(comb(10, k) for k in range(cal.THRESHOLD, 11)) / 2**10
-    assert tail < 0.06
+    def power(rate: float) -> float:
+        return float(
+            sum(
+                comb(cal.PAIRS, k) * rate**k * (1 - rate) ** (cal.PAIRS - k)
+                for k in range(cal.THRESHOLD, cal.PAIRS + 1)
+            )
+        )
+
+    assert 0.60 < power(0.75) < 0.66
+    assert power(0.85) > 0.90
 
 
 # -------------------------------------------------------------------------- the corpus
@@ -80,6 +97,16 @@ def test_the_draw_is_read_unfiltered() -> None:
 
 
 # --------------------------------------------------------------------------- the pairing
+
+
+def test_no_briefing_from_the_superseded_run_is_played_again() -> None:
+    """A preference about music he has already judged on another axis is not fresh."""
+    heard = cal.already_heard(cal.JUDGED_LOG)
+    assert heard
+    corpus = cal.load_corpus([ROOT / "bench" / name for name in cal.DEFAULT_CORPUS])
+    for messy, _ in cal.extremes(corpus, cal.PAIRS, skip=heard):
+        key = (messy.section.name, messy.section.bars, messy.section.bpm, str(messy.section.feel))
+        assert key not in heard
 
 
 def test_both_sides_of_a_pair_are_the_same_briefing() -> None:
@@ -118,27 +145,44 @@ def test_asking_for_more_pairs_than_exist_is_refused() -> None:
 
 def a_trial(index: int = 0, first: str = "messy") -> object:
     corpus = cal.load_corpus([ROOT / "bench" / name for name in cal.DEFAULT_CORPUS])
-    messy, clean = cal.extremes(corpus, cal.PAIRS)[index]
+    messy, clean = cal.extremes(corpus, cal.PAIRS, skip=cal.already_heard(cal.JUDGED_LOG))[index]
     return cal.Trial(index, messy, clean, first)
 
 
 @pytest.mark.parametrize(
     ("first", "vote", "agreed"),
     [
-        ("messy", "A", "true"),
-        ("messy", "B", "false"),
-        ("clean", "A", "false"),
-        ("clean", "B", "true"),
-        ("messy", "same", "same"),
+        ("clean", "A", "true"),
+        ("clean", "B", "false"),
+        ("messy", "A", "false"),
+        ("messy", "B", "true"),
+        ("clean", "same", "same"),
     ],
 )
-def test_agreement_is_derived_from_the_hidden_order(
+def test_agreement_is_the_cleaner_take_winning(
     tmp_path: Path, first: str, vote: str, agreed: str
 ) -> None:
-    """All four corners, because getting this backwards would invert the whole result."""
+    """All four corners: getting this backwards would invert the whole result.
+
+    The hypothesis under test is that kick/snare collisions *cost* preference, so the
+    metric is credited when the take it scores cleaner is the one preferred.
+    """
     log = tmp_path / "calibration.jsonl"
     cal.record(log, a_trial(first=first), vote, 12.0)
     assert json.loads(log.read_text(encoding="utf-8"))["metric_agreed"] == agreed
+
+
+def test_the_reason_is_recorded_beside_the_preference(tmp_path: Path) -> None:
+    """A bare vote says which won; only the reason says what it had (§16)."""
+    log = tmp_path / "calibration.jsonl"
+    cal.record(log, a_trial(), "A", 12.0, "less boring")
+    assert json.loads(log.read_text(encoding="utf-8"))["reason"] == "less boring"
+
+
+def test_the_reason_menu_matches_the_ab_s() -> None:
+    """Two vocabularies would make the two runs impossible to compare."""
+    assert cal.REASONS["3"] == "cleaner, less messy"
+    assert len(cal.REASONS) == 5
 
 
 def test_the_row_says_where_both_sides_came_from(tmp_path: Path) -> None:
@@ -156,7 +200,7 @@ def test_the_row_says_where_both_sides_came_from(tmp_path: Path) -> None:
 def _log_with(tmp_path: Path, agreed: int, total: int) -> Path:
     log = tmp_path / "calibration.jsonl"
     for index in range(total):
-        cal.record(log, a_trial(index % cal.PAIRS, "messy"), "A" if index < agreed else "B", 12.0)
+        cal.record(log, a_trial(index % cal.PAIRS, "clean"), "A" if index < agreed else "B", 12.0)
     return log
 
 

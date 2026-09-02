@@ -12,16 +12,23 @@ them, because the DSL never lets a model name a pitch. The one measured differen
 points the same way as those three votes is that the model stacks a kick and a snare in
 one slot 0.172 of the time against the floor's 0.060.
 
-**This script plays the extremes of that number and asks which is messier.** Not which is
-better — preference is the A/B's question and it closes the phase. This one asks whether
-the number is about anything audible at all.
+**It first asked which side was messier, and that was the wrong question.** 6 of 10, one
+indistinguishable, against a threshold of 8 (`phase-4-findings.md` §3). The run asked
+Fabiano to be a measuring instrument for a *label*, which is a different job from the one
+his ear is the reference for: ADR-000's criterion is whether a section is **preferred**,
+and "cleaner, less messy" was his phrase about whole sections as a reason for preferring
+one — not about two takes of a briefing differing only in the drums.
+
+**So it now asks which side he prefers.** A metric that predicts his preference has
+earned its place whatever it is called; a metric that matches his vocabulary has earned
+nothing. The old run stays in `bench/calibration.jsonl` and is not overwritten.
 
 Free by construction: every section is realised offline from DSL that was recorded and
 paid for during Phase 3. No network, no key, no cost. Live must be open, because the
 question is about sound.
 
     uv run python scripts/calibrate_metrics.py --dry-run   # the selection, no Live
-    uv run python scripts/calibrate_metrics.py             # the listen
+    uv run python scripts/calibrate_metrics.py             # the listen, ~30 minutes
 """
 
 from __future__ import annotations
@@ -62,7 +69,10 @@ from garagem.transport import render_score
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SESSION = ROOT / "session.toml"
-DEFAULT_LOG = ROOT / "bench" / "calibration.jsonl"
+DEFAULT_LOG = ROOT / "bench" / "calibration-preference.jsonl"
+# The first, superseded run: it asked for a label rather than a preference (§3). Read to
+# skip the briefings it already used, never appended to.
+JUDGED_LOG = ROOT / "bench" / "calibration.jsonl"
 
 # Every round of Phase 3 that produced usable DSL. The arranged rounds are absent because
 # they produced none: 30 of 30 were cancelled at their deadline (§14).
@@ -80,13 +90,19 @@ DEFAULT_CORPUS: Final = (
 CORPUS_SEED: Final = 7
 CORPUS_DRAWN: Final = 30
 
-# Pre-registered here, in the source, before the first listen. Ten pairs of extremes; the
-# metric is credited when the section it calls messier is heard as messier.
+# Pre-registered here, in the source, before the first listen. The metric is credited when
+# the take it scores cleaner is the one preferred.
 #
-# Under a coin, P(>= 8 of 10) = 0.055. That is the same order as the A/B's 8 of 12 and it
-# is deliberate: a gate that is easier to pass than the test it protects is not a gate.
-PAIRS: Final = 10
-THRESHOLD: Final = 8
+# **P(>= 12 of 16 under a coin) = 0.038**, and the power is stated up front rather than
+# discovered afterwards: 0.63 if collisions cost preference 75% of the time, 0.92 at 85%.
+# So this run can find a strong effect and is weak against a moderate one. That ceiling is
+# the corpus, not a choice — 17 pairs remain whose briefings the superseded run did not
+# already play, and reusing those would be asking about music he has heard.
+#
+# The previous design, 8 of 10, failed at 6 (§3) and is not this one's baseline: it asked
+# a different question.
+PAIRS: Final = 16
+THRESHOLD: Final = 12
 
 SCENES = (0, 1)
 LAUNCH_TIMEOUT_S = 4.0
@@ -192,7 +208,30 @@ def _align(
     )
 
 
-def extremes(corpus: list[Scored], pairs: int) -> list[tuple[Scored, Scored]]:
+def _composition(trials: list[tuple[Scored, Scored]]) -> str:
+    counts: dict[str, int] = {}
+    for messy, _ in trials:
+        counts[messy.section.name] = counts.get(messy.section.name, 0) + 1
+    return ", ".join(f"{n} {name}" for name, n in sorted(counts.items(), key=lambda kv: -kv[1]))
+
+
+def already_heard(path: Path) -> set[tuple[str, int, float, str]]:
+    """The briefings the superseded run played, so this one does not replay them.
+
+    A preference asked about music he has already judged on another axis is not a fresh
+    judgement, and there is no way to un-hear the first pass.
+    """
+    if not path.exists():
+        return set()
+    return {
+        (row["section"], row["bars"], row["bpm"], row["feel"])
+        for row in (json.loads(line) for line in path.read_text(encoding="utf-8").splitlines())
+    }
+
+
+def extremes(
+    corpus: list[Scored], pairs: int, *, skip: set[tuple[str, int, float, str]] | None = None
+) -> list[tuple[Scored, Scored]]:
     """For each briefing, its messiest recorded take against its cleanest.
 
     **Both sides of a pair are the same briefing** — same chart, same key, same tempo,
@@ -221,7 +260,14 @@ def extremes(corpus: list[Scored], pairs: int) -> list[tuple[Scored, Scored]]:
         if len(takes) > 1
     ]
     # `clean` is the higher score: kit_collision is 1.0 when nothing collides.
-    usable = [(messy, clean) for clean, messy in candidates if clean.collision > messy.collision]
+    heard = skip or set()
+    usable = [
+        (messy, clean)
+        for clean, messy in candidates
+        if clean.collision > messy.collision
+        and (messy.section.name, messy.section.bars, messy.section.bpm, str(messy.section.feel))
+        not in heard
+    ]
     if len(usable) < pairs:
         raise ValueError(
             f"only {len(usable)} briefings have takes that differ; {pairs} pairs asked for"
@@ -261,11 +307,31 @@ def play(daw: DawPort, scene: int, seconds: float) -> None:
     daw.stop_playing()
 
 
-def ask(trial: Trial, daw: DawPort, seconds: float, total: int) -> str | None:
-    """Play both sides and ask which is messier. "A", "B", "same", or None to quit.
+# Why one side won, in words a listener uses. Copied from `ab_section.py` on purpose: the
+# same vocabulary across both tests is what let §16 group losses by reason at all, and two
+# menus would make the two runs incomparable.
+REASONS: Final[dict[str, str]] = {
+    "1": "more energy",
+    "2": "less boring",
+    "3": "cleaner, less messy",
+    "4": "just sounds nicer",
+    "5": "better to move to",
+}
 
-    *Messier*, not *better*. Preference is the A/B's question and it decides the phase;
-    this one only asks whether the number is about anything a person can hear.
+
+def why() -> str:
+    """One optional word about what the winner had. Never required, never theory."""
+    menu = "  ".join(f"[{key}] {text}" for key, text in REASONS.items())
+    answer = input(f"  why? {menu}  [enter] skip, or type your own: ").strip()
+    return REASONS.get(answer, answer)
+
+
+def ask(trial: Trial, daw: DawPort, seconds: float, total: int) -> tuple[str, str] | None:
+    """Play both sides and ask which is preferred. `(vote, reason)`, or None to quit.
+
+    *Preferred*, not *cleaner*. Asking for a label is what the superseded run did, and it
+    asked the ear to do a job it is not the reference for (§3). Preference is the job it
+    is, by ADR-000's own words.
     """
     section = trial.messy.section
     sys.stderr.write(
@@ -281,7 +347,7 @@ def ask(trial: Trial, daw: DawPort, seconds: float, total: int) -> str | None:
             play(daw, SCENES[1], seconds)
             heard = True
         answer = input(
-            "  [a] hear A  [b] hear B  [1] A messier  [2] B messier  [=] can't tell  [q] quit: "
+            "  [a] hear A  [b] hear B  [1] A better  [2] B better  [=] no preference  [q] quit: "
         )
         choice = answer.strip().lower()
         if choice == "a":
@@ -289,20 +355,24 @@ def ask(trial: Trial, daw: DawPort, seconds: float, total: int) -> str | None:
         elif choice == "b":
             play(daw, SCENES[1], seconds)
         elif choice == "1":
-            return "A"
+            return "A", why()
         elif choice == "2":
-            return "B"
+            return "B", why()
         elif choice == "=":
-            return "same"
+            return "same", ""
         elif choice == "q":
             return None
         else:
             sys.stderr.write("  a, b, 1, 2, = or q.\n")
 
 
-def record(path: Path, trial: Trial, vote: str, seconds: float) -> None:
-    """The verdict and both sides' provenance. Written only after the answer is in."""
-    agreed = "same" if vote == "same" else str((trial.first == "messy") == (vote == "A")).lower()
+def record(path: Path, trial: Trial, vote: str, seconds: float, reason: str = "") -> None:
+    """The verdict and both sides' provenance. Written only after the answer is in.
+
+    `metric_agreed` is true when the *cleaner* take won: the hypothesis under test is that
+    kick/snare collisions cost preference.
+    """
+    agreed = "same" if vote == "same" else str((trial.first == "clean") == (vote == "A")).lower()
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
         handle.write(
@@ -317,6 +387,7 @@ def record(path: Path, trial: Trial, vote: str, seconds: float) -> None:
                     "first": trial.first,
                     "vote": vote,
                     "metric_agreed": agreed,
+                    "reason": reason,
                     "messy_collision": round(trial.messy.collision, 4),
                     "clean_collision": round(trial.clean.collision, 4),
                     "messy_from": f"{trial.messy.source}:{trial.messy.row}",
@@ -349,8 +420,8 @@ def tally(path: Path) -> str:
     met = agreed >= THRESHOLD
     lines = [
         "",
-        f"the metric was heard as messier in {agreed} of {len(rows)} pairs "
-        f"({same} indistinguishable, {decisive} decisive)",
+        f"the take the metric scores cleaner was preferred in {agreed} of {len(rows)} "
+        f"pairs ({same} with no preference, {decisive} decisive)",
         f"pre-registered: >= {THRESHOLD} of {PAIRS}  ->  {'MET' if met else 'NOT MET'}",
         "",
     ]
@@ -366,11 +437,22 @@ def tally(path: Path) -> str:
         ]
         if same < len(rows):
             lines += [
-                f"What the run does say: {decisive} of {len(rows)} pairs were audibly",
-                "different, so the material differs. It is the *word* that did not line up,",
-                "not the sound.",
+                f"What the run does say: {decisive} of {len(rows)} pairs drew a preference,",
+                "so the material differs audibly. What is unsupported is that kick/snare",
+                "collision is what the preference is about.",
                 "",
             ]
+    reasons: dict[str, int] = {}
+    for row in rows:
+        if row.get("reason"):
+            reasons[str(row["reason"])] = reasons.get(str(row["reason"]), 0) + 1
+    if reasons:
+        lines.append("why, in his words:")
+        lines += [
+            f"  {count:>2}  {text}"
+            for text, count in sorted(reasons.items(), key=lambda kv: -kv[1])
+        ]
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -390,15 +472,21 @@ def main() -> int:
     if not corpus:
         sys.stderr.write("no recorded sections found under bench/.\n")
         return 1
-    trials_data = extremes(corpus, args.pairs)
+    trials_data = extremes(corpus, args.pairs, skip=already_heard(JUDGED_LOG))
 
     sys.stderr.write(
         f"{len(corpus)} recorded sections scored offline, no network.\n"
         f"  kit_collision: messiest {trials_data[0][0].collision:.3f}, "
         f"cleanest {trials_data[0][1].collision:.3f}\n"
-        f"  pre-registered: the metric's pick is heard as messier in "
-        f">= {THRESHOLD} of {args.pairs}\n"
-        "  the question is *messier*, not *better*.\n\n"
+        f"  pre-registered: the cleaner take is preferred in >= {THRESHOLD} of {args.pairs}"
+        f"  (p = 0.038 under a coin)\n"
+        "  the question is *better*, not *cleaner* — the superseded run asked the other\n"
+        "  one and that was the mistake (phase-4-findings.md §3).\n"
+        f"  power: 0.63 if collisions cost preference 75% of the time, 0.92 at 85%.\n"
+        f"  sample: {_composition(trials_data)} — busier sections have more slots to\n"
+        "  collide in, so the widest gaps are found there and the result generalises to\n"
+        "  busy sections first. Both sides of a pair are the same briefing, so this\n"
+        "  biases what the answer covers, not the comparison itself.\n\n"
     )
 
     if args.dry_run:
@@ -428,17 +516,18 @@ def main() -> int:
             return 1
 
         for index, (messy, clean) in enumerate(trials_data):
-            first = order.choice(("messy", "clean"))
+            first = order.choice(("clean", "messy"))
             trial = Trial(index, messy, clean, first)
             seconds = args.seconds or messy.section.total_seconds()
             write(daw, messy.score if first == "messy" else clean.score, SCENES[0], tracks)
             write(daw, clean.score if first == "messy" else messy.score, SCENES[1], tracks)
 
-            vote = ask(trial, daw, seconds, args.pairs)
-            if vote is None:
+            answer = ask(trial, daw, seconds, args.pairs)
+            if answer is None:
                 sys.stderr.write("\nstopped.\n")
                 break
-            record(args.log, trial, vote, seconds)
+            vote, reason = answer
+            record(args.log, trial, vote, seconds, reason)
 
         sys.stderr.write(tally(args.log) if args.log.exists() else "No votes recorded.\n")
         return 0
