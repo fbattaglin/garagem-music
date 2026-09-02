@@ -17,6 +17,7 @@ from garagem.theory.coherence import (
     bass_kick_alignment,
     density_against_tension,
     harmonic_conformance,
+    kit_collision,
     register_spread,
 )
 
@@ -40,4 +41,5 @@ def coherence_of(score: SectionScore) -> Coherence:
         density_against_tension=density_against_tension(
             score, reference_attacks(score.section)
         ),
+        kit_collision=kit_collision(score),
     )

@@ -16,6 +16,7 @@ from garagem.theory.coherence import (
     bass_kick_alignment,
     density_against_tension,
     harmonic_conformance,
+    kit_collision,
     register_spread,
 )
 from garagem.theory.errors import (
@@ -121,6 +122,7 @@ __all__ = [
     "fit_to_range",
     "grid_slots",
     "harmonic_conformance",
+    "kit_collision",
     "nearest_in",
     "nearest_slot",
     "parse_chart",

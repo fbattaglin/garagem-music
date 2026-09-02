@@ -73,7 +73,7 @@ BRIEF_SECONDS = 600.0
 TEMPOS = (110.0, 132.0, 96.0, 150.0)
 
 
-def briefings(count: int, seed: int) -> list[Section]:
+def draw(count: int, seed: int) -> list[Section]:
     """A varied sample from the arranger, seeded. Intros and choruses, 4 bars and 8.
 
     Drawn from what the system actually generates rather than hand-picked: a conformance
@@ -95,7 +95,18 @@ def briefings(count: int, seed: int) -> list[Section]:
         )
         form = arrange(brief, seed + index)
         out.append(form[index % len(form)])
-    return [section for section in out if worth_asking(section)][:count]
+    return out
+
+
+def briefings(count: int, seed: int) -> list[Section]:
+    """`draw`, minus the sections there is no time to ask for.
+
+    Split from the draw because the filter has moved and the draw has not: raising
+    `MIN_DEADLINE_S` from 1.5 to 5.0 (§15) stopped four-bar intros being asked for, so a
+    log recorded before that has rows this function no longer returns. Anything replaying
+    an old round needs the draw; anything measuring a new one needs this.
+    """
+    return [section for section in draw(count, seed) if worth_asking(section)][:count]
 
 
 def estimate_usd(model: ModelSpec, runs: int) -> Decimal:

@@ -10,12 +10,16 @@ outside the chart and instruments piled into one octave. Those two are what `mes
 aggregates. All four metrics ADR-000 §7 asks for are computed and reported; see
 `MESSINESS_PARTS` for why only two of them compose.
 
-**`messiness` is refuted as written and is not yet load-bearing.** Measured over 112
-recorded model sections, `register_spread` is 1.000 for every one of them and for every
-floor section: the DSL never lets a model name a pitch, so out-of-chart notes and a band
-piled into one octave are things the architecture forbids it to produce
-(`phase-4-findings.md` §1). The four metrics below are computed and reported because
-ADR-000 §7 asks for them; the composite waits on a mechanism that survives the corpus.
+**§16's mechanism was measured and refuted.** Over 112 recorded model sections,
+`register_spread` is 1.000 for every one of them and for every floor section: the DSL
+never lets a model name a pitch, so out-of-chart notes and a band piled into one octave
+are things the architecture forbids it to produce (`phase-4-findings.md` §1). Those two
+metrics are computed and reported because ADR-000 §7 asks for them, and they compose into
+nothing.
+
+What `messiness` reads instead is `kit_collision`, the one measured difference that points
+the same way as the three votes — and it is a **candidate under test**, not a settled
+number, until `scripts/calibrate_metrics.py` says a blind listen agrees with it.
 
 Every metric returns a fraction in `[0, 1]` where **1 is the good end**, so a composite
 needs no sign-juggling and a report reads the same way down every column.
@@ -34,24 +38,26 @@ from statistics import fmean
 from pydantic import BaseModel, ConfigDict, Field
 
 from garagem.domain import PITCH_CLASSES, Instrument, Part, SectionScore
-from garagem.theory.percussion import KICK
+from garagem.theory.percussion import KICK, SNARE
 from garagem.theory.scales import pitch_classes
 from garagem.theory.validator import chart_pitch_classes, grid_slots, nearest_slot
 from garagem.theory.voicings import RANGES
 
-# What `messiness` aggregates. Two of the four, and the other two are excluded for
-# reasons that were measured rather than argued.
+# One measure, not an average of five. Each exclusion below was measured on the corpus
+# rather than argued, and averaging a real signal with four constants would only dilute it.
+#
+# **Harmonic conformance and register spread are out**: 0.998 and 1.000 on the model,
+# 0.996 and 1.000 on the floor. The realiser builds every pitched note from a chart degree
+# and a register band, so neither failure is reachable (`phase-4-findings.md` §1).
 #
 # **Density is out** because a section too quiet for its briefing is *boring*, which is
 # the other half of §16's split and the half the model was already winning.
 #
 # **Bass/kick alignment is out** because the deterministic floor scores 0.33 to 1.00 on
 # it across feels — a halftime bridge puts kicks on 1 and 2.5 and 4 under a bass playing
-# half notes, and only the downbeat coincides. The floor is the clean reference by
-# definition, so a measure whose clean reference spans the whole range cannot be what
-# separates clean from messy. It stays a reported metric because ADR-000 §7 asks for it,
-# and it may yet earn a place once there is a calibrated band to read it against.
-MESSINESS_PARTS = ("harmonic_conformance", "register_spread")
+# half notes, and only the downbeat coincides. A measure whose clean reference spans the
+# whole range cannot be what separates clean from messy.
+MESSINESS_PARTS = ("kit_collision",)
 
 
 class Coherence(BaseModel):
@@ -63,6 +69,7 @@ class Coherence(BaseModel):
     register_spread: float = Field(ge=0.0, le=1.0)
     bass_kick_alignment: float = Field(ge=0.0, le=1.0)
     density_against_tension: float = Field(ge=0.0, le=1.0)
+    kit_collision: float = Field(ge=0.0, le=1.0)
 
     @property
     def messiness(self) -> float:
@@ -171,3 +178,31 @@ def density_against_tension(score: SectionScore, reference_attacks: float) -> fl
     if actual <= 0:
         return 0.0
     return min(actual, reference_attacks) / max(actual, reference_attacks)
+
+
+def kit_collision(score: SectionScore) -> float:
+    """The share of struck slots where the kick and the snare are *not* fighting for one.
+
+    The only measured difference between model output and the floor that points the same
+    way as §16's three "cleaner, less messy" votes: the model stacks a kick and a snare on
+    the same sixteenth 0.172 of the time against the curated grooves' 0.060, nearly three
+    times as often (`phase-4-findings.md` §1).
+
+    Kick and snare only. A hat sounds with everything and is supposed to — folding it in
+    would bury the signal under the one simultaneity that is never mess. And two drums in
+    one slot is not forbidden: the floor does it 6% of the time, deliberately. This counts
+    how often, not whether.
+
+    Slots, not raw beats, for the reason `bass_kick_alignment` gives: `humanise` moves
+    notes off the grid on purpose.
+    """
+    if Instrument.DRUMS not in score.instruments():
+        return 1.0
+    slots = grid_slots(score.section)
+    notes = score.part(Instrument.DRUMS).notes
+    kicks = {nearest_slot(slots, note.start_beats) for note in notes if note.pitch == KICK}
+    snares = {nearest_slot(slots, note.start_beats) for note in notes if note.pitch == SNARE}
+    struck = kicks | snares
+    if not struck:
+        return 1.0
+    return 1.0 - len(kicks & snares) / len(struck)

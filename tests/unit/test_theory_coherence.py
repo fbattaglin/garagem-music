@@ -17,6 +17,7 @@ from garagem.theory import (
     bass_kick_alignment,
     density_against_tension,
     harmonic_conformance,
+    kit_collision,
     parse_chart,
     register_spread,
 )
@@ -174,27 +175,47 @@ def test_a_section_with_no_drums_has_no_density_to_judge() -> None:
 # ---------------------------------------------------------------------------- the composite
 
 
-def test_messiness_aggregates_only_what_the_floor_can_distinguish() -> None:
-    """Density and bass/kick are reported but do not compose. See `MESSINESS_PARTS`."""
-    assert MESSINESS_PARTS == ("harmonic_conformance", "register_spread")
+def test_messiness_reads_only_the_measure_that_separated_model_from_floor() -> None:
+    """The other four are reported and compose into nothing. See `MESSINESS_PARTS`."""
+    assert MESSINESS_PARTS == ("kit_collision",)
 
 
-def test_a_piled_dissonant_section_is_messy_and_the_floor_is_not() -> None:
-    piled = scored(
-        drums=at(0.0, pitch=36),
-        bass=at(0.0, pitch=61),
-        guitar=at(0.0, pitch=62),
-        keys=at(0.0, pitch=63),
+def test_a_kit_fighting_itself_is_messy_and_the_floor_is_not() -> None:
+    fighting = scored(
+        drums=at(0.0, 1.0, 2.0, 3.0, pitch=36) + at(0.0, 1.0, 2.0, 3.0, pitch=38),
     )
-    assert coherence_of(piled).messiness > 0.5
-    assert coherence_of(play_section(SECTION, 7)).messiness < 0.05
+    assert coherence_of(fighting).messiness == 1.0
+    assert coherence_of(play_section(SECTION, 7)).messiness < 0.3
+
+
+# ------------------------------------------------------------------------ kit collision
+
+
+def test_a_kick_and_a_snare_in_one_slot_is_the_collision() -> None:
+    both = scored(drums=at(0.0, pitch=36) + at(0.0, pitch=38))
+    assert kit_collision(both) == 0.0
+
+
+def test_a_kick_and_a_snare_that_take_turns_do_not_collide() -> None:
+    apart = scored(drums=at(0.0, 2.0, pitch=36) + at(1.0, 3.0, pitch=38))
+    assert kit_collision(apart) == 1.0
+
+
+def test_the_hat_is_not_counted_because_it_sounds_with_everything() -> None:
+    """Folding it in would bury the signal under the simultaneity that is never mess."""
+    with_hat = scored(drums=at(0.0, 2.0, pitch=36) + at(1.0, 3.0, pitch=38) + at(
+        0.0, 1.0, 2.0, 3.0, pitch=42
+    ))
+    assert kit_collision(with_hat) == 1.0
 
 
 def test_the_floor_is_clean_by_this_measure() -> None:
     """The reference approved by ear, over every feel and three seeds.
 
-    A metric that scores the engines as messy is not measuring mess. The bound is loose on
-    purpose — it is a smoke alarm for a future change, not a tuned figure.
+    A metric that scores the engines as messy is not measuring mess. Measured over these
+    168 sections the worst is 0.250 and the mean is 0.041 — the curated grooves *do* put a
+    kick and a snare together sometimes, deliberately, which is why the bound is where it
+    is rather than near zero. A smoke alarm for a future change, not a tuned figure.
     """
     worst = 0.0
     for seed in (7, 11, 1729):
@@ -204,7 +225,7 @@ def test_the_floor_is_clean_by_this_measure() -> None:
             )
             for section in arrange(brief, seed):
                 worst = max(worst, coherence_of(play_section(section, seed)).messiness)
-    assert worst < 0.05
+    assert worst < 0.3
 
 
 # ------------------------------------------------------------------------ the reference
