@@ -1,0 +1,65 @@
+# Models measured by the latency rig, with the prices from section 4.4 of ADR-000
+# (verified August 2026, USD per million tokens).
+#
+# Model IDs live here rather than in the source: the project rule is that a model is
+# referenced by an explicit ID coming from configuration, never by an alias such as
+# "the fast model" hard-coded somewhere.
+#
+# Every model is measured with the same section-shot briefing (scripts/recipes/
+# section_brief.py), so the input token count and the cacheable prefix are identical
+# across providers. That is what makes the numbers comparable; it also means these are
+# structural-layer figures. The tactical layer gets its own probe when its prompt
+# exists (phase 4).
+
+[[model]]
+provider = "anthropic"
+id = "claude-opus-5"
+effort = "high"
+max_tokens = 2048
+input_usd = 5.00
+cache_read_usd = 0.50
+output_usd = 25.00
+
+[[model]]
+provider = "anthropic"
+id = "claude-sonnet-5"
+effort = "high"
+max_tokens = 2048
+input_usd = 3.00
+cache_read_usd = 0.20
+output_usd = 10.00
+
+# Gemini 3.1 Pro is not served on this key's free tier (429, "limit: 0" on the
+# input-token quota - billing required). Gemini 3.6 Flash is the strongest model this
+# key can actually call, and its price is in section 4.4 of ADR-000, so the structural
+# comparison uses it until billing is enabled. Swap back to gemini-3.1-pro-preview
+# once it is.
+[[model]]
+provider = "google"
+id = "gemini-3.6-flash"
+effort = "high"
+max_tokens = 2048
+input_usd = 1.50
+cache_read_usd = 0.15
+output_usd = 7.50
+
+# The tactical pair. Measured with the structural briefing for now - the comparison
+# that matters here is TTFT against the same input, not their real duty.
+[[model]]
+provider = "anthropic"
+id = "claude-haiku-4-5-20251001"
+# Haiku 4.5 predates the effort parameter and rejects it outright with a 400.
+effort = "none"
+max_tokens = 2048
+input_usd = 1.00
+cache_read_usd = 0.10
+output_usd = 5.00
+
+[[model]]
+provider = "google"
+id = "gemini-flash-lite-latest"
+effort = "low"
+max_tokens = 2048
+input_usd = 0.25
+cache_read_usd = 0.025
+output_usd = 1.50

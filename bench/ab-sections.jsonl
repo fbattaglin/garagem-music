@@ -1,0 +1,11 @@
+{"at": "2026-09-01T04:07:13.989037+00:00", "pair": 0, "section": "intro", "bars": 4, "bpm": 110.0, "feel": "straight8", "first": "floor", "vote": "A", "winner": "floor", "seconds": 8.727272727272727}
+{"at": "2026-09-01T04:13:54.471099+00:00", "pair": 1, "section": "verse", "bars": 8, "bpm": 132.0, "feel": "straight8", "first": "floor", "vote": "A", "winner": "floor", "seconds": 14.545454545454545}
+{"at": "2026-09-01T04:15:39.889621+00:00", "pair": 2, "section": "chorus", "bars": 8, "bpm": 96.0, "feel": "straight8", "first": "model", "vote": "A", "winner": "model", "seconds": 20.0}
+{"at": "2026-09-01T04:16:16.428808+00:00", "pair": 3, "section": "verse", "bars": 8, "bpm": 150.0, "feel": "straight8", "first": "floor", "vote": "A", "winner": "floor", "seconds": 12.8}
+{"at": "2026-09-01T04:17:03.326334+00:00", "pair": 4, "section": "chorus", "bars": 8, "bpm": 110.0, "feel": "straight16", "first": "model", "vote": "B", "winner": "floor", "seconds": 17.454545454545453}
+{"at": "2026-09-01T04:18:02.008318+00:00", "pair": 5, "section": "verse", "bars": 8, "bpm": 132.0, "feel": "straight16", "first": "model", "vote": "B", "winner": "floor", "seconds": 14.545454545454545}
+{"at": "2026-09-01T04:18:50.172219+00:00", "pair": 6, "section": "chorus", "bars": 8, "bpm": 96.0, "feel": "straight16", "first": "model", "vote": "A", "winner": "model", "seconds": 20.0}
+{"at": "2026-09-01T04:19:25.707482+00:00", "pair": 7, "section": "chorus", "bars": 8, "bpm": 150.0, "feel": "straight16", "first": "floor", "vote": "A", "winner": "floor", "seconds": 12.8}
+{"at": "2026-09-01T04:20:15.148887+00:00", "pair": 8, "section": "chorus", "bars": 8, "bpm": 110.0, "feel": "shuffle", "first": "model", "vote": "B", "winner": "floor", "seconds": 17.454545454545453}
+{"at": "2026-09-01T04:21:12.852839+00:00", "pair": 10, "section": "chorus", "bars": 8, "bpm": 96.0, "feel": "shuffle", "first": "model", "vote": "B", "winner": "floor", "seconds": 20.0}
+{"at": "2026-09-01T04:21:47.465843+00:00", "pair": 11, "section": "bridge", "bars": 8, "bpm": 150.0, "feel": "shuffle", "first": "model", "vote": "B", "winner": "floor", "seconds": 12.8}

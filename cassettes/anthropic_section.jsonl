@@ -1,0 +1,47 @@
+{"cassette":1,"provider":"anthropic","model":"claude-opus-5","fingerprint":"f96380038ed7a048","note":"rock verse in Em, 8 bars; prompt v3, recorded with the prefix already warm"}
+{"type":"tool_use_start","id":"toolu_01M96PbEqec55JExH2bvtYbm","name":"write_section"}
+{"type":"tool_input_delta","fragment":""}
+{"type":"tool_input_delta","fragment":"{\"dsl\": "}
+{"type":"tool_input_delta","fragment":"\"SEC verse "}
+{"type":"tool_input_delta","fragment":"bars=8 key"}
+{"type":"tool_input_delta","fragment":"=Em fee"}
+{"type":"tool_input_delta","fragment":"l=straight"}
+{"type":"tool_input_delta","fragment":"8 bpm="}
+{"type":"tool_input_delta","fragment":"132"}
+{"type":"tool_input_delta","fragment":" dyn=3 te"}
+{"type":"tool_input_delta","fragment":"nsion=0.4\\nC"}
+{"type":"tool_input_delta","fragment":"HD | Em | Em"}
+{"type":"tool_input_delta","fragment":" | "}
+{"type":"tool_input_delta","fragment":"C  | D  | Em"}
+{"type":"tool_input_delta","fragment":" | Em |"}
+{"type":"tool_input_delta","fragment":" C"}
+{"type":"tool_input_delta","fragment":"  "}
+{"type":"tool_input_delta","fragment":"| B7 |\\nD"}
+{"type":"tool_input_delta","fragment":"RM "}
+{"type":"tool_input_delta","fragment":"K:x..x..x"}
+{"type":"tool_input_delta","fragment":"...x..x.."}
+{"type":"tool_input_delta","fragment":" S:....x..."}
+{"type":"tool_input_delta","fragment":"...."}
+{"type":"tool_input_delta","fragment":"x... H:x.x"}
+{"type":"tool_input_delta","fragment":".x."}
+{"type":"tool_input_delta","fragment":"x.x.x.x.x.\\"}
+{"type":"tool_input_delta","fragment":"nBA"}
+{"type":"tool_input_delta","fragment":"S deg=1 "}
+{"type":"tool_input_delta","fragment":"oct=2 rhy:x"}
+{"type":"tool_input_delta","fragment":".x.x.x.x.x."}
+{"type":"tool_input_delta","fragment":"x.x.\\nGT"}
+{"type":"tool_input_delta","fragment":"R voi=pow r"}
+{"type":"tool_input_delta","fragment":"hy:"}
+{"type":"tool_input_delta","fragment":"x.x.x"}
+{"type":"tool_input_delta","fragment":".x.x."}
+{"type":"tool_input_delta","fragment":"x.x.x. palm"}
+{"type":"tool_input_delta","fragment":"=o"}
+{"type":"tool_input_delta","fragment":"n\\n"}
+{"type":"tool_input_delta","fragment":"KEY voi"}
+{"type":"tool_input_delta","fragment":"=su"}
+{"type":"tool_input_delta","fragment":"s2 rhy:x"}
+{"type":"tool_input_delta","fragment":"....."}
+{"type":"tool_input_delta","fragment":"..x..."}
+{"type":"tool_input_delta","fragment":".... reg"}
+{"type":"tool_input_delta","fragment":"=mid\"}"}
+{"type":"done","stop":"tool_use","usage":{"input_tokens":231,"output_tokens":238,"cache_read_tokens":1128,"cache_write_tokens":0}}

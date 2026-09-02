@@ -1,0 +1,12 @@
+{"at": "2026-09-01T14:14:07.606604+00:00", "pair": 0, "section": "intro", "bars": 4, "bpm": 110.0, "feel": "straight8", "first": "floor", "vote": "B", "winner": "model", "seconds": 8.727272727272727}
+{"at": "2026-09-01T14:14:49.394451+00:00", "pair": 1, "section": "verse", "bars": 8, "bpm": 132.0, "feel": "straight8", "first": "model", "vote": "A", "winner": "model", "seconds": 14.545454545454545}
+{"at": "2026-09-01T14:16:32.677879+00:00", "pair": 2, "section": "chorus", "bars": 8, "bpm": 96.0, "feel": "straight8", "first": "floor", "vote": "A", "winner": "floor", "seconds": 20.0}
+{"at": "2026-09-01T14:17:06.119215+00:00", "pair": 3, "section": "verse", "bars": 8, "bpm": 150.0, "feel": "straight8", "first": "model", "vote": "A", "winner": "model", "seconds": 12.8}
+{"at": "2026-09-01T14:17:49.438341+00:00", "pair": 4, "section": "chorus", "bars": 8, "bpm": 110.0, "feel": "straight16", "first": "model", "vote": "B", "winner": "floor", "seconds": 17.454545454545453}
+{"at": "2026-09-01T14:18:28.713410+00:00", "pair": 5, "section": "verse", "bars": 8, "bpm": 132.0, "feel": "straight16", "first": "model", "vote": "A", "winner": "model", "seconds": 14.545454545454545}
+{"at": "2026-09-01T14:19:20.007286+00:00", "pair": 6, "section": "chorus", "bars": 8, "bpm": 96.0, "feel": "straight16", "first": "floor", "vote": "A", "winner": "floor", "seconds": 20.0}
+{"at": "2026-09-01T14:19:55.976960+00:00", "pair": 7, "section": "chorus", "bars": 8, "bpm": 150.0, "feel": "straight16", "first": "model", "vote": "B", "winner": "floor", "seconds": 12.8}
+{"at": "2026-09-01T14:28:14.871182+00:00", "pair": 8, "section": "chorus", "bars": 8, "bpm": 110.0, "feel": "shuffle", "first": "model", "vote": "A", "winner": "model", "seconds": 17.454545454545453}
+{"at": "2026-09-01T14:28:53.824977+00:00", "pair": 9, "section": "verse", "bars": 8, "bpm": 132.0, "feel": "shuffle", "first": "model", "vote": "A", "winner": "model", "seconds": 14.545454545454545}
+{"at": "2026-09-01T14:29:42.168336+00:00", "pair": 10, "section": "chorus", "bars": 8, "bpm": 96.0, "feel": "shuffle", "first": "model", "vote": "B", "winner": "floor", "seconds": 20.0}
+{"at": "2026-09-01T14:30:18.735839+00:00", "pair": 11, "section": "bridge", "bars": 8, "bpm": 150.0, "feel": "shuffle", "first": "floor", "vote": "B", "winner": "model", "seconds": 12.8}

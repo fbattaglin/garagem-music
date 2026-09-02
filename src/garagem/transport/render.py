@@ -1,0 +1,50 @@
+"""The one place a `domain.Note` becomes a `daw.MidiNote`.
+
+`domain/` may not import `daw/` (`.claude/rules/domain-purity.md`), which is why there
+are two note types at all: `domain.Note` is a musical object designed on musical grounds,
+`MidiNote` is the Live Object Model's five-tuple in the LOM's field order. Keeping them
+apart stops Live's serialisation from getting a vote on how music is modelled. This
+module is the seam, and it is deliberately the only one.
+
+Everything here is pure. The output goes through `daw.normalised` rather than through a
+sort written here, and that is not tidiness: `normalised` is the function the Phase 1
+idempotence criterion is *stated* in, so a rendered part and a part read back out of Live
+compare equal with no tolerance argument at any call site.
+
+`bar_offset` exists because a `SectionScore` counts beats from its own start. The
+scheduler decides which bar of the song a section lands in; the score never knows, which
+is what makes it a portable object that can be generated ahead of time and dropped into
+whichever scene is free.
+"""
+
+from __future__ import annotations
+
+from garagem.daw import MidiNote, normalised
+from garagem.domain import BEATS_PER_BAR, Instrument, Note, Part, SectionScore
+
+
+def render_note(note: Note, *, bar_offset: int = 0) -> MidiNote:
+    """One note, shifted by whole bars. Beats stay beats; tempo is Live's."""
+    return MidiNote(
+        pitch=note.pitch,
+        start_beats=note.start_beats + bar_offset * BEATS_PER_BAR,
+        duration_beats=note.duration_beats,
+        velocity=note.velocity,
+    )
+
+
+def render_part(part: Part, *, bar_offset: int = 0) -> tuple[MidiNote, ...]:
+    """One instrument's notes, ready for `write_notes`."""
+    return normalised(render_note(note, bar_offset=bar_offset) for note in part.notes)
+
+
+def render_score(
+    score: SectionScore, *, bar_offset: int = 0
+) -> dict[Instrument, tuple[MidiNote, ...]]:
+    """Every part of a section, keyed by instrument.
+
+    A dict rather than a tuple because the caller's next question is "which track does
+    this go on", and that is a mapping the session owns, not an order this module can
+    guess.
+    """
+    return {part.instrument: render_part(part, bar_offset=bar_offset) for part in score.parts}

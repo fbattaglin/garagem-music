@@ -1,0 +1,4 @@
+{"cassette":1,"provider":"google","model":"gemini-flash-lite-latest","fingerprint":"9607192ad650a1b0","note":"rock verse in Em, 8 bars; prompt v3 (voicings enumerated, chart per bar, grid is one bar whatever the feel)"}
+{"type":"tool_use_start","id":"gemini_call_1","name":"write_section"}
+{"type":"tool_input_delta","fragment":"{\"dsl\": \"SEC verse bars=8 key=Em feel=straight8 bpm=132 dyn=3 tension=0.4\\nCHD | Em | Em | C  | D  | Em | Em | C  | B7 |\\nDRM K:x...x...x...x... S:....x.......x... H:x.x.x.x.x.x.x.x.\\nBAS deg=1 oct=2 rhy:x.x.x.x.x.x.x.x.\\nGTR voi=pow rhy:xx.xxx.xxx.xx.x. palm=on\\nKEY voi=sus2 rhy:x.......x....... reg=mid\"}"}
+{"type":"done","stop":"tool_use","usage":{"input_tokens":663,"output_tokens":163,"cache_read_tokens":0,"cache_write_tokens":0}}

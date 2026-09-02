@@ -1,0 +1,63 @@
+"""Observability: event log, metrics and the latency rig."""
+
+from garagem.obs.events import (
+    DENOMINATOR,
+    KINDS,
+    Event,
+    EventLog,
+    MalformedEventError,
+    append_events,
+    load_events,
+    rate_of,
+)
+from garagem.obs.latency import (
+    BUCKETS,
+    REQUIRED_BUCKETS,
+    SECTION_DEADLINE_S,
+    Aggregate,
+    Sample,
+    append_sample,
+    bucket_of,
+    load_samples,
+    percentile,
+    render_report,
+    summarise,
+)
+from garagem.obs.sections import (
+    APPROVAL_TARGET,
+    CONFORMANCE_TARGET,
+    LATENCY_TARGET,
+    Report,
+    Shot,
+    append_shot,
+    load_shots,
+)
+
+__all__ = [
+    "APPROVAL_TARGET",
+    "BUCKETS",
+    "CONFORMANCE_TARGET",
+    "DENOMINATOR",
+    "KINDS",
+    "LATENCY_TARGET",
+    "REQUIRED_BUCKETS",
+    "SECTION_DEADLINE_S",
+    "Aggregate",
+    "Event",
+    "EventLog",
+    "MalformedEventError",
+    "Report",
+    "Sample",
+    "Shot",
+    "append_events",
+    "append_sample",
+    "append_shot",
+    "bucket_of",
+    "load_events",
+    "load_samples",
+    "load_shots",
+    "percentile",
+    "rate_of",
+    "render_report",
+    "summarise",
+]
