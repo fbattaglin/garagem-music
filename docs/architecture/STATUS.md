@@ -29,21 +29,53 @@ measured p50 1.83 s, max 15.04 s.
 Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md)):
 
 - [ ] **The metrics reproduce the ear before anyone listens again.**
-      `register_spread` and `harmonic_conformance` must separate the three "messy" losses
-      in `bench/ab-phase3-final.jsonl` from the other nine. A metric that cannot is not
-      measuring what was heard, and tuning against it would be tuning against a number
-      with no known relationship to the music.
+      **Re-aimed, because the debt as written is not executable and its mechanism is
+      refuted** (`phase-4-findings.md` §1–2). The model side of the twelve judged pairs
+      was never persisted, and `register_spread` measures 1.000 on all 112 recorded model
+      sections: the DSL never lets a model name a pitch, so out-of-chart notes and a band
+      piled into one octave are things the architecture forbids it to produce. §16's
+      mechanism cannot be what was heard.
+
+      What replaced it is `kit_collision` — kick and snare in the same slot, which the
+      model does 0.172 of the time against the curated grooves' 0.060, the one measured
+      difference in the corpus pointing the same way as those three votes.
+      `scripts/calibrate_metrics.py` plays ten blind pairs of it, **both sides the same
+      briefing**, and asks which is *messier* rather than which is better. Ten pairs,
+      threshold 8, fixed in the source before the first note; free, offline, ~20 minutes.
+
+      **Not yet run. Stage 2 does not begin until it is.**
 - [ ] **Blind A/B re-run at this phase's close — same design, same threshold: 8 of 12.**
       Blind, balanced across sections and feels, pre-registered. The Phase 3 waiver moved
       the gate; it did not lower the bar.
 
-First three steps, in order:
+### Where the phase actually is
 
-1. **Write the two metrics and hold them to the calibration set** before they are used to
-   tune anything. They can be wrong in a visible way against twelve human verdicts, and
-   in no other way.
+Done, with the suite at **1610 passed, 25 live-marked skipped**, `ruff` and `mypy` clean:
+
+- **Version control.** The project is under `git` for the first time; Phase 4 moves the
+  eight golden files and reviewing them without a diff is not possible.
+- **A cancelled call is no longer free.** `Usage` rides the `done` event, so a stream
+  cancelled at its deadline was released and charged nothing — thirty billed calls at
+  $0.0000 in Phase 3 (§14). It is now settled against a usage reconstructed from the
+  prompt and from what arrived, flagged `estimated` and kept apart from measured spend.
+  **The cost criterion below was unverifiable until this.**
+- **The session budget is declared**, in `config/budget.toml` rather than as two constants
+  inside `scripts/jam.py`.
+- **Material survives.** `ab_section.py` persists the seed, the briefing and the model's
+  raw DSL beside every vote — the defect that cost Phase 3 its calibration set.
+- **The four metrics exist** (`theory/coherence.py`, `engines/coherence.py`), plus
+  `kit_collision`, with the floor established as the clean reference by property test.
+- **The provider is warmed on the producer's own loop**, which is the only loop that may
+  own its pool (§9). `jam.py` never did this, so every first section paid the handshake.
+- **CI exists** (`.github/workflows/ci.yml`): lint, format, types, tests. No key, no
+  Ableton — the `no_network` fuse is what makes the default suite safe to run there.
+
+Next, in order:
+
+1. **Run the calibration gate.** `uv run python scripts/calibrate_metrics.py`, Live open.
+   This is Fabiano's and nothing else can stand in for it.
 2. **Extend `_arranged()` with the dynamics curve and the transitions** — fills, breaks,
-   builds — as composition over the model's groove (ADR-017), gated on those metrics.
+   builds — as composition over the model's groove (ADR-017), gated on step 1.
 3. **The tactical layer**: a cue changes the next bar deterministically, and the model is
    asked to refine the section after it.
 

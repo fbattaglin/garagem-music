@@ -46,9 +46,7 @@ def scored(**parts: tuple[Note, ...]) -> SectionScore:
         section=SECTION,
         seed=7,
         parts=tuple(
-            Part(instrument=named[name], notes=notes)
-            for name, notes in parts.items()
-            if notes
+            Part(instrument=named[name], notes=notes) for name, notes in parts.items() if notes
         ),
     )
 
@@ -98,9 +96,7 @@ def test_drums_are_not_asked_to_be_in_key() -> None:
 
 
 def test_instruments_piled_into_one_octave_score_low() -> None:
-    piled = scored(
-        bass=at(0.0, pitch=60), guitar=at(0.0, pitch=61), keys=at(0.0, pitch=62)
-    )
+    piled = scored(bass=at(0.0, pitch=60), guitar=at(0.0, pitch=61), keys=at(0.0, pitch=62))
     assert register_spread(piled) < 0.2
 
 
@@ -118,9 +114,7 @@ def test_one_pitched_part_cannot_be_piled_against_anything() -> None:
 
 def test_every_kick_supported_by_a_bass_note_scores_full() -> None:
     assert (
-        bass_kick_alignment(
-            scored(drums=at(0.0, 2.0, pitch=36), bass=at(0.0, 2.0, pitch=40))
-        )
+        bass_kick_alignment(scored(drums=at(0.0, 2.0, pitch=36), bass=at(0.0, 2.0, pitch=40)))
         == 1.0
     )
 
@@ -203,9 +197,9 @@ def test_a_kick_and_a_snare_that_take_turns_do_not_collide() -> None:
 
 def test_the_hat_is_not_counted_because_it_sounds_with_everything() -> None:
     """Folding it in would bury the signal under the simultaneity that is never mess."""
-    with_hat = scored(drums=at(0.0, 2.0, pitch=36) + at(1.0, 3.0, pitch=38) + at(
-        0.0, 1.0, 2.0, 3.0, pitch=42
-    ))
+    with_hat = scored(
+        drums=at(0.0, 2.0, pitch=36) + at(1.0, 3.0, pitch=38) + at(0.0, 1.0, 2.0, 3.0, pitch=42)
+    )
     assert kit_collision(with_hat) == 1.0
 
 
@@ -220,9 +214,7 @@ def test_the_floor_is_clean_by_this_measure() -> None:
     worst = 0.0
     for seed in (7, 11, 1729):
         for feel in Feel:
-            brief = SongBrief(
-                bpm=132.0, key=4, scale="minor", feel=feel, minimum_seconds=180.0
-            )
+            brief = SongBrief(bpm=132.0, key=4, scale="minor", feel=feel, minimum_seconds=180.0)
             for section in arrange(brief, seed):
                 worst = max(worst, coherence_of(play_section(section, seed)).messiness)
     assert worst < 0.3

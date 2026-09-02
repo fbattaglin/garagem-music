@@ -44,7 +44,7 @@ from garagem.domain import Instrument, Part, Section, SectionScore
 from garagem.dsl import ParsedSection, SectionStream, realise
 from garagem.dsl.errors import DslError
 from garagem.engines import play_section
-from garagem.llm import LLMProvider, ModelSpec, ProviderError, Request, Usage
+from garagem.llm import LLMProvider, ModelSpec, ProviderError, Request, Usage, Warmable
 from garagem.obs import EventLog
 from garagem.theory import repair, validate
 from garagem.transport import ScoreBuffer
@@ -117,12 +117,33 @@ class Producer:
         asyncio.run(self._loop())
 
     async def _loop(self) -> None:
+        await self._warm()
         while not self._stopping.is_set():
             index = self._next_wanted()
             if index is None:
                 await asyncio.sleep(IDLE_S)
                 continue
             await self.produce(index)
+
+    async def _warm(self) -> None:
+        """Pay for the handshake here, before the first section needs the connection.
+
+        It has to happen on *this* loop. The HTTP pool belongs to the loop that created it
+        (`phase-3-findings.md` §9), and this thread's loop is the only one that will ever
+        stream from it — warming from the caller's thread would open a pool on a loop that
+        then dies, which is the bug that finding is about.
+
+        Best effort, and deliberately unlogged. A provider that will not warm is a
+        provider whose first section fails, and *that* is recorded with its reason and its
+        seed like any other fallback. A second event here would say the same thing earlier
+        and less usefully.
+        """
+        if not isinstance(self._provider, Warmable):
+            return
+        try:
+            await self._provider.warm()
+        except ProviderError:
+            return
 
     def _next_wanted(self) -> int | None:
         """The first gap in the window that has not had its shot, in play order."""

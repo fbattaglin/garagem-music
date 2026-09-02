@@ -78,9 +78,7 @@ class Coherence(BaseModel):
 
 
 def _pitched(score: SectionScore) -> list[Part]:
-    return [
-        part for part in score.parts if part.instrument is not Instrument.DRUMS and part.notes
-    ]
+    return [part for part in score.parts if part.instrument is not Instrument.DRUMS and part.notes]
 
 
 def harmonic_conformance(score: SectionScore) -> float:

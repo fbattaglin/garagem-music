@@ -38,8 +38,6 @@ def coherence_of(score: SectionScore) -> Coherence:
         harmonic_conformance=harmonic_conformance(score),
         register_spread=register_spread(score),
         bass_kick_alignment=bass_kick_alignment(score),
-        density_against_tension=density_against_tension(
-            score, reference_attacks(score.section)
-        ),
+        density_against_tension=density_against_tension(score, reference_attacks(score.section)),
         kit_collision=kit_collision(score),
     )

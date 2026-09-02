@@ -280,8 +280,7 @@ def ask(trial: Trial, daw: DawPort, seconds: float, total: int) -> str | None:
             play(daw, SCENES[1], seconds)
             heard = True
         answer = input(
-            "  [a] hear A  [b] hear B  [1] A messier  [2] B messier  "
-            "[=] can't tell  [q] quit: "
+            "  [a] hear A  [b] hear B  [1] A messier  [2] B messier  [=] can't tell  [q] quit: "
         )
         choice = answer.strip().lower()
         if choice == "a":
@@ -302,11 +301,7 @@ def ask(trial: Trial, daw: DawPort, seconds: float, total: int) -> str | None:
 
 def record(path: Path, trial: Trial, vote: str, seconds: float) -> None:
     """The verdict and both sides' provenance. Written only after the answer is in."""
-    agreed = (
-        "same"
-        if vote == "same"
-        else str((trial.first == "messy") == (vote == "A")).lower()
-    )
+    agreed = "same" if vote == "same" else str((trial.first == "messy") == (vote == "A")).lower()
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
         handle.write(

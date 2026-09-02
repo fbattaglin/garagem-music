@@ -176,6 +176,19 @@ EVENT_ADAPTER: TypeAdapter[StreamEvent] = TypeAdapter(StreamEvent)
 
 
 @runtime_checkable
+class Warmable(Protocol):
+    """A provider whose connection can be paid for in advance.
+
+    Not part of `LLMProvider`: a cassette has no pool to open and a fake has no wire, and
+    neither is deficient for it. §4.2 budgets zero for the TLS handshake, which is only
+    true if someone paid for it earlier and on the right loop — the pool belongs to the
+    loop that created it (`phase-3-findings.md` §9).
+    """
+
+    async def warm(self) -> None: ...
+
+
+@runtime_checkable
 class LLMProvider(Protocol):
     """Every provider: a name for the event log and a stream of events.
 

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import AsyncIterator
 from pathlib import Path
 
 import pytest
@@ -27,7 +28,9 @@ from garagem.llm import (
     FakeResponse,
     LLMProvider,
     ProviderUnavailableError,
+    Request,
     StopReason,
+    StreamEvent,
     Usage,
     load_catalog,
 )
@@ -372,3 +375,55 @@ def test_two_runs_with_one_seed_produce_the_same_music() -> None:
     first.produce(0)
     second.produce(0)
     assert first.buffer.take(0) == second.buffer.take(0)
+
+
+# ------------------------------------------------------------------------------ warming
+
+
+class WarmingProvider:
+    """A provider that counts its warmings, and can refuse one."""
+
+    def __init__(self, inner: LLMProvider, *, fail: bool = False) -> None:
+        self._inner = inner
+        self._fail = fail
+        self.warmed = 0
+
+    @property
+    def name(self) -> str:
+        return self._inner.name
+
+    async def warm(self) -> None:
+        self.warmed += 1
+        if self._fail:
+            raise ProviderUnavailableError("no route to host")
+
+    async def stream(self, request: Request) -> AsyncIterator[StreamEvent]:
+        async for event in self._inner.stream(request):
+            yield event
+
+
+def test_the_pool_is_warmed_on_the_producers_own_loop() -> None:
+    """§4.2 budgets zero for the handshake, which is only true if someone paid earlier.
+
+    It has to be this loop: the pool belongs to the loop that created it (§9).
+    """
+    provider = WarmingProvider(responding(dsl_for(FORM[0])))
+    rig = Rig(provider)
+    asyncio.run(rig.producer._warm())
+    assert provider.warmed == 1
+
+
+def test_a_provider_that_cannot_be_warmed_still_produces() -> None:
+    """A warm failure is not a stop. The first section fails and *that* is logged."""
+    provider = WarmingProvider(responding(dsl_for(FORM[0])), fail=True)
+    rig = Rig(provider)
+    asyncio.run(rig.producer._warm())
+    assert rig.produce(0)
+    assert rig.buffer.take(0) is not None
+
+
+def test_a_provider_with_no_pool_to_open_is_not_an_error() -> None:
+    """A cassette has nothing to warm and is not deficient for it."""
+    rig = Rig(responding(dsl_for(FORM[0])))
+    asyncio.run(rig.producer._warm())
+    assert rig.produce(0)

@@ -88,3 +88,55 @@ later as one.
 $0 and no listening session. That is the whole argument for the gate being where it is:
 had the metrics been trusted and Stage 2's arrangement work tuned against `messiness`, the
 phase would have spent weeks optimising a number that is a constant on real material.
+
+## 2. The gate, re-aimed: what `scripts/calibrate_metrics.py` asks and why
+
+ADR-018's debt #1 asked the metrics to separate the three "cleaner, less messy" losses in
+`bench/ab-phase3-final.jsonl` from the other nine. §1 shows why that is not executable —
+the model side of those twelve pairs was never persisted — and refutes the mechanism it
+was built on. The gate is re-aimed rather than dropped, and the design is worth recording
+because two of its choices were made against defects this project has already paid for.
+
+**It asks *messier*, not *better*.** Preference is the A/B's question and it closes the
+phase. This one asks only whether `kit_collision` is about anything a person can hear. A
+metric can be perfectly correlated with mess and still not predict preference, and
+conflating the two is how §13's chorus mechanism survived a whole round before
+pre-registration killed it.
+
+**Both sides of a pair are the same briefing.** The four Phase 3 rounds asked for the same
+sample four times and got four different answers, so a pair holds chart, key, tempo, feel
+and length fixed and varies only the drum pattern the model wrote. Pairing the global
+extremes was the first design and it would have repeated §10 exactly: a listener asked to
+compare a shuffle bridge in one key against a straight16 verse in another is not judging
+mess, and would be right not to.
+
+**Ten pairs, threshold 8, fixed in the source before the first note.** P(≥ 8 of 10) under
+a coin is 0.055 — the same order as the A/B's 8 of 12. A gate easier to pass than the test
+it protects is not a gate.
+
+**Free.** 107 sections realised offline from DSL recorded and paid for in Phase 3. No
+network, no key, no cost; Live is open only because the question is about sound.
+
+### Two defects the corpus surfaced on the way
+
+**`bench_sections.briefings` applied `worth_asking` inside the draw.** Raising
+`MIN_DEADLINE_S` from 1.5 to 5.0 (§15) therefore did not merely change what gets asked —
+it silently changed what the *older logs could be aligned against*, because the four-bar
+intros they were recorded for are no longer in the list. `draw()` is now split from the
+filter. Without that split, half the corpus would have been unreadable and nothing would
+have said so.
+
+**Alignment walks the draw per row, not by position.** The two eras skip differently, and
+a mispaired briefing would score a section against the wrong chart — a wrong number that
+looks exactly like a right one. The walk fails loudly when it cannot find a row rather
+than guessing.
+
+### What has to happen next, and by whom
+
+    uv run python scripts/calibrate_metrics.py --dry-run   # the selection, no Live
+    uv run python scripts/calibrate_metrics.py             # Live open, ~20 minutes
+
+**Stage 2 does not begin until this runs.** If the metric is heard in fewer than 8 of 10,
+it does not steer arrangement work, and the honest position is that Phase 4 has no
+validated measure of mess — which would be the second refuted mechanism in two phases and
+a finding in its own right.

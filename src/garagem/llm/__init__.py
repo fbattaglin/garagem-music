@@ -52,6 +52,7 @@ from garagem.llm.port import (
     ToolSchema,
     ToolUseStart,
     Usage,
+    Warmable,
 )
 
 __all__ = [
@@ -103,6 +104,7 @@ __all__ = [
     "ToolUseStart",
     "UnpricedModelError",
     "Usage",
+    "Warmable",
     "input_tokens_of",
     "load_budget",
     "load_catalog",

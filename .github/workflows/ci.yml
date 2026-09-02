@@ -1,0 +1,47 @@
+# The default suite is network-free by construction, which is what makes it a CI suite at
+# all: `tests/conftest.py` fuses `connect`, `connect_ex` and `sendto` for every test that
+# is not marked `live`, and `live`/`slow` are skipped unless asked for by name. So this
+# workflow needs no API key and no Ableton, and a test that reaches the wire fails here
+# rather than costing money quietly.
+#
+# Cassette *recording* is never run here. `scripts/record_cassette.py` spends real money
+# and is run by hand (`llm/cassette.py`).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Formatting
+        run: uv run ruff format --check .
+
+      - name: Types
+        run: uv run mypy
+
+      # Property tests run `derandomize=True` (tests/property/strategies.py), so a green
+      # run here means the same examples a developer saw, not a luckier draw.
+      - name: Tests
+        run: uv run pytest -q

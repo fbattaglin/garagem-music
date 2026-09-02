@@ -25,7 +25,7 @@ from collections.abc import AsyncIterator
 from garagem.llm.breaker import CircuitBreaker
 from garagem.llm.errors import ProviderUnavailableError
 from garagem.llm.governor import Governor, usage_after_cancellation
-from garagem.llm.port import LLMProvider, Request, StreamEvent
+from garagem.llm.port import LLMProvider, Request, StreamEvent, Warmable
 
 
 class GuardedProvider:
@@ -43,6 +43,14 @@ class GuardedProvider:
     @property
     def name(self) -> str:
         return f"guarded:{self._inner.name}"
+
+    async def warm(self) -> None:
+        """Forwarded ungoverned: warming costs no tokens, so there is nothing to reserve.
+
+        Silent when the inner provider has no pool to open — a cassette does not.
+        """
+        if isinstance(self._inner, Warmable):
+            await self._inner.warm()
 
     async def stream(self, request: Request) -> AsyncIterator[StreamEvent]:
         self._breaker.check()
@@ -69,9 +77,7 @@ class GuardedProvider:
         finally:
             if not settled:
                 if answered:
-                    self._governor.settle(
-                        reservation, usage_after_cancellation(request, produced)
-                    )
+                    self._governor.settle(reservation, usage_after_cancellation(request, produced))
                 else:
                     self._governor.release(reservation)
         # Only a stream that ran to completion counts as a success. A consumer that
