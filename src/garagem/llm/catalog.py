@@ -17,7 +17,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from garagem.llm.governor import ModelPrice
+from garagem.llm.governor import Budget, ModelPrice
 from garagem.llm.port import Effort
 
 
@@ -60,3 +60,39 @@ def load_catalog(path: Path) -> list[ModelSpec]:
 
 def prices_of(specs: list[ModelSpec]) -> dict[str, ModelPrice]:
     return {spec.id: spec.price for spec in specs}
+
+
+@dataclass(frozen=True, slots=True)
+class SessionBudget:
+    """What one performance may spend, read from `config/budget.toml`.
+
+    The caps are the fuse; `target_usd` is what an ordinary session is expected to cost.
+    Phase 4's exit criterion is measured against the target, and the fuse is what stops a
+    runaway loop before the target stops mattering.
+    """
+
+    session_usd: Decimal
+    per_minute_usd: Decimal
+    max_in_flight: int
+    target_usd: Decimal
+
+    def fuse(self, prices: dict[str, ModelPrice]) -> Budget:
+        return Budget(
+            session_usd=self.session_usd,
+            per_minute_usd=self.per_minute_usd,
+            max_in_flight=self.max_in_flight,
+            prices=prices,
+        )
+
+
+def load_budget(path: Path) -> SessionBudget:
+    raw: dict[str, Any] = tomllib.loads(path.read_text(encoding="utf-8"))
+    session = raw.get("session")
+    if not session:
+        raise ValueError(f"{path} declares no [session]")
+    return SessionBudget(
+        session_usd=Decimal(str(session["session_usd"])),
+        per_minute_usd=Decimal(str(session["per_minute_usd"])),
+        max_in_flight=int(session.get("max_in_flight", 3)),
+        target_usd=Decimal(str(session["target_usd"])),
+    )

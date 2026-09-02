@@ -20,6 +20,7 @@ from garagem.llm import (
     UnpricedModelError,
     Usage,
 )
+from garagem.llm.governor import input_tokens_of, usage_after_cancellation
 
 # Claude Opus 5, per ADR §4.4: $5 / $25 per million, $0.50 cache read.
 OPUS = ModelPrice(
@@ -164,6 +165,48 @@ def test_a_released_call_costs_nothing() -> None:
     assert snapshot.reserved_usd == Decimal(0)
     assert snapshot.last_minute_usd == Decimal(0)
     assert snapshot.in_flight == 0
+
+
+def test_a_cancelled_call_is_charged_for_the_prompt_and_for_what_arrived() -> None:
+    """Phase 3's accounting hole, as a test.
+
+    `Usage` rides on the `done` event, so thirty deadline-cancelled calls were recorded
+    at $0.0000 (`phase-3-findings.md` §14). The provider read the whole prompt and emitted
+    what it emitted; both are knowable without that event.
+    """
+    request = a_request()
+    usage = usage_after_cancellation(request, output_chars=400)
+
+    assert usage.estimated
+    assert usage.input_tokens == input_tokens_of(request)
+    assert usage.output_tokens == 100  # 400 chars, four to a token
+
+
+def test_an_inferred_charge_is_kept_apart_from_a_measured_one() -> None:
+    """Both are spent. Only one was counted by the provider, and a report must say which."""
+    governor, _ = a_governor(per_minute_usd=Decimal(100))
+
+    measured = governor.settle(
+        governor.reserve(a_request()), Usage(input_tokens=2000, output_tokens=800)
+    )
+    inferred = governor.settle(
+        governor.reserve(a_request()), usage_after_cancellation(a_request(), 400)
+    )
+
+    snapshot = governor.snapshot()
+    assert snapshot.spent_usd == measured + inferred
+    assert snapshot.estimated_usd == inferred
+
+
+def test_a_cancelled_call_never_settles_at_zero() -> None:
+    """The one thing the old behaviour did that this exists to stop."""
+    governor, _ = a_governor(per_minute_usd=Decimal(100))
+
+    charged = governor.settle(
+        governor.reserve(a_request()), usage_after_cancellation(a_request(), output_chars=0)
+    )
+
+    assert charged > Decimal(0)
 
 
 # ------------------------------------------------------------------- kill switch

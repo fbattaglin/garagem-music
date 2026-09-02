@@ -167,7 +167,7 @@ def test_without_the_flag_no_provider_is_ever_constructed(
 ) -> None:
     """Phase 2's behaviour, byte for byte. That is what makes the two comparable."""
 
-    def refuse(spec: object, catalog: object) -> object:
+    def refuse(spec: object, catalog: object, budget: object) -> object:
         raise AssertionError("a run without --generate must not build a provider")
 
     monkeypatch.setattr(jam, "build_provider", refuse)
@@ -220,7 +220,7 @@ def test_the_producer_is_started_and_stopped_in_the_finally(
             started.append("stop")
 
     monkeypatch.setattr(jam, "Producer", Recording)
-    monkeypatch.setattr(jam, "build_provider", lambda spec, catalog: object())
+    monkeypatch.setattr(jam, "build_provider", lambda spec, catalog, budget: object())
     monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None: None)
     # This test is about start/stop. The wait for a first section has its own test, and
     # leaving it in would spend the whole deadline waiting for a producer that is a stub.
@@ -247,7 +247,7 @@ def test_the_producer_is_stopped_even_when_the_run_fails(
         raise RuntimeError("mid-performance")
 
     monkeypatch.setattr(jam, "Producer", Recording)
-    monkeypatch.setattr(jam, "build_provider", lambda spec, catalog: object())
+    monkeypatch.setattr(jam, "build_provider", lambda spec, catalog, budget: object())
     monkeypatch.setattr(jam, "prime", lambda buffer, first: 0.0)
     monkeypatch.setattr(jam.Scheduler, "run", explode)
     with_argv(monkeypatch, "--seconds", "10", "--generate", "--log", str(LOG))
@@ -263,15 +263,16 @@ def test_a_cassette_provider_is_wrapped_in_the_guards(tmp_path: Path) -> None:
 
     Including a replay. A rule with an exception for tests is a rule with an exception.
     """
-    from garagem.llm import GuardedProvider, load_catalog
+    from garagem.llm import GuardedProvider, load_budget, load_catalog
 
     catalog = load_catalog(ROOT / "config" / "models.toml")
+    budget = load_budget(ROOT / "config" / "budget.toml")
     path = tmp_path / "empty.jsonl"
     path.write_text(
         '{"cassette":1,"provider":"fake","model":"claude-sonnet-5","fingerprint":"x"}\n',
         encoding="utf-8",
     )
-    provider = jam.build_provider(f"cassette:{path}", catalog)
+    provider = jam.build_provider(f"cassette:{path}", catalog, budget)
     assert isinstance(provider, GuardedProvider)
 
 

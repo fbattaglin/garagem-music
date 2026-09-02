@@ -1,0 +1,24 @@
+# What one performance may spend, and the ceiling it may not cross.
+#
+# Phase 4's exit criterion is "cost per session within the declared budget", and a
+# criterion that says *declared* needs somewhere to declare it. Until now these were two
+# constants inside `scripts/jam.py`, which made the budget a property of one script
+# rather than of the project.
+#
+# Generous against a real cost of a fraction of a cent per section — Phase 3 measured
+# ~$0.0035 for a section-shot — and small enough that a runaway loop stops before it
+# matters, which is what ADR-010 asks the governor to be for.
+#
+# The measurement rigs (`bench_sections.py`, `bench_latency.py`, `record_cassette.py`)
+# keep their own caps: a bench round is not a session, and sharing a ceiling with the
+# performance would let an afternoon of measurement silently spend the evening's gig.
+
+[session]
+session_usd = 1.00
+per_minute_usd = 0.50
+# Ten calls in flight for one section means the scheduler is broken, whatever they cost.
+max_in_flight = 3
+
+# What an 8-minute performance is expected to cost, as opposed to what it is allowed to.
+# The exit criterion is measured against this; the caps above are the fuse, not the target.
+target_usd = 0.10

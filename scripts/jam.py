@@ -41,7 +41,6 @@ from __future__ import annotations
 import argparse
 import sys
 import time
-from decimal import Decimal
 from pathlib import Path
 
 from garagem.agents import Producer, deadline_for, structural, worth_asking
@@ -62,7 +61,6 @@ from garagem.engines import SongBrief, arrange
 from garagem.llm import (
     AnthropicAdapter,
     BreakerPolicy,
-    Budget,
     CassetteProvider,
     CircuitBreaker,
     Governor,
@@ -70,6 +68,8 @@ from garagem.llm import (
     LLMProvider,
     ModelSpec,
     ProviderError,
+    SessionBudget,
+    load_budget,
     load_catalog,
     prices_of,
 )
@@ -80,12 +80,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SESSION = ROOT / "session.toml"
 DEFAULT_LOG = ROOT / "bench" / "jam.jsonl"
 DEFAULT_CATALOG = ROOT / "config" / "models.toml"
-
-# The whole session's budget. Generous against a real cost of a fraction of a cent per
-# section, and small enough that a runaway loop stops before it matters — which is what
-# ADR-010 asks the governor to be for.
-SESSION_USD = Decimal("1.00")
-PER_MINUTE_USD = Decimal("0.50")
+DEFAULT_BUDGET = ROOT / "config" / "budget.toml"
 
 CASSETTE_PREFIX = "cassette:"
 
@@ -116,7 +111,9 @@ def build_adapter(host: str, timeout_s: float) -> DawPort:
     return AbletonOSCAdapter(settings=OscSettings(host=host, timeout_s=timeout_s))
 
 
-def build_provider(spec: str | None, catalog: list[ModelSpec]) -> LLMProvider:
+def build_provider(
+    spec: str | None, catalog: list[ModelSpec], budget: SessionBudget
+) -> LLMProvider:
     """The model, behind the guards that `.claude/rules/llm-calls.md` makes unavoidable.
 
     `cassette:<path>` replays a recording instead of calling out — the same provider port,
@@ -130,13 +127,7 @@ def build_provider(spec: str | None, catalog: list[ModelSpec]) -> LLMProvider:
         inner = AnthropicAdapter.from_env()
     return GuardedProvider(
         inner,
-        governor=Governor(
-            Budget(
-                session_usd=SESSION_USD,
-                per_minute_usd=PER_MINUTE_USD,
-                prices=prices_of(catalog),
-            )
-        ),
+        governor=Governor(budget.fuse(prices_of(catalog))),
         breaker=CircuitBreaker(BreakerPolicy()),
     )
 
@@ -222,6 +213,7 @@ def main() -> int:
         "Anything else, or omitted, uses the Anthropic adapter and ANTHROPIC_API_KEY.",
     )
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
+    parser.add_argument("--budget", type=Path, default=DEFAULT_BUDGET)
     args = parser.parse_args()
 
     spec = load_session(args.session)
@@ -236,9 +228,10 @@ def main() -> int:
     model: ModelSpec | None = None
     if args.generate:
         catalog = load_catalog(args.catalog)
+        budget = load_budget(args.budget)
         model = structural(catalog)
         try:
-            provider = build_provider(args.provider, catalog)
+            provider = build_provider(args.provider, catalog, budget)
         except ProviderError as exc:
             sys.stderr.write(f"{exc}\n")
             return 1

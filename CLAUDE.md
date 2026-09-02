@@ -44,6 +44,8 @@ Run `ruff` and `mypy` before any commit.
 - `session.toml` — "Set as Code": the Live Set the bootstrap validates against (ADR-013)
 - `config/models.toml` — the model catalogue: IDs, effort and prices. The only place
   a model ID or a price is written down.
+- `config/budget.toml` — what one performance may spend and what it is expected to cost.
+  The measurement rigs keep their own caps; a bench round is not a session.
 
 ## Invariants (non-negotiable)
 

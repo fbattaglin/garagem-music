@@ -56,6 +56,7 @@ from garagem.llm import (
     Usage,
     load_catalog,
     prices_of,
+    usage_after_cancellation,
 )
 from garagem.obs import Shot, append_shot, load_shots
 from garagem.obs.sections import render_report
@@ -123,6 +124,8 @@ async def one_shot(
     stream = SectionStream(section)
     decoder = StringField()
     usage = Usage()
+    # Counted as it goes past: a cancelled stream cannot be asked afterwards what it wrote.
+    produced = 0
 
     base = {
         "at": datetime.now(UTC),
@@ -140,20 +143,28 @@ async def one_shot(
             stream.feed(event)
             if event.type == "tool_input_delta":
                 decoder.feed(event.fragment)
+                produced += len(event.fragment)
+            if event.type == "text_delta":
+                produced += len(event.text)
             if event.type == "done":
                 usage = event.usage
     except (ProviderError, DslError) as error:
+        # A stream that reached its first token generated tokens, and generated tokens are
+        # billed. `Usage` only rides the `done` event, which a cancelled stream never
+        # sends, so the rig reconstructs it from the prompt and from what arrived. The row
+        # stays flagged `unpriced`, which now means *inferred* rather than *unknown*: over
+        # four rounds this file recorded $0.0000 for calls that cost money (§14).
+        spent = usage_after_cancellation(request, produced) if ttft is not None else Usage()
         return Shot(
             **base,
             ok=False,
             error=f"{type(error).__name__}: {error}"[:200],
             ttft_s=ttft,
             total_s=time.monotonic() - started,
-            # A stream that reached its first token generated tokens, and generated
-            # tokens are billed. `Usage` only rides the `done` event, which a cancelled
-            # stream never sends, so this call costs money the rig cannot name. Recording
-            # *that* is the difference between an incomplete cost and a wrong one.
             unpriced=ttft is not None,
+            input_tokens=spent.input_tokens,
+            output_tokens=spent.output_tokens,
+            cost_usd=model.price.cost_of(spent),
         )
 
     total = time.monotonic() - started

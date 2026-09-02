@@ -8,7 +8,7 @@ from garagem.llm.breaker import (
     CircuitBreaker,
 )
 from garagem.llm.cassette import CassetteHeader, CassetteProvider, record
-from garagem.llm.catalog import ModelSpec, load_catalog, prices_of
+from garagem.llm.catalog import ModelSpec, SessionBudget, load_budget, load_catalog, prices_of
 from garagem.llm.errors import (
     BudgetError,
     CassetteError,
@@ -33,6 +33,8 @@ from garagem.llm.governor import (
     GovernorSnapshot,
     ModelPrice,
     Reservation,
+    input_tokens_of,
+    usage_after_cancellation,
 )
 from garagem.llm.guarded import GuardedProvider
 from garagem.llm.port import (
@@ -89,6 +91,7 @@ __all__ = [
     "Request",
     "Reservation",
     "Role",
+    "SessionBudget",
     "SessionBudgetExceededError",
     "StopReason",
     "StreamDone",
@@ -100,7 +103,10 @@ __all__ = [
     "ToolUseStart",
     "UnpricedModelError",
     "Usage",
+    "input_tokens_of",
+    "load_budget",
     "load_catalog",
     "prices_of",
     "record",
+    "usage_after_cancellation",
 ]

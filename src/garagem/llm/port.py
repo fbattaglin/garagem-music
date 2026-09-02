@@ -118,6 +118,12 @@ class Usage(BaseModel):
     output_tokens: int = 0
     cache_read_tokens: int = 0
     cache_write_tokens: int = 0
+    # A stream cancelled at its deadline never sends the `done` event that carries this,
+    # so its usage is reconstructed from the request and from the deltas that arrived
+    # (`phase-3-findings.md` §14). Those tokens were generated and billed; recording them
+    # as zero is what made every deadline round under-report its own cost. Charged like
+    # any other usage, and flagged so a report can separate measured spend from inferred.
+    estimated: bool = False
 
     @property
     def billed_input_tokens(self) -> int:

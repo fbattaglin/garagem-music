@@ -70,7 +70,7 @@ from garagem.daw import (
     render_divergences,
 )
 from garagem.domain import Feel, Instrument, Section, SectionScore
-from garagem.dsl import SectionStream, realise
+from garagem.dsl import SectionStream, StringField, realise
 from garagem.dsl.errors import DslError
 from garagem.engines import SongBrief, arrange, play_section
 from garagem.llm import (
@@ -123,6 +123,11 @@ class Pair:
     model: SectionScore
     floor: SectionScore
     first: str  # "model" or "floor"
+    seed: int
+    # Exactly what the model wrote, before anything interpreted it. Phase 3's calibration
+    # set was lost for want of this field: the votes survived and the music did not, and
+    # an LLM call is not reproducible from a seed the way the floor is.
+    model_dsl: str
 
 
 def build_adapter(host: str, timeout_s: float) -> DawPort:
@@ -219,13 +224,21 @@ def briefings(count: int, seed: int) -> list[Section]:
 
 async def generate(
     provider: LLMProvider, section: Section, model: ModelSpec, seed: int
-) -> SectionScore | None:
-    """One section-shot, realised and repaired. `None` when nothing usable came back."""
+) -> tuple[SectionScore, str] | None:
+    """One section-shot, realised and repaired, with the DSL that produced it.
+
+    The raw text is returned alongside the score because it is the only part of this that
+    cannot be recomputed later: the floor is a pure function of `(section, seed)`, and the
+    model is not a function of anything we can replay.
+    """
     request = request_for(section, model)
     stream = SectionStream(section)
+    decoder = StringField()
     try:
         async for event in provider.stream(request):
             stream.feed(event)
+            if event.type == "tool_input_delta":
+                decoder.feed(event.fragment)
     except (ProviderError, DslError):
         return None
 
@@ -250,7 +263,7 @@ async def generate(
             }
         )
     repaired, left = repair(score)
-    return None if left else repaired
+    return None if left else (repaired, decoder.value())
 
 
 def write(daw: DawPort, score: SectionScore, scene: int, tracks: dict[Instrument, int]) -> None:
@@ -356,6 +369,12 @@ def record(path: Path, pair: Pair, vote: str, seconds: float, reason: str = "") 
                     "winner": winner,
                     "reason": reason,
                     "seconds": seconds,
+                    # The material, so a later metric can be held to this verdict. The
+                    # briefing rebuilds the floor exactly via `play_section(section, seed)`;
+                    # the model's DSL is kept verbatim because nothing can regenerate it.
+                    "seed": pair.seed,
+                    "briefing": pair.section.model_dump(mode="json"),
+                    "model_dsl": pair.model_dsl,
                 }
             )
             + "\n"
@@ -517,18 +536,20 @@ def main() -> int:
             seconds = args.seconds or section.total_seconds()
 
             sys.stderr.write(f"\ngenerating pair {index + 1}/{args.pairs}...\n")
-            generated = runner.run(generate(provider, section, model, args.seed + index))
-            floor = play_section(section, args.seed + index)
-            if generated is None:
+            seed = args.seed + index
+            shot = runner.run(generate(provider, section, model, seed))
+            floor = play_section(section, seed)
+            if shot is None:
                 sys.stderr.write("  the model returned nothing usable — pair skipped.\n")
                 continue
+            generated, model_dsl = shot
             if generated == floor:
                 # Voting on it would be voting on the same music twice.
                 sys.stderr.write("  both sides are identical — pair skipped.\n")
                 continue
 
             first = order.choice(("model", "floor"))
-            pair = Pair(index, section, generated, floor, first)
+            pair = Pair(index, section, generated, floor, first, seed, model_dsl)
             write(daw, generated if first == "model" else floor, SCENES[0], tracks)
             write(daw, floor if first == "model" else generated, SCENES[1], tracks)
 

@@ -101,9 +101,34 @@ def test_the_events_pass_through_untouched(collect: Collector) -> None:
     assert collect(provider, a_request()) == collect(bare, a_request())
 
 
-def test_a_provider_failure_charges_nothing_and_counts_against_the_breaker(
+def test_a_provider_that_never_answered_charges_nothing_and_counts_against_the_breaker(
     collect: Collector,
 ) -> None:
+    inner = FakeProvider(
+        [FakeResponse(text="SEC verse")],
+        fail_with=ProviderUnavailableError("connection dropped"),
+        fail_after=0,
+    )
+    provider, governor, breaker, _ = guarded(inner)
+
+    with pytest.raises(ProviderUnavailableError):
+        collect(provider, a_request())
+
+    assert governor.snapshot().spent_usd == Decimal(0)
+    assert governor.snapshot().in_flight == 0
+    assert breaker.snapshot().consecutive_failures == 1
+
+
+def test_a_provider_that_streamed_before_dying_is_charged_for_what_it_generated(
+    collect: Collector,
+) -> None:
+    """The half of the rule that Phase 3 got wrong.
+
+    Thirty deadline-cancelled calls were recorded at $0.0000 because usage rides on the
+    `done` event and a cancelled stream never sends one (`phase-3-findings.md` §14). The
+    prompt was billed the moment the provider answered, so the charge is reconstructed
+    rather than waived — and marked, because it was inferred and not measured.
+    """
     inner = FakeProvider(
         [FakeResponse(text="SEC verse")],
         fail_with=ProviderUnavailableError("connection dropped"),
@@ -114,7 +139,9 @@ def test_a_provider_failure_charges_nothing_and_counts_against_the_breaker(
     with pytest.raises(ProviderUnavailableError):
         collect(provider, a_request())
 
-    assert governor.snapshot().spent_usd == Decimal(0)
+    spent = governor.snapshot().spent_usd
+    assert spent > Decimal(0)
+    assert governor.snapshot().estimated_usd == spent
     assert governor.snapshot().in_flight == 0
     assert breaker.snapshot().consecutive_failures == 1
 

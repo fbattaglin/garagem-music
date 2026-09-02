@@ -17,7 +17,11 @@ Four independent guards, checked before anything is spent:
 Money moves in two steps. `reserve()` charges a deliberately pessimistic estimate
 before the call, so a burst cannot slip through while its true cost is unknown;
 `settle()` then replaces the estimate with the real `Usage` once the stream ends.
-A call that fails without usage is `release()`d and costs nothing.
+
+A call that never reached the provider is `release()`d and costs nothing. A call that
+*streamed* and was then cancelled at its deadline is settled against a reconstructed
+`Usage` instead: those tokens were generated and billed, and recording them as zero is
+what made every deadline round of Phase 3 under-report its own cost (§14).
 
 The clock is injected so that window behaviour is testable without sleeping.
 """
@@ -49,6 +53,34 @@ WINDOW_S = 60.0
 # until `settle()` replaces it with the real number. A tokeniser here would mean a
 # network call or a new dependency, to refine a figure that lives for a few seconds.
 CHARS_PER_TOKEN = 4
+
+
+def input_tokens_of(request: Request) -> int:
+    """The request's own size, by the `chars // 4` heuristic above.
+
+    Shared by the pre-flight estimate and by the reconstruction of a cancelled call, so
+    the two cannot drift apart.
+    """
+    chars = len(request.system) + sum(len(m.content) for m in request.messages)
+    if request.tool is not None:
+        chars += len(request.tool.model_dump_json())
+    return chars // CHARS_PER_TOKEN
+
+
+def usage_after_cancellation(request: Request, output_chars: int) -> Usage:
+    """What a stream that never reached `done` generated, as closely as anything can say.
+
+    The provider billed the whole prompt and whatever it managed to emit. Both numbers are
+    knowable without the `done` event: the prompt is in hand, and the deltas that arrived
+    were counted on their way past. Cache reads are deliberately not modelled — assuming
+    the prompt was billed at full input price errs high, which is the safe direction for a
+    fuse and is why the result is marked `estimated`.
+    """
+    return Usage(
+        input_tokens=input_tokens_of(request),
+        output_tokens=output_chars // CHARS_PER_TOKEN,
+        estimated=True,
+    )
 
 
 class ModelPrice(BaseModel):
@@ -102,6 +134,8 @@ class GovernorSnapshot(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     spent_usd: Decimal
+    # The part of `spent_usd` reconstructed from cancelled streams rather than measured.
+    estimated_usd: Decimal
     reserved_usd: Decimal
     last_minute_usd: Decimal
     in_flight: int
@@ -115,6 +149,7 @@ class Governor:
         self._budget = budget
         self._clock = clock
         self._spent = Decimal(0)
+        self._estimated = Decimal(0)
         self._open: dict[int, Reservation] = {}
         # (timestamp, cost, reservation id) — the id lets settle() find its own entry.
         self._window: deque[tuple[float, Decimal, int]] = deque()
@@ -132,11 +167,8 @@ class Governor:
                 f"no price configured for {request.model!r}; "
                 "an ungoverned call is exactly the one that burns the account"
             )
-        chars = len(request.system) + sum(len(m.content) for m in request.messages)
-        if request.tool is not None:
-            chars += len(request.tool.model_dump_json())
         worst_case = Usage(
-            input_tokens=chars // CHARS_PER_TOKEN,
+            input_tokens=input_tokens_of(request),
             output_tokens=request.max_tokens,
         )
         return price.cost_of(worst_case)
@@ -188,6 +220,8 @@ class Governor:
         price = self._budget.prices[reservation.model]
         actual = price.cost_of(usage)
         self._spent += actual
+        if usage.estimated:
+            self._estimated += actual
         self._replace_in_window(reservation, actual)
         return actual
 
@@ -214,6 +248,7 @@ class Governor:
         self._prune(self._clock())
         return GovernorSnapshot(
             spent_usd=self._spent,
+            estimated_usd=self._estimated,
             reserved_usd=self._reserved(),
             last_minute_usd=self._window_total(),
             in_flight=len(self._open),
