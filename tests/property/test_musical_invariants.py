@@ -19,7 +19,7 @@ from strategies import sections, seeds
 
 from garagem.domain import Instrument, Section, SectionScore
 from garagem.dsl import serialize_score, serialize_section
-from garagem.engines import play_section
+from garagem.engines import coherence_of, play_section
 from garagem.theory import RANGES, repair, validate
 
 
@@ -121,3 +121,18 @@ def test_serialisation_is_stable(section: Section, seed: int) -> None:
     second = play_section(section, seed)
     assert serialize_section(first) == serialize_section(second)
     assert serialize_score(first) == serialize_score(second)
+
+
+@given(section=sections, seed=seeds)
+def test_the_floor_is_never_messy(section: Section, seed: int) -> None:
+    """The calibration claim, as a property rather than at four points.
+
+    The engines are the only music this project has approved by ear, so they define the
+    clean end of the scale. A coherence metric that can score them as messy is measuring
+    something other than mess — which is how the first `bass_kick_alignment` was caught,
+    at 0.33 on a halftime bridge.
+    """
+    coherence = coherence_of(play_section(section, seed))
+    assert coherence.messiness < 0.1
+    assert coherence.harmonic_conformance > 0.9
+    assert coherence.register_spread > 0.8

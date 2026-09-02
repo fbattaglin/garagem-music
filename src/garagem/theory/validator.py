@@ -253,7 +253,7 @@ def _dissonance_budget(part: Part, section: Section) -> list[Violation]:
     if part.instrument is Instrument.DRUMS or not part.notes:
         return []
 
-    allowed = pitch_classes(section.key, section.scale) | _chart_pitch_classes(section.chart)
+    allowed = pitch_classes(section.key, section.scale) | chart_pitch_classes(section.chart)
     outside = sum(1 for note in part.notes if note.pitch % PITCH_CLASSES not in allowed)
     budget = DISSONANCE_FLOOR + DISSONANCE_RANGE * section.tension
     share = outside / len(part.notes)
@@ -269,7 +269,7 @@ def _dissonance_budget(part: Part, section: Section) -> list[Violation]:
     ]
 
 
-def _chart_pitch_classes(chart: Chart) -> frozenset[int]:
+def chart_pitch_classes(chart: Chart) -> frozenset[int]:
     """Chord tones count as consonant even when the scale does not contain them.
 
     A B7 in E minor has a D#, which natural minor does not: that is a borrowed dominant,
