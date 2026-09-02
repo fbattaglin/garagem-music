@@ -33,6 +33,7 @@ import sys
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from math import comb
 from pathlib import Path
 from typing import Final
 
@@ -327,23 +328,49 @@ def record(path: Path, trial: Trial, vote: str, seconds: float) -> None:
         )
 
 
+def _coin_tail(hits: int, trials: int) -> float:
+    """P(at least `hits` of `trials`) under a coin. Exact, and small enough to just sum."""
+    return sum(comb(trials, k) for k in range(hits, trials + 1)) * 0.5**trials
+
+
 def tally(path: Path) -> str:
+    """The count, the threshold, and — carefully — what the count does not license.
+
+    An earlier version of this function printed "kit_collision does not track the ear"
+    whenever the threshold was missed. That is a stronger claim than ten trials can carry:
+    missing a bar set at p = 0.055 is not evidence of no effect, it is the absence of
+    evidence for one. The two get confused precisely when the result is disappointing,
+    which is when it matters most not to.
+    """
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     agreed = sum(1 for row in rows if row["metric_agreed"] == "true")
     same = sum(1 for row in rows if row["metric_agreed"] == "same")
+    decisive = len(rows) - same
     met = agreed >= THRESHOLD
     lines = [
         "",
         f"the metric was heard as messier in {agreed} of {len(rows)} pairs "
-        f"({same} indistinguishable)",
+        f"({same} indistinguishable, {decisive} decisive)",
         f"pre-registered: >= {THRESHOLD} of {PAIRS}  ->  {'MET' if met else 'NOT MET'}",
         "",
     ]
     if not met:
-        lines.append(
-            "kit_collision does not track the ear. It must not be used to steer\n"
-            "arrangement work: ADR-018's gate is exactly this, and this is it failing.\n"
-        )
+        tail = _coin_tail(agreed, decisive) if decisive else 1.0
+        lines += [
+            f"P(>= {agreed} of {decisive} under a coin) = {tail:.2f}. The gate is not met,",
+            "so kit_collision does not steer arrangement work — that is what ADR-018 asks",
+            "of it. But this is not evidence that the metric is meaningless: ten trials",
+            "would reach the threshold only about half the time even if the metric were",
+            "right 75% of the time. Absence of evidence, at this n, is all it is.",
+            "",
+        ]
+        if same < len(rows):
+            lines += [
+                f"What the run does say: {decisive} of {len(rows)} pairs were audibly",
+                "different, so the material differs. It is the *word* that did not line up,",
+                "not the sound.",
+                "",
+            ]
     return "\n".join(lines)
 
 

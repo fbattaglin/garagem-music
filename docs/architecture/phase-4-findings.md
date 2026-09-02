@@ -140,3 +140,60 @@ than guessing.
 it does not steer arrangement work, and the honest position is that Phase 4 has no
 validated measure of mess — which would be the second refuted mechanism in two phases and
 a finding in its own right.
+
+## 3. The gate is not met — and the run says more about the question than the ear
+
+**6 of 10, one indistinguishable, 9 decisive. Threshold was 8. NOT MET**
+(`bench/calibration.jsonl`, 2026-09-01, Fabiano).
+
+`kit_collision` does not steer arrangement work. That is what ADR-018 asks of the gate and
+the gate did its job.
+
+### What the number does not mean, and a message that said it anyway
+
+P(≥ 6 of 9 under a coin) = **0.25**. The result is consistent with no effect and equally
+consistent with a modest one: ten trials reach a threshold of 8 only about **half the
+time even when the metric is right 75% of the time**. The design was built to be hard to
+pass, and it succeeded at that; it was never built to distinguish "no effect" from "an
+effect this small sample cannot resolve".
+
+`tally` originally printed *"kit_collision does not track the ear"* on any miss. That
+sentence claims far more than the design can deliver, and it would have been believed —
+it arrives precisely when the answer is unwelcome, which is when a too-strong conclusion
+is least likely to be questioned. It is corrected, and
+`test_a_missed_threshold_is_not_reported_as_a_refutation` stops it coming back.
+
+### The one thing the run does say clearly
+
+**"Can't tell" was available and was used once.** In nine of ten pairs Fabiano was willing
+to name a side. So the pairs are not inaudibly similar — the material differs, and the
+disagreement is about *which word fits it*, not about whether there is anything there.
+
+### The design error, which is not in the ear
+
+The test asked Fabiano to be a **measuring instrument for a label**: given two takes,
+say which is *messier*. That is a different job from the one his ear is the reference
+for. ADR-000's criterion is whether a section is **preferred**, and preference is a
+judgement he makes unavoidably and by definition correctly — it is the target function.
+Labelling is a description, and it can be unreliable in someone whose taste is not.
+
+The word made it worse. *"Cleaner, less messy"* was **his** phrase, but he coined it about
+whole sections with four instruments playing, as a *reason for preferring one*. This run
+reused it for two takes of one briefing differing only in the drums. A word does not
+have to survive that move, and there is no reason it should.
+
+So: **6 of 10 is evidence about the test, not about the judge.** The honest correction is
+to stop asking him to describe and go back to asking him to prefer — which is both the
+thing he is uniquely qualified for and the thing ADR-000 actually specifies. A metric that
+*predicts his preference* has earned its place whatever it is called; a metric that
+matches his vocabulary has earned nothing.
+
+### The possibility that has to be named
+
+Two mechanisms have now been proposed and failed — §16's register/harmony (refuted
+structurally, §1) and kit collision (unsupported at n=10). It is a live possibility that
+**there is no cheap machine proxy for what makes this music good**, and that the honest
+architecture is one where the human is the measurement, used sparingly, and the machine's
+job is to make listening efficient — good sampling, blind, pre-registered, logged — rather
+than to replace it. Phase 4's metrics criterion would then be met by a different kind of
+instrument than ADR-000 §7 imagined.

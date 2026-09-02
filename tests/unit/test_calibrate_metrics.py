@@ -167,4 +167,18 @@ def test_the_tally_reports_met_at_the_threshold(tmp_path: Path) -> None:
 def test_the_tally_reports_not_met_one_below(tmp_path: Path) -> None:
     report = cal.tally(_log_with(tmp_path, cal.THRESHOLD - 1, cal.PAIRS))
     assert "NOT MET" in report
-    assert "must not be used to steer" in report
+    assert "does not steer arrangement work" in report
+
+
+def test_a_missed_threshold_is_not_reported_as_a_refutation(tmp_path: Path) -> None:
+    """Absence of evidence, at ten trials, is all a missed threshold is.
+
+    The first version of `tally` printed "kit_collision does not track the ear" on any
+    miss. Ten trials reach 8 only about half the time even when the metric is right 75%
+    of the time, so that sentence claimed far more than the design can deliver — and it
+    would have been believed, because it arrived exactly when the answer was unwelcome.
+    """
+    report = cal.tally(_log_with(tmp_path, 6, cal.PAIRS))
+    assert "does not track the ear" not in report
+    assert "Absence of evidence" in report
+    assert "under a coin" in report
