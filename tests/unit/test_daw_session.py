@@ -270,6 +270,57 @@ def test_applying_a_matching_session_writes_nothing_at_all(tmp_path: Path) -> No
     assert not [call for call in daw.calls if call.startswith("set_")]
 
 
+# ------------------------------------------------------------------------------- arm
+
+ARMED_TOML = SPEC_TOML.replace(
+    'name = "BASS"\ninstrument = "Drift"', 'name = "BASS"\ninstrument = "Drift"\narmed = false'
+)
+
+
+def test_the_shipped_session_declares_every_band_track_disarmed() -> None:
+    """ADR-022: an armed track plays the MiniLab's notes, cue pads included."""
+    assert all(track.armed is False for track in load_session(SHIPPED).tracks)
+
+
+def test_a_track_that_says_nothing_about_arming_may_be_either(tmp_path: Path) -> None:
+    spec = load_session(a_spec(tmp_path))
+    assert spec.tracks[0].armed is None
+    daw = FakeDawAdapter(
+        track_names=("DRUMS", "BASS"), armed=(True, True), tempo_bpm=132.0, scenes=2
+    )
+    assert diff_session(spec, observe(daw)) == ()
+
+
+def test_an_armed_track_declared_disarmed_is_a_fixable_divergence(tmp_path: Path) -> None:
+    spec = load_session(a_spec(tmp_path, ARMED_TOML))
+    daw = FakeDawAdapter(
+        track_names=("DRUMS", "BASS"), armed=(False, True), tempo_bpm=132.0, scenes=2
+    )
+    divergences = diff_session(spec, observe(daw))
+    assert kinds(divergences) == ["armed"]
+    assert divergences[0].fixable
+    assert divergences[0].track == 1
+
+
+def test_applying_disarms_the_track_and_the_second_pass_writes_nothing(tmp_path: Path) -> None:
+    spec = load_session(a_spec(tmp_path, ARMED_TOML))
+    daw = FakeDawAdapter(
+        track_names=("DRUMS", "BASS"), armed=(False, True), tempo_bpm=132.0, scenes=2
+    )
+    assert apply_session(daw, spec) == ()
+    assert daw.track_armed(1) is False
+    daw.calls.clear()
+    assert apply_session(daw, spec) == ()
+    assert "set_track_armed" not in daw.calls
+
+
+def test_a_quoted_boolean_for_armed_is_refused(tmp_path: Path) -> None:
+    """`"false"` is a non-empty string, which Python reads as true."""
+    body = ARMED_TOML.replace("armed = false", 'armed = "false"')
+    with pytest.raises(SessionSpecError, match="armed must be true or false"):
+        load_session(a_spec(tmp_path, body))
+
+
 # ------------------------------------------------------------------------------ clips
 
 

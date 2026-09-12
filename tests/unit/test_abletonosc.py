@@ -44,10 +44,12 @@ from garagem.daw.abletonosc import (
     GET_QUANTIZATION,
     GET_SONG_TIME,
     GET_TEMPO,
+    GET_TRACK_ARM,
     GET_TRACK_NAMES,
     REMOVE_NOTES,
     SET_QUANTIZATION,
     SET_TEMPO,
+    SET_TRACK_ARM,
     SET_TRACK_NAME,
     START_LISTEN_BEAT,
     START_PLAYING,
@@ -78,6 +80,7 @@ HEALTHY: dict[str, tuple[OscArg, ...]] = {
     GET_METER_LEVEL: (3, 0.42),
     GET_HAS_CLIP: (3, 1, True),
     GET_HAS_MIDI_INPUT: (3, True),
+    GET_TRACK_ARM: (3, False),
     GET_CLIP_LENGTH: (3, 1, 16.0),
     GET_NOTES: (3, 1),
 }
@@ -165,6 +168,7 @@ def test_track_and_clip_getters_drop_the_echoed_index() -> None:
     assert daw.clip_length_beats(AT) == 16.0
     assert daw.meter_level(3) == pytest.approx(0.42)
     assert daw.accepts_midi(3) is True
+    assert daw.track_armed(3) is False
 
 
 def test_setting_the_tempo_sends_it_and_then_reads_it_back() -> None:
@@ -189,6 +193,18 @@ def test_renaming_a_track_is_confirmed_against_the_track_names() -> None:
     transport = serving(GET_TRACK_NAMES=("DRUMS", "BASS", "GTR", "KEYS"))
     adapter(transport).set_track_name(2, "GTR")
     assert sent(transport) == [SET_TRACK_NAME, GET_TRACK_NAMES]
+
+
+def test_disarming_a_track_is_confirmed_by_reading_the_arm_back() -> None:
+    transport = serving()
+    adapter(transport).set_track_armed(3, False)
+    assert transport.sent == [(SET_TRACK_ARM, (3, False)), (GET_TRACK_ARM, (3,))]
+
+
+def test_a_track_that_stayed_armed_is_not_confirmed() -> None:
+    transport = serving(GET_TRACK_ARM=(3, True))
+    with pytest.raises(DawWriteNotConfirmedError, match="did not take"):
+        adapter(transport).set_track_armed(3, False)
 
 
 def test_creating_a_clip_is_confirmed_by_asking_whether_the_slot_has_one() -> None:

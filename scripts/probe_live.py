@@ -52,10 +52,12 @@ from garagem.daw.abletonosc import (
     GET_HAS_MIDI_INPUT,
     GET_METER_LEVEL,
     GET_NOTES,
+    GET_TRACK_ARM,
     GET_TRACK_NAME,
     REMOVE_NOTES,
     SET_QUANTIZATION,
     SET_TEMPO,
+    SET_TRACK_ARM,
     SET_TRACK_NAME,
     START_LISTEN_BEAT,
     START_PLAYING,
@@ -75,6 +77,7 @@ ARGUMENTS: Arguments = {
     GET_METER_LEVEL: (0,),
     GET_HAS_CLIP: (0, 0),
     GET_HAS_MIDI_INPUT: (0,),
+    GET_TRACK_ARM: (0,),
 }
 
 # These two read a clip, so they need a slot that holds one. See the module docstring.
@@ -92,6 +95,7 @@ WRITES: frozenset[str] = frozenset(
         SET_TEMPO,
         SET_QUANTIZATION,
         SET_TRACK_NAME,
+        SET_TRACK_ARM,
         START_PLAYING,
         STOP_PLAYING,
         FIRE_SCENE,

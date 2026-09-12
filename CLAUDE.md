@@ -21,7 +21,8 @@ written to a file is in English.
 - `uv run python scripts/bench_latency.py` — measures p50/p95/p99 TTFT per model.
   Estimates and stops unless `--yes`; spends real money and needs API keys.
 - `uv run python scripts/bootstrap_set.py` — validates the Live Set against `session.toml`;
-  `--apply` repairs tempo, quantisation and track names. Never creates a track (ADR-013).
+  `--apply` repairs tempo, quantisation, track names and track arm. Never creates a track
+  (ADR-013).
 - `uv run python scripts/probe_live.py` — walks every AbletonOSC address the adapter uses
   and reports what came back. Read-only; the cheapest place to find a wrong constant.
 - `uv run python scripts/install_abletonosc.py` — installs AbletonOSC into Live's Remote
@@ -42,10 +43,14 @@ Run `ruff` and `mypy` before any commit.
 - `src/garagem/agents/` — personas, prompts, routing policies
 - `src/garagem/llm/` — `LLMProvider` port + adapters + governor + circuit breaker
 - `src/garagem/daw/` — `DawPort` port + AbletonOSC adapter + fake
-- `src/garagem/transport/` — BarClock, ScoreBuffer, clip-ahead scheduler
+- `src/garagem/transport/` — BarClock, ScoreBuffer, CueQueue, clip-ahead scheduler
+- `src/garagem/control/` — `ControllerPort` + MiniLab 3 adapter (`mido`) + fake. Infrastructure;
+  never imported by `transport/` or the pure layers (ADR-021, ADR-022)
 - `src/garagem/setlist/` — online pre-production, offline playback
 - `src/garagem/obs/` — JSONL event log, metrics, latency rig, TUI
 - `session.toml` — "Set as Code": the Live Set the bootstrap validates against (ADR-013)
+- `controller.toml` — "Controller as Code": which pad and knob asks the band for what.
+  Every MIDI number in it was heard by `scripts/probe_minilab.py`, none guessed.
 - `config/models.toml` — the model catalogue: IDs, effort and prices. The only place
   a model ID or a price is written down.
 - `config/budget.toml` — what one performance may spend and what it is expected to cost.

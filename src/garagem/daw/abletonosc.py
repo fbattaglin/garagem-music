@@ -69,6 +69,8 @@ GET_TRACK_NAME: Final = "/live/track/get/name"
 SET_TRACK_NAME: Final = "/live/track/set/name"
 GET_DEVICE_NAMES: Final = "/live/track/get/devices/name"
 GET_HAS_MIDI_INPUT: Final = "/live/track/get/has_midi_input"
+GET_TRACK_ARM: Final = "/live/track/get/arm"
+SET_TRACK_ARM: Final = "/live/track/set/arm"
 GET_METER_LEVEL: Final = "/live/track/get/output_meter_level"
 
 FIRE_SCENE: Final = "/live/scene/fire"
@@ -104,6 +106,8 @@ ALL_ADDRESSES: Final[tuple[str, ...]] = (
     SET_TRACK_NAME,
     GET_DEVICE_NAMES,
     GET_HAS_MIDI_INPUT,
+    GET_TRACK_ARM,
+    SET_TRACK_ARM,
     GET_METER_LEVEL,
     FIRE_SCENE,
     CREATE_CLIP,
@@ -341,6 +345,15 @@ class AbletonOSCAdapter:
     def accepts_midi(self, track: int) -> bool:
         reply = self._transport.request(GET_HAS_MIDI_INPUT, track)
         return bool(self._after_index(GET_HAS_MIDI_INPUT, track, reply)[0])
+
+    def track_armed(self, track: int) -> bool:
+        reply = self._transport.request(GET_TRACK_ARM, track)
+        return bool(self._after_index(GET_TRACK_ARM, track, reply)[0])
+
+    def set_track_armed(self, track: int, armed: bool) -> None:
+        self._transport.send(SET_TRACK_ARM, track, armed)
+        if (seen := self.track_armed(track)) != armed:
+            raise _unconfirmed(SET_TRACK_ARM, armed, seen)
 
     def scene_count(self) -> int:
         return int(self._one(GET_NUM_SCENES))

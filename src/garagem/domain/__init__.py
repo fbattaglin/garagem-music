@@ -1,5 +1,13 @@
 """Pure musical model: Note, Bar, Chart, Section. No I/O."""
 
+from garagem.domain.cue import (
+    Control,
+    Cue,
+    CueFamily,
+    CueKind,
+    Macro,
+    MacroKind,
+)
 from garagem.domain.harmony import (
     INTERVALS,
     PITCH_CLASSES,
@@ -47,9 +55,15 @@ __all__ = [
     "SWING_POINT",
     "Chart",
     "Chord",
+    "Control",
+    "Cue",
+    "CueFamily",
+    "CueKind",
     "Feel",
     "Grid",
     "Instrument",
+    "Macro",
+    "MacroKind",
     "Note",
     "Part",
     "Quality",

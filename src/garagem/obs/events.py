@@ -59,6 +59,9 @@ KINDS: Final[tuple[str, ...]] = (
     # proposed mechanisms failed to predict the ear, so these describe what played and
     # decide nothing about what plays next.
     "section_measured",
+    # Phase 4, the MiniLab (ADR-021, ADR-022). A pad strike or a knob position, stamped with
+    # the beat it arrived at — the `cue_bar` the next-bar criterion is measured from.
+    "cue_received",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so

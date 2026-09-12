@@ -1,7 +1,7 @@
 """Compares the open Live Set against `session.toml`, and repairs what it safely can.
 
     uv run python scripts/bootstrap_set.py             # check only: reports, changes nothing
-    uv run python scripts/bootstrap_set.py --apply     # repairs tempo, quantisation, names
+    uv run python scripts/bootstrap_set.py --apply     # repairs tempo, quantisation, names, arm
     uv run python scripts/bootstrap_set.py --apply --force   # even while Live is playing
 
 Four rules, each of them load-bearing (ADR-013):

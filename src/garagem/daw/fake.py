@@ -46,6 +46,7 @@ class FakeDawAdapter:
         track_names: Sequence[str] = DEFAULT_TRACKS,
         device_names: Sequence[Sequence[str]] | None = None,
         midi_tracks: Sequence[bool] | None = None,
+        armed: Sequence[bool] | None = None,
         scenes: int = 2,
         tempo_bpm: float = 120.0,
         quantization: Quantization = Quantization.BAR,
@@ -61,6 +62,7 @@ class FakeDawAdapter:
         self._midi_tracks = (
             list(midi_tracks) if midi_tracks is not None else [True] * len(self._track_names)
         )
+        self._armed = list(armed) if armed is not None else [False] * len(self._track_names)
         self._scenes = scenes
         self._tempo_bpm = tempo_bpm
         self._quantization = quantization
@@ -162,6 +164,16 @@ class FakeDawAdapter:
         self._record("accepts_midi")
         self._track(track)
         return self._midi_tracks[track]
+
+    def track_armed(self, track: int) -> bool:
+        self._record("track_armed")
+        self._track(track)
+        return self._armed[track]
+
+    def set_track_armed(self, track: int, armed: bool) -> None:
+        self._record("set_track_armed")
+        self._track(track)
+        self._armed[track] = armed
 
     def scene_count(self) -> int:
         self._record("scene_count")

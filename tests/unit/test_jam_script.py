@@ -17,8 +17,9 @@ from types import ModuleType
 import pytest
 
 from garagem.agents import deadline_for, worth_asking
+from garagem.control import FakeController, load_controller
 from garagem.daw import DawPort, DawTimeoutError, FakeDawAdapter
-from garagem.domain import Feel, Instrument, Section
+from garagem.domain import Feel, Instrument, MacroKind, Section
 from garagem.engines import SongBrief
 from garagem.transport import ScoreBuffer
 
@@ -37,6 +38,31 @@ def _load_jam() -> ModuleType:
 
 
 jam = _load_jam()
+
+
+CLEAR_TABLE = """2026-09-12T13:50:23.532354: info: AMidiIO: Midi Remote Scripts:
+  MidiRemoteScript 1 [Control Surface="MiniLab_3" Input="None" Output="None"]
+  MidiRemoteScript 2 [Control Surface="AbletonOSC" Input="None" Output="None"]
+2026-09-12T13:50:23.532381: info: AMidiIO: Takeover Mode: None
+"""
+
+IN_THE_WAY = CLEAR_TABLE.replace(
+    'Input="None" Output="None"]', 'Input="Minilab3 (MIDI)" Output="Minilab3 (MIDI)"]', 1
+)
+
+
+@pytest.fixture(autouse=True)
+def live_log(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
+    """Never this machine's real Live log: a unit test must not depend on Live's settings."""
+    log = tmp_path / "Log.txt"
+    log.write_text(CLEAR_TABLE, encoding="utf-8")
+    monkeypatch.setattr(jam, "find_live_log", lambda: log)
+    return log
+
+
+def finished(self: object, form: object, seed: object = None, endings: object = None) -> None:
+    """A performance that played to the end, with nothing in it."""
+    self.finished = True  # type: ignore[attr-defined]
 
 
 @pytest.fixture
@@ -130,6 +156,34 @@ def test_the_plan_lifts_the_last_chorus_and_ends_the_song() -> None:
     assert form != jam.arrange(brief, 7)
 
 
+def test_a_dry_run_with_the_controller_prints_the_legend_and_opens_no_port(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def refuse(spec: object) -> object:
+        raise AssertionError("a dry run must not open a MIDI port")
+
+    monkeypatch.setattr(jam, "build_controller", refuse)
+    with_argv(monkeypatch, "--dry-run", "--seconds", "30", "--controller", "minilab")
+    assert jam.main() == 0
+    printed = capsys.readouterr().err
+    assert "note 36  -> stop" in printed
+
+
+def test_an_unplayable_controller_file_is_refused_before_live_is_touched(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    bad = tmp_path / "controller.toml"
+    bad.write_text('schema = 1\n[controller]\nport = ""\n', encoding="utf-8")
+
+    def refuse(host: str, timeout_s: float) -> DawPort:
+        raise AssertionError("a bad controller file must not cost a Set check")
+
+    monkeypatch.setattr(jam, "build_adapter", refuse)
+    with_argv(monkeypatch, "--controller", "minilab", "--controller-spec", str(bad))
+    assert jam.main() == 1
+    assert "port must name a MIDI input" in capsys.readouterr().err
+
+
 def test_the_seed_reaches_the_arranger(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -203,7 +257,7 @@ def test_without_the_flag_no_provider_is_ever_constructed(
         raise AssertionError("a run without --generate must not build a provider")
 
     monkeypatch.setattr(jam, "build_provider", refuse)
-    monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None, endings=None: None)
+    monkeypatch.setattr(jam.Scheduler, "run", finished)
     with_argv(monkeypatch, "--seconds", "10", "--log", str(LOG))
 
     assert jam.main() == 0
@@ -253,7 +307,7 @@ def test_the_producer_is_started_and_stopped_in_the_finally(
 
     monkeypatch.setattr(jam, "Producer", Recording)
     monkeypatch.setattr(jam, "build_provider", lambda spec, catalog, budget: object())
-    monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None, endings=None: None)
+    monkeypatch.setattr(jam.Scheduler, "run", finished)
     # This test is about start/stop. The wait for a first section has its own test, and
     # leaving it in would spend the whole deadline waiting for a producer that is a stub.
     monkeypatch.setattr(jam, "prime", lambda buffer, first: 0.0)
@@ -371,3 +425,137 @@ def test_priming_returns_at_once_when_the_section_is_already_there() -> None:
     buffer = ScoreBuffer()
     buffer.offer(0, SectionScore(section=section, parts=(), seed=7))
     assert jam.prime(buffer, section) < 0.5
+
+
+# ------------------------------------------------------------------------- the controller
+
+
+def test_the_controller_is_heard_during_the_run_and_stopped_after_it(
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    """Stage 2's wiring end to end: pad -> queue -> scheduler -> log -> the count printed."""
+    controller = FakeController(load_controller(ROOT / "controller.toml"))
+    monkeypatch.setattr(jam, "build_controller", lambda spec: controller)
+
+    def performance(
+        self: object, form: object, seed: object = None, endings: object = None
+    ) -> None:
+        controller.receive("note_on", 9, 36, 110)
+        controller.turn(MacroKind.DENSITY, 0.5)
+        self._drain_cues()  # type: ignore[attr-defined]
+        self.finished = True  # type: ignore[attr-defined]
+
+    monkeypatch.setattr(jam.Scheduler, "run", performance)
+    with_argv(
+        monkeypatch,
+        "--seconds",
+        "10",
+        "--controller",
+        "minilab",
+        "--log",
+        str(tmp_path / "jam.jsonl"),
+    )
+
+    assert jam.main() == 0
+    assert (controller.started, controller.stopped) == (1, 1)
+    printed = capsys.readouterr().err
+    assert "cues are logged only" in printed
+    assert "2 controls received: density x1, stop x1" in printed
+
+
+def test_a_minilab_that_is_not_plugged_in_is_reported_without_a_traceback(
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(jam, "build_controller", lambda spec: FakeController(available=False))
+    with_argv(
+        monkeypatch,
+        "--seconds",
+        "10",
+        "--controller",
+        "minilab",
+        "--log",
+        str(tmp_path / "jam.jsonl"),
+    )
+    assert jam.main() == 1
+    assert "built unplugged" in capsys.readouterr().err
+    assert not live.is_playing()
+
+
+def test_the_controller_is_stopped_even_when_the_run_fails(
+    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    controller = FakeController()
+    monkeypatch.setattr(jam, "build_controller", lambda spec: controller)
+
+    def explode(self: object, form: object, seed: object = None, endings: object = None) -> None:
+        raise RuntimeError("something went wrong mid-performance")
+
+    monkeypatch.setattr(jam.Scheduler, "run", explode)
+    with_argv(
+        monkeypatch,
+        "--seconds",
+        "10",
+        "--controller",
+        "minilab",
+        "--log",
+        str(tmp_path / "jam.jsonl"),
+    )
+    with pytest.raises(RuntimeError, match="mid-performance"):
+        jam.main()
+    assert (controller.started, controller.stopped) == (1, 1)
+
+
+# --------------------------------------------------------------- what can stop a performance
+
+
+def test_a_live_control_surface_on_the_cue_port_stops_the_band_before_it_starts(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], live_log: Path
+) -> None:
+    """The first MiniLab gate: Live's own MiniLab script stopped the transport mid-song."""
+    live_log.write_text(IN_THE_WAY, encoding="utf-8")
+
+    def refuse(host: str, timeout_s: float) -> DawPort:
+        raise AssertionError("a control surface in the way must be reported before Live is used")
+
+    monkeypatch.setattr(jam, "build_adapter", refuse)
+    with_argv(monkeypatch, "--seconds", "10", "--controller", "minilab")
+    assert jam.main() == 1
+    printed = capsys.readouterr().err
+    assert "slot 1 (MiniLab_3)" in printed
+    assert "Input and Output to None" in printed
+
+
+def test_without_the_controller_a_live_control_surface_is_not_checked(
+    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch, live_log: Path
+) -> None:
+    live_log.write_text(IN_THE_WAY, encoding="utf-8")
+    monkeypatch.setattr(jam.Scheduler, "run", finished)
+    with_argv(monkeypatch, "--seconds", "10", "--log", str(live_log.parent / "jam.jsonl"))
+    assert jam.main() == 0
+
+
+def test_an_unreadable_live_log_is_a_warning_not_a_refusal(
+    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(jam, "find_live_log", lambda: None)
+    monkeypatch.setattr(jam, "build_controller", lambda spec: FakeController())
+    monkeypatch.setattr(jam.Scheduler, "run", finished)
+    with_argv(monkeypatch, "--seconds", "10", "--controller", "minilab", "--log", str(LOG))
+    assert jam.main() == 0
+    assert "could not find Live's Log.txt" in capsys.readouterr().err
+
+
+def test_a_performance_stopped_from_outside_is_a_failure_with_the_bar_it_stopped_at(
+    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Exit 0 means the form was played to the end, which a stopped transport did not."""
+    monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None, endings=None: None)
+    with_argv(monkeypatch, "--seconds", "10", "--log", str(LOG))
+    assert jam.main() == 1
+    assert "the performance stopped at bar" in capsys.readouterr().err

@@ -14,12 +14,12 @@ from __future__ import annotations
 import pytest
 
 from garagem.daw import ClipAddress, DawTimeoutError, FakeDawAdapter
-from garagem.domain import Feel, Instrument, Section, SectionScore
+from garagem.domain import Cue, CueKind, Feel, Instrument, Macro, MacroKind, Section, SectionScore
 from garagem.engines import Ending, coherence_of, compose, play_section
 from garagem.obs import Event, EventLog
 from garagem.theory import parse_chart
 from garagem.theory.coherence import Coherence
-from garagem.transport import BarClock, Scheduler, ScoreBuffer, render_score
+from garagem.transport import BarClock, CueQueue, Scheduler, ScoreBuffer, render_score
 
 TRACKS = {
     Instrument.DRUMS: 0,
@@ -435,3 +435,73 @@ def test_what_is_measured_is_what_was_written_ending_and_all() -> None:
     last = rig.of_kind("section_measured")[-1]
     for name in METRICS:
         assert last.detail[name] == round(getattr(expected, name), 3)
+
+
+# -------------------------------------------------------------------------------- cues
+
+
+def a_performance_with_cues(strikes: dict[int, Cue | Macro]) -> tuple[Rig, CueQueue]:
+    """Play FORM, offering each control at the beat it is keyed by, as a person would."""
+    rig = Rig()
+    queue = CueQueue(stamp=lambda: rig.clock.beat)
+    rig.scheduler._cues = queue
+    rig.scheduler.begin(FORM)
+    while not rig.scheduler.finished and rig.beat < 2000:
+        rig.daw.push_beat(rig.beat)
+        if rig.beat in strikes:
+            queue.offer(strikes[rig.beat])
+        rig.scheduler.tick()
+        rig.beat += 1
+    return rig, queue
+
+
+def test_a_cue_is_logged_with_the_beat_and_bar_it_arrived_in() -> None:
+    rig, _ = a_performance_with_cues({10: Cue(kind=CueKind.STOP)})
+    (received,) = rig.of_kind("cue_received")
+    assert received.at_beats == 10.0
+    assert received.detail["bar"] == 2
+    assert received.detail["cue"] == "stop"
+    assert received.detail["family"] == "bar"
+
+
+def test_a_knob_is_logged_with_its_value() -> None:
+    rig, _ = a_performance_with_cues({5: Macro(kind=MacroKind.TENSION, value=0.75)})
+    (received,) = rig.of_kind("cue_received")
+    assert received.detail["macro"] == "tension"
+    assert received.detail["value"] == 0.75
+
+
+def test_in_stage_2_a_cue_changes_nothing_that_is_played() -> None:
+    """The controller is proved against a jam before it may move a note (ADR-022)."""
+    cued, _ = a_performance_with_cues(
+        {6: Cue(kind=CueKind.CHORUS_NOW), 20: Cue(kind=CueKind.STOP), 30: Cue(kind=CueKind.END)}
+    )
+    plain = Rig()
+    plain.play()
+    kinds = ("section_written", "scene_fired")
+    assert [(event.kind, musical_detail(event)) for event in cued.log if event.kind in kinds] == [
+        (event.kind, musical_detail(event)) for event in plain.log if event.kind in kinds
+    ]
+
+
+def test_without_a_queue_nothing_about_cues_is_logged() -> None:
+    rig = Rig()
+    rig.play()
+    assert rig.of_kind("cue_received") == ()
+
+
+# ---------------------------------------------------------------------- a stopped transport
+
+
+def test_a_transport_stopped_from_outside_is_logged_and_the_run_is_not_finished() -> None:
+    """From inside Python a stop is silence; the log is where it becomes a fact."""
+    daw = FakeDawAdapter(scenes=4)
+    clock = BarClock(daw)
+    clock.start()
+    log = EventLog(None)
+    scheduler = Scheduler(daw, clock, ScoreBuffer(), TRACKS, log, seed=7, bar_timeout_s=0.05)
+    scheduler.run(FORM)
+    assert not scheduler.finished
+    (stopped,) = log.of_kind("beat_lost")
+    assert stopped.detail["reason"] == "transport_stopped"
+    assert stopped.detail["section"] == 0

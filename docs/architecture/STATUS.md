@@ -87,7 +87,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **1741 passed, 25 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **1841 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -140,12 +140,25 @@ Done, with the suite at **1741 passed, 25 live-marked skipped**, `ruff` and `myp
   written before the downbeat, legato variants written a section ahead, a scene layout in
   eight scenes, legato off on main clips, and a jump cue beating a scheduled section change
   while a bar cue never displaces one.
+- **Stage 2: the MiniLab is heard, and changes nothing yet.** `control/` holds the port, a
+  fake and the `mido` adapter; `controller.toml` maps pads 36–43 on channel 10 and knobs 74
+  and 71 to cues and the two macros; a `CueQueue` stamps each control with the beat it
+  arrived at, coalesces knob turns and keeps pad strikes in order; the scheduler logs each as
+  `cue_received`. `jam.py --controller minilab` prints the legend before the downbeat and a
+  count after the last bar. `session.toml` declares every band track disarmed, which the
+  bootstrap now checks and repairs — it caught KEYS armed in the real Set.
+  **First gate, not passed** (`phase-4-findings.md` §8): seven of the eight mapped controls
+  arrived, but Live's own `MiniLab_3` control surface listens to the same port and stopped
+  the transport ten seconds into the song — and the run exited 0. Now a stopped transport is
+  logged and fails the run, and `--controller` refuses to start while a Live surface is on
+  the cue port.
 
 Next, in order:
 
-1. **Stage 2: the MiniLab in, the music unchanged.** A `control/` port with a fake and a
-   `mido` adapter, `controller.toml`, a `CueQueue` between threads, `cue_received` in the
-   log, and the band's tracks declared disarmed. Gate: every mapped control named in a jam.
+1. **Stage 2's gate, again.** In Live, set Control Surface row 1 (`MiniLab_3`) Input and
+   Output to None; then `uv run python scripts/jam.py --controller minilab --seconds 90`,
+   pressing every mapped pad and turning both knobs. The song must play to its end, and the
+   count printed after it must name all eight.
 2. **Stages 3–5: jump cues, bar cues, knobs** (ADR-022), each gated by ear and hand.
 
 ## Phase 3 — closed with one waiver

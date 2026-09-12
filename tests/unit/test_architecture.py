@@ -26,7 +26,7 @@ from pathlib import Path
 PACKAGE = "garagem"
 ROOT = Path(__file__).resolve().parents[2] / "src" / PACKAGE
 
-INFRASTRUCTURE = frozenset({"llm", "daw", "transport", "obs"})
+INFRASTRUCTURE = frozenset({"llm", "daw", "transport", "obs", "control"})
 
 # layer -> layers it must not import
 FORBIDDEN: dict[str, frozenset[str]] = {
@@ -38,7 +38,11 @@ FORBIDDEN: dict[str, frozenset[str]] = {
     # it is the layer that drives Live — but it may never reach the network. A model call
     # takes seconds; the bar loop has milliseconds. The producer owns that call, on its
     # own thread, and the two meet at the `ScoreBuffer` (invariant 1).
-    "transport": frozenset({"llm"}),
+    "transport": frozenset({"llm", "control"}),
+    # ADR-022: a controller hears a person and hands over a `Control`; it knows nothing of
+    # Live, the model, the scheduler or the log. `transport/` never imports it either —
+    # the two meet at the `CueQueue`, wired by `scripts/jam.py` (invariant 1).
+    "control": frozenset({"llm", "daw", "transport", "obs"}),
 }
 
 # The layers `domain-purity.md` governs: no I/O of any kind, and no unseeded randomness.

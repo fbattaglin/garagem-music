@@ -6,6 +6,7 @@
     uv run python scripts/jam.py --generate           # ask a model; needs ANTHROPIC_API_KEY
     uv run python scripts/jam.py --generate --provider cassette:path.jsonl   # no network
     uv run python scripts/jam.py --plain              # no transitions, no climax: Phase 3
+    uv run python scripts/jam.py --controller minilab # log every pad and knob (ADR-021)
 
 This is Phase 2's exit criterion as a command. It arranges a form, generates every
 section with the deterministic engines, writes them into alternating scenes and fires
@@ -34,12 +35,20 @@ last one, a final chord at the end, and the last chorus lifted above the others.
 turns all of it off and plays the form exactly as every listening before Phase 4 heard it,
 which is what makes the two comparable by ear.
 
+**The MiniLab can be listened to** (`--controller minilab`, ADR-021). In this stage every pad
+strike and knob position is logged as `cue_received`, with the beat it arrived at, and none
+of them changes the music yet: the controller is proved against a real jam before it is
+allowed to. The legend of what each control will do is printed before the downbeat, and a
+count of what was heard after the last bar.
+
 `--dry-run` prints the form and exits without opening a socket, which makes it the
 cheapest way to see what a seed produces. `--provider cassette:<path>` replays a recording
 instead of calling out, so the whole generated path can be exercised against a real Live
 with no network and no money.
 
-Exit code 0 means the performance ran to the end of its form.
+Exit code 0 means the performance ran to the end of its form. A transport stopped from
+outside — Live itself, or a controller Live listens to — is exit code 1, with the bar it
+stopped at.
 """
 
 from __future__ import annotations
@@ -47,9 +56,18 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 from garagem.agents import Producer, deadline_for, structural, worth_asking
+from garagem.control import (
+    ControllerPort,
+    ControllerSpec,
+    ControllerSpecError,
+    ControllerUnavailableError,
+    MidoController,
+    load_controller,
+)
 from garagem.daw import (
     AbletonOSCAdapter,
     DawError,
@@ -61,6 +79,7 @@ from garagem.daw import (
     observe,
     render_divergences,
 )
+from garagem.daw.live_log import control_surfaces, latest_log, listening_to
 from garagem.daw.session import SessionSpec
 from garagem.domain import Feel, Instrument, Section
 from garagem.engines import Ending, SongBrief, arrange, endings_for, with_climax
@@ -80,13 +99,14 @@ from garagem.llm import (
     prices_of,
 )
 from garagem.obs import EventLog
-from garagem.transport import BarClock, Scheduler, ScoreBuffer
+from garagem.transport import BAR_TIMEOUT_S, BarClock, CueQueue, Scheduler, ScoreBuffer
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SESSION = ROOT / "session.toml"
 DEFAULT_LOG = ROOT / "bench" / "jam.jsonl"
 DEFAULT_CATALOG = ROOT / "config" / "models.toml"
 DEFAULT_BUDGET = ROOT / "config" / "budget.toml"
+DEFAULT_CONTROLLER = ROOT / "controller.toml"
 
 CASSETTE_PREFIX = "cassette:"
 
@@ -136,6 +156,53 @@ def build_provider(
         governor=Governor(budget.fuse(prices_of(catalog))),
         breaker=CircuitBreaker(BreakerPolicy()),
     )
+
+
+def build_controller(spec: ControllerSpec) -> ControllerPort:
+    return MidoController(spec)
+
+
+def find_live_log() -> Path | None:
+    return latest_log()
+
+
+def surfaces_in_the_way(port: str) -> str | None:
+    """Why the band should not start, if a Live control surface listens to the cue port.
+
+    Both would hear every pad, and Live's surface acts on some of them: at the first MiniLab
+    gate a button stopped the transport ten seconds into the song (`phase-4-findings.md`
+    §8). Read from Live's own log, the only place the table exists; `None` when nothing is
+    in the way *or* the log cannot be read, and the second case says so.
+    """
+    log = find_live_log()
+    if log is None:
+        sys.stderr.write("could not find Live's Log.txt to check its control surfaces\n")
+        return None
+    try:
+        text = log.read_text(encoding="utf-8", errors="replace")
+    except OSError as exc:
+        sys.stderr.write(f"could not read {log} to check Live's control surfaces: {exc}\n")
+        return None
+    clashing = listening_to(control_surfaces(text), port)
+    if not clashing:
+        return None
+    rows = ", ".join(f"slot {surface.slot} ({surface.name})" for surface in clashing)
+    return (
+        f"Live's control surface {rows} listens to {clashing[0].input}, the port the band's "
+        "cues come from. Both would hear every pad and button, and Live's surface can stop "
+        "the transport mid-song. In Live: Settings -> Link, Tempo & MIDI -> Control Surface, "
+        "set that row's Input and Output to None, then run this again.\n"
+    )
+
+
+def render_cues(log: EventLog) -> str:
+    """What the controller was heard asking for, counted. The Stage 2 gate reads this."""
+    received = log.of_kind("cue_received")
+    if not received:
+        return "no cue was received\n"
+    heard = Counter(str(event.detail.get("cue", event.detail.get("macro"))) for event in received)
+    listed = ", ".join(f"{name} x{count}" for name, count in sorted(heard.items()))
+    return f"{len(received)} controls received: {listed}\n"
 
 
 def tracks_of(spec: SessionSpec) -> dict[Instrument, int]:
@@ -235,6 +302,12 @@ def main() -> int:
         help="cassette:<path> to replay a recording instead of calling out. "
         "Anything else, or omitted, uses the Anthropic adapter and ANTHROPIC_API_KEY.",
     )
+    parser.add_argument(
+        "--controller",
+        choices=["minilab"],
+        help="listen to the controller in --controller-spec and log every cue it sends.",
+    )
+    parser.add_argument("--controller-spec", type=Path, default=DEFAULT_CONTROLLER)
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--budget", type=Path, default=DEFAULT_BUDGET)
     args = parser.parse_args()
@@ -243,9 +316,23 @@ def main() -> int:
     brief = brief_of(spec, args.seconds, Feel(args.feel), args.key, args.scale)
     form, endings = plan(brief, args.seed, plain=args.plain)
 
+    controls: ControllerSpec | None = None
+    if args.controller is not None:
+        try:
+            controls = load_controller(args.controller_spec)
+        except ControllerSpecError as exc:
+            sys.stderr.write(f"{exc}\n")
+            return 1
+
     if args.dry_run:
         sys.stderr.write(render_form(form, endings))
+        if controls is not None:
+            sys.stderr.write(controls.legend())
         return 0
+
+    if controls is not None and (blocked := surfaces_in_the_way(controls.port)) is not None:
+        sys.stderr.write(blocked)
+        return 1
 
     # Before anything opens a socket to Live: a missing key should not cost a Set check.
     provider: LLMProvider | None = None
@@ -271,6 +358,9 @@ def main() -> int:
     clock = BarClock(daw)
     buffer = ScoreBuffer()
     producer: Producer | None = None
+    controller = build_controller(controls) if controls is not None else None
+    # Stamped with the beat Live last reported, read on the controller's own thread.
+    cues = CueQueue(stamp=lambda: clock.beat) if controller is not None else None
     try:
         try:
             daw.warm()
@@ -286,6 +376,14 @@ def main() -> int:
             return 1
 
         sys.stderr.write(render_form(form, endings))
+        if controller is not None and controls is not None and cues is not None:
+            try:
+                controller.start(cues.offer)
+            except ControllerUnavailableError as exc:
+                sys.stderr.write(f"{exc}\n")
+                return 1
+            sys.stderr.write(controls.legend())
+            sys.stderr.write("cues are logged only in this stage; the music does not change\n")
         if provider is not None and model is not None:
             sys.stderr.write(f"generating with {model.id}\n")
             producer = Producer(provider, buffer, log, form, model=model, seed=args.seed)
@@ -306,7 +404,16 @@ def main() -> int:
 
         clock.start()
         daw.start_playing()
-        Scheduler(daw, clock, buffer, tracks, log, seed=args.seed).run(form, endings=endings)
+        scheduler = Scheduler(daw, clock, buffer, tracks, log, seed=args.seed, cues=cues)
+        scheduler.run(form, endings=endings)
+        if not scheduler.finished:
+            sys.stderr.write(
+                f"the performance stopped at bar {clock.bar}, section {scheduler.index} of "
+                f"{len(form)}: Live sent no beat for {BAR_TIMEOUT_S:g}s. The transport was "
+                "stopped outside GARAGEM — from Live itself, or by a controller Live listens "
+                "to.\n"
+            )
+            return 1
         return 0
     finally:
         # A Ctrl-C during a performance must still stop the transport and still leave the
@@ -315,6 +422,8 @@ def main() -> int:
         # the message explaining why with one about the teardown.
         if producer is not None:
             producer.stop()
+        if controller is not None:
+            controller.stop()
         for step, action in (
             ("stop listening", clock.stop),
             ("stop the transport", daw.stop_playing),
@@ -325,6 +434,8 @@ def main() -> int:
                 sys.stderr.write(f"could not {step}: {exc}\n")
         log.flush()
         daw.close()
+        if controller is not None:
+            sys.stderr.write(render_cues(log))
         sys.stderr.write(f"{len(log)} events -> {args.log}\n")
 
 

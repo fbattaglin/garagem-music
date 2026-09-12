@@ -1,0 +1,75 @@
+# "Controller as Code" — what each control on the MiniLab 3 asks the band for (ADR-021).
+#
+# Every number here was heard from the real unit by `scripts/probe_minilab.py` on
+# 2026-09-12 (`phase-4-findings.md` §7), not read from a manual. If the MiniLab's mode or
+# firmware changes, run the probe again and correct this file; nothing in code knows a note
+# or a CC number.
+#
+# Channels are written 1-16, the way the MiniLab's own editor labels them. The pads send on
+# channel 10.
+#
+# A pad is a *strike*: only the hit asks for its cue. Releasing it, or leaning on it (the
+# pads stream pressure while held), asks for nothing.
+#
+# Which pad does what is a musical choice, to be argued with by ear. Bar cues sit on the
+# left, section cues on the right, and pads 4 and 7 are free.
+
+schema = 1
+
+[controller]
+port = "Minilab3 MIDI"
+# Cues land on the next bar, which is what Phase 4's criterion asks. Raise it to try "the
+# next phrase" by ear; nothing else changes.
+quantum_bars = 1
+
+# ---------------------------------------------------------------------------- pads
+
+# Pad 1: the band hits the next downbeat and cuts; the drummer picks up into the bar after.
+[[pad]]
+channel = 10
+note = 36
+cue = "stop"
+
+# Pad 2: the drummer fills the next bar.
+[[pad]]
+channel = 10
+note = 37
+cue = "fill"
+
+# Pad 3: guitar and keys drop out on the next bar, back with the next section.
+[[pad]]
+channel = 10
+note = 38
+cue = "drums_and_bass"
+
+# Pad 5: the band cuts to the chorus on the next downbeat.
+[[pad]]
+channel = 10
+note = 40
+cue = "chorus_now"
+
+# Pad 6: the next section to be written is a bridge.
+[[pad]]
+channel = 10
+note = 41
+cue = "next_bridge"
+
+# Pad 8: this section finishes, then the outro and the final chord.
+[[pad]]
+channel = 10
+note = 43
+cue = "end"
+
+# --------------------------------------------------------------------------- knobs
+
+# Knob 1: density — sparser grooves to the left, busier to the right.
+[[knob]]
+channel = 1
+cc = 74
+macro = "density"
+
+# Knob 2: tension — harder fills, walking bass and more lift to the right.
+[[knob]]
+channel = 1
+cc = 71
+macro = "tension"

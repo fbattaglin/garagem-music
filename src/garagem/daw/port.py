@@ -198,6 +198,16 @@ class DawPort(Protocol):
         """
         ...
 
+    def track_armed(self, track: int) -> bool:
+        """Is the track armed? An armed MIDI track plays whatever a controller sends.
+
+        Which is why the band's tracks are declared disarmed: with the MiniLab connected,
+        a cue pad pressed over an armed track sounds a note inside the band (ADR-022).
+        """
+        ...
+
+    def set_track_armed(self, track: int, armed: bool) -> None: ...
+
     def scene_count(self) -> int: ...
 
     # -- clips

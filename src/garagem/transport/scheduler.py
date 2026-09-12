@@ -36,6 +36,11 @@ kept, so the result is validated, and a section whose ending would not validate 
 it was generated, with the log saying so. `endings=None` is Phase 3's scheduler, byte for
 byte.
 
+**A person's cues arrive through a `CueQueue`, never a call** (ADR-022). In Stage 2 of the
+MiniLab plan the scheduler only logs them — `cue_received`, stamped with the beat each one
+arrived at — so the controller can be proved against a jam before it is allowed to change a
+single note. `cues=None` is a scheduler with no controller, byte for byte.
+
 **Bar-driven, not time-driven.** `tick()` makes one bar's worth of decisions from the
 clock's current position and returns; `run()` is the thin wrapper that waits for the next
 bar and calls it. That split is what lets the whole three-minute run be a unit test:
@@ -56,7 +61,8 @@ from garagem.engines import Ending, coherence_of, compose, play_section
 from garagem.obs import EventLog
 from garagem.theory import validate
 from garagem.transport.buffer import ScoreBuffer
-from garagem.transport.clock import NO_BEAT, BarClock
+from garagem.transport.clock import BEATS_PER_BAR, NO_BEAT, BarClock
+from garagem.transport.cues import CueQueue, describe
 from garagem.transport.render import render_score
 
 # How long `run` will wait for a bar that should be one bar away before deciding the
@@ -96,6 +102,8 @@ class Scheduler:
         scenes: tuple[int, int] = (0, 1),
         fire_lead_bars: int = FIRE_LEAD_BARS,
         seed: int = 0,
+        cues: CueQueue | None = None,
+        bar_timeout_s: float = BAR_TIMEOUT_S,
     ) -> None:
         self._daw = daw
         self._clock = clock
@@ -105,6 +113,8 @@ class Scheduler:
         self._scenes = scenes
         self._fire_lead_bars = fire_lead_bars
         self._seed = seed
+        self._cues = cues
+        self._bar_timeout_s = bar_timeout_s
 
         self._sections: tuple[Section, ...] = ()
         self._endings: tuple[Ending, ...] | None = None
@@ -148,15 +158,32 @@ class Scheduler:
         *,
         endings: Sequence[Ending] | None = None,
     ) -> None:
-        """Play the whole form. Returns when the last section has been played out."""
+        """Play the whole form. Returns when it has been played out, or when Live stopped.
+
+        `finished` says which. A caller that reports success must check it: the first
+        MiniLab gate ended ten seconds into a song because a controller button stopped
+        Live's transport, and the run returned exactly as if it had played to the end
+        (`phase-4-findings.md` §8).
+        """
         self.begin(sections, seed, endings=endings)
         while not self.finished:
-            if not self._clock.wait_for_bar(self._clock.bar + 1, BAR_TIMEOUT_S):
+            if not self._clock.wait_for_bar(self._clock.bar + 1, self._bar_timeout_s):
                 # The transport stopped, or Live went quiet. Ending is the honest answer:
                 # nothing here retries, and a scheduler that kept firing into a stopped
-                # transport would fill the Set with clips nobody asked for.
+                # transport would fill the Set with clips nobody asked for. But it is
+                # written down, because from inside Python a stop looks like silence.
+                self._log.record(
+                    "beat_lost",
+                    self._beats(),
+                    reason="transport_stopped",
+                    bar=self._clock.bar,
+                    section=self._index,
+                    waited_s=self._bar_timeout_s,
+                )
                 break
             self.tick()
+        # A cue struck in the last bar would otherwise be heard and never written down.
+        self._drain_cues()
 
     def begin(
         self,
@@ -204,6 +231,7 @@ class Scheduler:
         """One bar's worth of decisions. False once the run is over."""
         if self.finished:
             return False
+        self._drain_cues()
         bar = self._clock.bar
         if bar == NO_BEAT:
             # Live has not reported a beat yet: the scene was fired and the transport is
@@ -306,6 +334,22 @@ class Scheduler:
         self._fired = self._index
         self._start_bar = bar
         self._log.record("beat_lost", self._beats(), reason="rewind", bar=bar)
+
+    # ----------------------------------------------------------------------------- cues
+
+    def _drain_cues(self) -> None:
+        """Log every control that arrived. Stage 2: nothing it asks for is acted on yet."""
+        if self._cues is None:
+            return
+        for received in self._cues.drain():
+            arrived = received.beat
+            self._log.record(
+                "cue_received",
+                float(max(arrived, 0)),
+                bar=NO_BEAT if arrived == NO_BEAT else int(arrived // BEATS_PER_BAR),
+                drained_bar=self._clock.bar,
+                **describe(received.control),
+            )
 
     # ------------------------------------------------------------------------- plumbing
 

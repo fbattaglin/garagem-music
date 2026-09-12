@@ -13,6 +13,10 @@
 # is only that *some* device is present. Drift is the choice because it is simple and
 # CPU-light, and Phase 1 is about timing rather than timbre — not because anything
 # else is unavailable. Live's Core Library ships inside the app bundle.
+#
+# `armed = false` on every band track (ADR-022). An armed MIDI track plays whatever the
+# MiniLab sends, so a cue pad pressed during a jam would sound a note inside the band.
+# The bootstrap disarms it with `--apply`.
 
 schema = 1
 name = "garagem-phase1"
@@ -28,24 +32,28 @@ index = 0
 name = "DRUMS"
 role = "drums"
 instrument = "Drift"
+armed = false
 
 [[track]]
 index = 1
 name = "BASS"
 role = "bass"
 instrument = "Drift"
+armed = false
 
 [[track]]
 index = 2
 name = "GTR"
 role = "guitar"
 instrument = "Drift"
+armed = false
 
 [[track]]
 index = 3
 name = "KEYS"
 role = "keys"
 instrument = "Drift"
+armed = false
 
 # Two scenes minimum: ADR-001 writes into the one that is not playing, so with a single
 # scene there is nowhere safe to write.

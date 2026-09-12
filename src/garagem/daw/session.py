@@ -2,9 +2,9 @@
 
 ADR-013. `session.toml` describes the Set; this module reads it, observes the open Set
 through a `DawPort`, and reports every divergence. It repairs only what the Live API can
-repair safely — tempo, launch quantisation, track names. A missing track or a track with
-no instrument is the human's job: no LOM call loads an instrument, so a track created
-from code would receive MIDI correctly and make no sound at all.
+repair safely — tempo, launch quantisation, track names, whether a track is armed. A
+missing track or a track with no instrument is the human's job: no LOM call loads an
+instrument, so a track created from code would receive MIDI correctly and make no sound.
 
 The split into `observe` -> `diff_session` -> `apply_session` is what makes almost all
 of the bootstrap testable with Ableton closed: `diff_session` is pure, and the two
@@ -43,9 +43,10 @@ KINDS: Final[tuple[str, ...]] = (
     "missing_scene",
     "no_instrument",
     "not_a_midi_track",
+    "armed",
 )
 # The ones the LOM can repair. Everything else is a human's job (ADR-013).
-FIXABLE_KINDS: Final[frozenset[str]] = frozenset({"tempo", "quantization", "track_name"})
+FIXABLE_KINDS: Final[frozenset[str]] = frozenset({"tempo", "quantization", "track_name", "armed"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,6 +57,9 @@ class TrackSpec:
     # Informational: the API cannot load it. It tells the human what to drop in, and
     # the check is only that *some* device is present.
     instrument: str
+    # `None` means the Set may have it either way. The band's tracks declare `false`: an
+    # armed MIDI track plays whatever the MiniLab sends, cue pads included (ADR-022).
+    armed: bool | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +87,7 @@ class ObservedSet:
     device_names: tuple[tuple[str, ...], ...]
     accepts_midi: tuple[bool, ...]
     scene_count: int
+    armed: tuple[bool, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -142,6 +147,7 @@ def _tracks(path: Path, entries: Sequence[dict[str, Any]]) -> tuple[TrackSpec, .
             name=str(entry["name"]),
             role=str(entry.get("role", "")),
             instrument=str(entry.get("instrument", "")),
+            armed=_armed(path, entry),
         )
         for entry in entries
     )
@@ -153,6 +159,18 @@ def _tracks(path: Path, entries: Sequence[dict[str, Any]]) -> tuple[TrackSpec, .
     if len(set(names)) != len(names):
         raise SessionSpecError(f"{path}: duplicate track names in {names}")
     return tracks
+
+
+def _armed(path: Path, entry: dict[str, Any]) -> bool | None:
+    """`true`, `false` or absent. A quoted `"false"` is refused: it is truthy in Python."""
+    if "armed" not in entry:
+        return None
+    value = entry["armed"]
+    if not isinstance(value, bool):
+        raise SessionSpecError(
+            f"{path}: track {entry.get('index')} armed must be true or false, got {value!r}"
+        )
+    return value
 
 
 def _scenes(path: Path, entries: Sequence[dict[str, Any]]) -> tuple[SceneSpec, ...]:
@@ -185,6 +203,7 @@ def observe(daw: DawPort) -> ObservedSet:
         device_names=tuple(daw.device_names(index) for index in range(len(names))),
         accepts_midi=tuple(daw.accepts_midi(index) for index in range(len(names))),
         scene_count=daw.scene_count(),
+        armed=tuple(daw.track_armed(index) for index in range(len(names))),
     )
 
 
@@ -240,6 +259,21 @@ def diff_session(spec: SessionSpec, observed: ObservedSet) -> tuple[Divergence, 
                     track=track.index,
                 )
             )
+        if (
+            track.armed is not None
+            and track.index < len(observed.armed)
+            and observed.armed[track.index] != track.armed
+        ):
+            state = "armed" if observed.armed[track.index] else "disarmed"
+            found.append(
+                Divergence(
+                    "armed",
+                    f"track {track.index} ({track.name}) is {state}, expected "
+                    f"{'armed' if track.armed else 'disarmed'}",
+                    True,
+                    track=track.index,
+                )
+            )
         if not observed.device_names[track.index]:
             found.append(
                 Divergence(
@@ -278,6 +312,10 @@ def apply_session(daw: DawPort, spec: SessionSpec) -> tuple[Divergence, ...]:
             daw.set_quantization(spec.quantization)
         elif divergence.kind == "track_name" and divergence.track is not None:
             daw.set_track_name(divergence.track, spec.tracks[divergence.track].name)
+        elif divergence.kind == "armed" and divergence.track is not None:
+            wanted = spec.tracks[divergence.track].armed
+            if wanted is not None:
+                daw.set_track_armed(divergence.track, wanted)
     return diff_session(spec, observe(daw))
 
 
