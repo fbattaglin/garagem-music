@@ -207,10 +207,26 @@ def test_the_loop_switch_is_read_and_turning_it_off_is_confirmed() -> None:
     assert transport.sent == [(SET_LOOP, (False,)), (GET_LOOP, ())]
 
 
-def test_a_loop_that_stayed_on_is_not_confirmed() -> None:
+def test_a_loop_that_stayed_on_is_not_confirmed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("garagem.daw.abletonosc.SETTLE_S", 0.05)
     transport = serving(GET_LOOP=(True,))
     with pytest.raises(DawWriteNotConfirmedError, match="did not take"):
         adapter(transport).set_song_loop(False)
+    assert sent(transport).count(SET_LOOP) == 1
+
+
+def test_a_loop_live_applies_a_tick_later_is_confirmed_without_writing_twice() -> None:
+    """What Live did on 2026-09-12: the first read still said on, the next said off."""
+    answers = iter([(True,), (False,)])
+
+    def handler(address: str, args: tuple[OscArg, ...]) -> Sequence[OscArg] | None:
+        if address == GET_LOOP:
+            return next(answers)
+        return HEALTHY.get(address)
+
+    transport = FakeOscTransport(handler=handler)
+    adapter(transport).set_song_loop(False)
+    assert sent(transport) == [SET_LOOP, GET_LOOP, GET_LOOP]
 
 
 def test_disarming_a_track_is_confirmed_by_reading_the_arm_back() -> None:

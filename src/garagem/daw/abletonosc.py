@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import math
 import os
+import time
 from collections.abc import Iterable, Sequence
 from typing import Any, Final
 
@@ -69,6 +70,11 @@ GET_TRACK_NAME: Final = "/live/track/get/name"
 SET_TRACK_NAME: Final = "/live/track/set/name"
 GET_DEVICE_NAMES: Final = "/live/track/get/devices/name"
 GET_HAS_MIDI_INPUT: Final = "/live/track/get/has_midi_input"
+# How long a setter Live applies on its next update may take to read back. Measured at
+# one tick; this is five of AbletonOSC's ~100 ms round trips.
+SETTLE_S: Final = 0.5
+SETTLE_POLL_S: Final = 0.05
+
 GET_LOOP: Final = "/live/song/get/loop"
 SET_LOOP: Final = "/live/song/set/loop"
 GET_TRACK_ARM: Final = "/live/track/get/arm"
@@ -338,9 +344,20 @@ class AbletonOSCAdapter:
         return bool(self._one(GET_LOOP))
 
     def set_song_loop(self, on: bool) -> None:
+        """Set the loop switch, and confirm it by *reading* until Live has applied it.
+
+        Unlike the tempo or a track name, Live applies `song.loop` on its next update, not
+        inside the handler: on 2026-09-12 the confirming read in the same tick answered
+        `True` 0.1 ms after the write, and `False` a moment later. So the read is repeated
+        for up to `SETTLE_S`. The write is sent once and never again — nothing here retries
+        a write, which is what P7 forbids.
+        """
         self._transport.send(SET_LOOP, on)
-        if (seen := self.song_loop()) != on:
-            raise _unconfirmed(SET_LOOP, on, seen)
+        deadline = time.monotonic() + SETTLE_S
+        while (seen := self.song_loop()) != on:
+            if time.monotonic() >= deadline:
+                raise _unconfirmed(SET_LOOP, on, seen)
+            time.sleep(SETTLE_POLL_S)
 
     def track_names(self) -> tuple[str, ...]:
         return tuple(str(name) for name in self._transport.request(GET_TRACK_NAMES))
