@@ -21,6 +21,12 @@ measured p50 1.83 s, max 15.04 s.
       round (0 of 29 over) did not retire it.
 - [ ] Coherence metrics on every section in the event log, in range: bass/kick alignment,
       harmonic conformance, register spread, density against the target `tension`
+
+      **The premise of "in range" is contested.** Three mechanisms have been proposed and
+      none of them predicts what Fabiano hears (`phase-4-findings.md` §1, §3, §5). The
+      criterion is left exactly as ADR-000 §7 wrote it; whether it can be met as written
+      is the question [ADR-019](ADR-019-the-ear-is-the-instrument.md) puts to Fabiano, and
+      that ADR is a draft.
 - [ ] Cost per session inside the declared budget, hard-capped by the `Governor`
 - [ ] Chaos test: the network dies mid-session and nothing is audible (P2, by ear as well
       as by log)
@@ -39,18 +45,27 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
       What replaced it is `kit_collision` — kick and snare in the same slot, which the
       model does 0.172 of the time against the curated grooves' 0.060, the one measured
       difference in the corpus pointing the same way as those three votes.
-      `scripts/calibrate_metrics.py` plays ten blind pairs of it, **both sides the same
-      briefing**, and asks which is *messier* rather than which is better. Ten pairs,
-      threshold 8, fixed in the source before the first note; free, offline, ~20 minutes.
+      `scripts/calibrate_metrics.py` plays blind pairs of it, **both sides the same
+      briefing**, so only the drum pattern the model wrote differs.
 
-      **Not yet run. Stage 2 does not begin until it is.**
+      **Run twice, missed twice** (`phase-4-findings.md` §3, §5). Asked as a *label* —
+      which take is messier — it scored 6 of 10 against a threshold of 8, and the design
+      error was in the question rather than in the ear: preference is the job his ear is
+      the reference for, and describing is not. Re-aimed to ask which take is *preferred*
+      and pre-registered at 12 of 16, it scored **5 of 16** — with the point estimate
+      inverted, the take the metric calls messier preferred in 10 of 15 decisive pairs.
+
+      **The gate did its job: `kit_collision` does not steer arrangement work**, and the
+      phase has no validated measure of mess. Stage 2 is no longer held by this line — it
+      proceeds judged by ear, the way Phase 2's floor was judged. The offline corpus that
+      made both runs free is spent: one unheard pair remains of 107 sections.
 - [ ] **Blind A/B re-run at this phase's close — same design, same threshold: 8 of 12.**
       Blind, balanced across sections and feels, pre-registered. The Phase 3 waiver moved
       the gate; it did not lower the bar.
 
 ### Where the phase actually is
 
-Done, with the suite at **1610 passed, 25 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **1619 passed, 25 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -69,13 +84,20 @@ Done, with the suite at **1610 passed, 25 live-marked skipped**, `ruff` and `myp
   own its pool (§9). `jam.py` never did this, so every first section paid the handshake.
 - **CI exists** (`.github/workflows/ci.yml`): lint, format, types, tests. No key, no
   Ableton — the `no_network` fuse is what makes the default suite safe to run there.
+- **The calibration gate ran, and missed.** Two listening sessions, 26 blind pairs across
+  the two designs, and the metric they were built to validate does not predict preference
+  (§3, §5). `tally` is corrected a second time — it reported this result as a near miss
+  when it was a reversal — and `--tally` now reads a finished log back, which it could
+  not do when this one finished.
 
 Next, in order:
 
-1. **Run the calibration gate.** `uv run python scripts/calibrate_metrics.py`, Live open.
-   This is Fabiano's and nothing else can stand in for it.
+1. **Decide [ADR-019](ADR-019-the-ear-is-the-instrument.md).** It blocks nothing
+   mechanical, and it settles what this phase's metrics criterion can mean — which is
+   what closes the phase.
 2. **Extend `_arranged()` with the dynamics curve and the transitions** — fills, breaks,
-   builds — as composition over the model's groove (ADR-017), gated on step 1.
+   builds — as composition over the model's groove (ADR-017). No longer gated on a
+   metric, because there is no validated one; judged by ear at the gate.
 3. **The tactical layer**: a cue changes the next bar deterministically, and the model is
    asked to refine the section after it.
 

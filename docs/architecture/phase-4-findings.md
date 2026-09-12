@@ -232,3 +232,99 @@ ever produced a mechanism in this project (§16).
 **If this one also misses, that is two failed hypotheses and a failed reformulation**, and
 the honest conclusion moves from "we have not found the metric yet" to "there may be no
 cheap proxy, and the architecture should say so" (§3's closing note).
+
+## 5. The gate is missed a second time, and the sign is inverted
+
+**5 of 16, one with no preference, 15 decisive. Threshold was 12. NOT MET**
+(`bench/calibration-preference.jsonl`, 2026-09-04 and 2026-09-08, Fabiano).
+
+`kit_collision` does not steer arrangement work. That is what ADR-018 asks of the gate,
+and the gate has now answered twice.
+
+### The result is not a near miss — it is a reversal
+
+The take the metric scores *messier* was preferred in **10 of 15 decisive pairs**.
+
+This matters more than the miss. P(>= 5 of 15 under a coin) = 0.94, which is the correct
+number for *"did the run clear the bar"* and a misleading one for *"what happened"*: read
+alone it looks like a coin and buries the reversal. The tail that describes the result is
+P(<= 5 of 15) = **0.15**. Neither is significant at n = 15. But "we could not detect the
+effect" and "the effect, if there is one, points the other way" are different statements,
+and only the second is consistent with what was measured.
+
+### The reporting defect, which is §3's with its sign flipped
+
+`tally` printed only the upper tail, and its power sentence read *"ten trials would reach
+the threshold only about half the time"* — a hard-coded description of the superseded
+10-pair round, still standing after the design moved to 16 pairs with a pre-registered
+power of 0.63.
+
+§3 corrected this function for claiming **more** than the design can deliver. Here it
+claimed **less**, and it did so precisely when the result was most interesting — which is
+the same failure mode, because in both cases the sentence that survives is the one nobody
+is motivated to question. The figure is now derived from `PAIRS` and `THRESHOLD` rather
+than written out (`_power`), both tails are printed when the estimate is below chance, and
+three tests hold it there. A fourth, `--tally`, exists because this run could not be read
+back at all: `tally` was reachable only at the end of a listening session, so a finished
+log had to be opened by hand to find out what it said.
+
+### Why, in his words
+
+The analysis §4 pre-registered, because grouping by reason is the only thing in this
+project that has ever produced a mechanism (§16). Of the 15 decisive pairs:
+
+| reason | the cleaner take won | the messier take won |
+|---|---|---|
+| more energy | 1 | 3 |
+| less boring | 1 | 3 |
+| just sounds nicer | 1 | 2 |
+| better to move to | 1 | 1 |
+| **cleaner, less messy** | **1** | **1** |
+
+**Six of the eight pairs decided on energy or interest went to the collision-heavy take.**
+And the bottom row is the one that undoes the hypothesis from the inside: *"cleaner, less
+messy"* is the phrase the whole metric was built from, and it splits 1–1 — in one of those
+two pairs Fabiano called the take the number scores as messy the *cleaner* of the two.
+
+There is a musical reading, and it is ordinary. Kick and snare on the same sixteenth is not
+two drums fighting for a slot; it is the kick reinforcing the backbeat, which is a standard
+rock move and lands as weight rather than as mess. §1 counted those hits and called them
+mess by definition. Nobody had checked that definition against an ear until now.
+
+### What this does not say
+
+- **2 to 4 votes per reason is anecdote.** The table is a hypothesis with a mechanism
+  attached, exactly as `kit_collision` itself was after §1, and that one did not survive.
+- **The inverted sign is not acted on here, deliberately.** Flipping the metric and using
+  it would be reading a mechanism off a finished run, which is how §13's chorus split and
+  §16's register hypothesis both died. If it is to be tested it needs its own
+  pre-registration, written before the material exists.
+- **n = 1 judge**, unchanged and unfixable at this scale (ADR-018 rejected recruiting
+  listeners as a fix for this gate).
+
+### The corpus is spent
+
+23 briefings have now been heard across the two runs, and **exactly one new pair** remains
+constructible from the 107 recorded sections. The offline corpus paid for in Phase 3 is
+exhausted: any further calibration needs freshly generated material, which costs API spend
+and a session. That is a planning constraint, not an aside — it is the reason the inverted
+sign should be tested on sections Stage 2 generates anyway rather than on a round bought
+for the purpose.
+
+### The consequence was pre-registered
+
+§4, before the first note of this run:
+
+> **If this one also misses, that is two failed hypotheses and a failed reformulation**,
+> and the honest conclusion moves from "we have not found the metric yet" to "there may be
+> no cheap proxy, and the architecture should say so".
+
+Three mechanisms have now been proposed and none survived: `register_spread` and
+`harmonic_conformance`, refuted structurally because the DSL forbids the model to produce
+what they measure (§1); `kit_collision` as a label for mess, unsupported at n = 10 and
+mis-aimed by design (§3); and `kit_collision` as a predictor of preference, which this run
+leaves pointing backwards.
+
+What follows from that is an architecture question rather than a measurement one, and it is
+drafted in `ADR-019-the-ear-is-the-instrument.md` for Fabiano to accept, amend or reject.
+It is **proposed**, not accepted, and nothing in this document depends on its outcome.

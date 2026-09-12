@@ -404,6 +404,27 @@ def _coin_tail(hits: int, trials: int) -> float:
     return sum(comb(trials, k) for k in range(hits, trials + 1)) * 0.5**trials
 
 
+def _coin_low_tail(hits: int, trials: int) -> float:
+    """P(at most `hits` of `trials`) under a coin. The tail a reversal lives in."""
+    return sum(comb(trials, k) for k in range(hits + 1)) * 0.5**trials
+
+
+def _power(rate: float) -> float:
+    """P(reaching THRESHOLD of PAIRS) if the metric is right `rate` of the time.
+
+    Derived from the pre-registration rather than written out as a sentence. A hard-coded
+    figure survives a change to THRESHOLD and then describes a run that never happened,
+    which is precisely what it did between the superseded 10-pair round and this one
+    (`phase-4-findings.md` §5).
+    """
+    return float(
+        sum(
+            comb(PAIRS, k) * rate**k * (1 - rate) ** (PAIRS - k)
+            for k in range(THRESHOLD, PAIRS + 1)
+        )
+    )
+
+
 def tally(path: Path) -> str:
     """The count, the threshold, and — carefully — what the count does not license.
 
@@ -412,6 +433,13 @@ def tally(path: Path) -> str:
     missing a bar set at p = 0.055 is not evidence of no effect, it is the absence of
     evidence for one. The two get confused precisely when the result is disappointing,
     which is when it matters most not to.
+
+    It was corrected a second time, in the other direction (`phase-4-findings.md` §5).
+    The 16-pair run came back at 5 of 16 with the estimate *inverted*, and this function
+    reported it as a near miss: it printed only the upper tail, 0.94, which reads as a
+    coin and hides a 10-of-15 reversal, above a power sentence still describing the
+    10-pair round. Claiming less than the design delivers is the same defect as claiming
+    more — the sentence nobody is motivated to question is the one that survives.
     """
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     agreed = sum(1 for row in rows if row["metric_agreed"] == "true")
@@ -430,11 +458,23 @@ def tally(path: Path) -> str:
         lines += [
             f"P(>= {agreed} of {decisive} under a coin) = {tail:.2f}. The gate is not met,",
             "so kit_collision does not steer arrangement work — that is what ADR-018 asks",
-            "of it. But this is not evidence that the metric is meaningless: ten trials",
-            "would reach the threshold only about half the time even if the metric were",
-            "right 75% of the time. Absence of evidence, at this n, is all it is.",
+            f"of it. But this is not evidence that the metric is meaningless: {PAIRS} trials",
+            f"would reach the threshold only {_power(0.75):.0%} of the time even if the metric",
+            "were right 75% of the time. Absence of evidence, at this n, is all it is.",
             "",
         ]
+        if decisive and agreed * 2 < decisive:
+            lines += [
+                "And the point estimate runs the other way. The take scored *messier*",
+                f"was preferred in {decisive - agreed} of {decisive} decisive pairs, so the "
+                "tail above describes",
+                "the bar rather than the result. The one that describes the result is",
+                f"P(<= {agreed} of {decisive}) = {_coin_low_tail(agreed, decisive):.2f}, "
+                "also not significant. A reversal this size is a",
+                "hypothesis for a run that does not exist yet; acting on it here would be",
+                "reading a mechanism off a finished run, which is how §13 and §16 died.",
+                "",
+            ]
         if same < len(rows):
             lines += [
                 f"What the run does say: {decisive} of {len(rows)} pairs drew a preference,",
@@ -466,7 +506,15 @@ def main() -> int:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--timeout-s", type=float, default=0.5)
     parser.add_argument("--dry-run", action="store_true", help="the selection, no Live")
+    parser.add_argument("--tally", action="store_true", help="re-read a finished log, no Live")
     args = parser.parse_args()
+
+    if args.tally:
+        if not args.log.exists():
+            sys.stderr.write(f"{args.log} does not exist.\n")
+            return 1
+        sys.stderr.write(tally(args.log))
+        return 0
 
     corpus = load_corpus([ROOT / "bench" / name for name in DEFAULT_CORPUS])
     if not corpus:

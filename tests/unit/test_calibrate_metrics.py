@@ -51,19 +51,12 @@ def test_the_power_is_what_was_claimed_before_the_run() -> None:
 
     This design can find a strong effect and is weak against a moderate one. The ceiling
     is the corpus: only 17 pairs remain that the superseded run did not already play.
+
+    The formula lives in the script rather than here, so the figure `tally` prints and
+    the figure this test asserts cannot drift apart.
     """
-    from math import comb
-
-    def power(rate: float) -> float:
-        return float(
-            sum(
-                comb(cal.PAIRS, k) * rate**k * (1 - rate) ** (cal.PAIRS - k)
-                for k in range(cal.THRESHOLD, cal.PAIRS + 1)
-            )
-        )
-
-    assert 0.60 < power(0.75) < 0.66
-    assert power(0.85) > 0.90
+    assert 0.60 < cal._power(0.75) < 0.66
+    assert cal._power(0.85) > 0.90
 
 
 # -------------------------------------------------------------------------- the corpus
@@ -226,3 +219,47 @@ def test_a_missed_threshold_is_not_reported_as_a_refutation(tmp_path: Path) -> N
     assert "does not track the ear" not in report
     assert "Absence of evidence" in report
     assert "under a coin" in report
+
+
+def test_a_reversed_result_is_not_reported_as_a_near_miss(tmp_path: Path) -> None:
+    """5 of 15 is not "we could not detect it" — it is the effect with its sign flipped.
+
+    The upper tail answers "did the run clear the bar" and misleads about what happened:
+    at 5 agreed of 15 it reads 0.94, which looks like a coin and buries a 10-of-15
+    reversal. §3 corrected `tally` for claiming *more* than the design delivers; this is
+    the same defect with its sign flipped (`phase-4-findings.md` §5).
+    """
+    report = cal.tally(_log_with(tmp_path, 5, 15))
+    assert "runs the other way" in report
+    assert "10 of 15" in report
+    assert "P(<= 5 of 15)" in report
+    assert "Absence of evidence" in report
+
+
+def test_the_tally_states_the_n_it_actually_ran(tmp_path: Path) -> None:
+    """The power sentence described the superseded 10-pair round for a whole run."""
+    report = cal.tally(_log_with(tmp_path, 5, cal.PAIRS))
+    assert "ten trials" not in report
+    assert f"{cal.PAIRS} trials" in report
+
+
+def test_the_power_sentence_is_derived_from_the_threshold(tmp_path: Path) -> None:
+    """Moving THRESHOLD must not leave a stale claim about power standing behind it."""
+    report = cal.tally(_log_with(tmp_path, 5, cal.PAIRS))
+    assert f"{cal._power(0.75):.0%}" in report
+
+
+def test_a_finished_log_can_be_read_back_without_a_listening_session(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`tally` was reachable only after listening, so a finished run could not be re-read.
+
+    The log is evidence: reading it must never write to it.
+    """
+    log = _log_with(tmp_path, 5, cal.PAIRS)
+    before = log.read_bytes()
+    monkeypatch.setattr(sys, "argv", ["calibrate_metrics.py", "--tally", "--log", str(log)])
+
+    assert cal.main() == 0
+    assert log.read_bytes() == before
+    assert "NOT MET" in capsys.readouterr().err
