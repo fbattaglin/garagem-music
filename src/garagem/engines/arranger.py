@@ -143,6 +143,68 @@ def with_climax(form: Sequence[Section]) -> tuple[Section, ...]:
     choruses = [index for index, section in enumerate(form) if section.name == CHORUS]
     if len(choruses) < 2:
         return tuple(form)
+    return _lift_last_chorus(form)
+
+
+def candidate_for(form: Sequence[Section], kind: str, seed: int) -> Section:
+    """The section a jump cue to `kind` lands on, decided before the song starts (ADR-022).
+
+    It has to be written before the downbeat, so it cannot wait to see where the song is.
+    It is the song's own first section of that kind, at that kind's ordinary size: the chorus
+    the person has heard, or is about to, rather than a stranger. A form without one gets a
+    fresh section of the kind from the seed, in the song's key.
+    """
+    for section in form:
+        if section.name == kind:
+            shape = SHAPES[kind]
+            return section.model_copy(update={"dyn": shape.dyn, "tension": shape.tension})
+    reference = form[0]
+    rng = Random(seed)
+    return _section(_brief_like(reference), kind, _charts_for(reference.scale), rng)
+
+
+def continue_from(reference: Section, kind: str, seed: int, seconds: float) -> tuple[Section, ...]:
+    """What follows a section of `kind`: sections for about `seconds`, then the outro.
+
+    The same weighted walk as `arrange`, started from a kind instead of from the intro, in the
+    reference section's key, scale, tempo and feel. No time left is still an ending: the
+    outro alone.
+    """
+    brief = _brief_like(reference)
+    charts = _charts_for(reference.scale)
+    rng = Random(seed)
+    kinds: list[str] = []
+    elapsed = 0.0
+    last = kind
+    while elapsed < seconds and last in TRANSITIONS:
+        options, weights = zip(*TRANSITIONS[last], strict=True)
+        last = rng.choices(options, weights=weights, k=1)[0]
+        kinds.append(last)
+        elapsed += _seconds(brief, last)
+    kinds.append(OUTRO)
+    return tuple(_section(brief, name, charts, rng) for name in kinds)
+
+
+def jump_plan(
+    form: Sequence[Section], playing: int, candidate: Section, seed: int
+) -> tuple[Section, ...]:
+    """The form after a jump from section `playing` to `candidate`.
+
+    What has played stays, the candidate comes next, and a new tail follows it. The tail
+    fills what the planned sections after `playing` would have lasted, less the candidate,
+    so a jump reshapes the song rather than lengthening it. The climax moves to the tail's
+    last chorus — never onto the candidate, which was written before the song began and
+    cannot be lifted after.
+    """
+    remaining = sum(section.total_seconds() for section in form[playing + 1 :])
+    tail = continue_from(form[playing], candidate.name, seed, remaining - candidate.total_seconds())
+    return (*form[: playing + 1], candidate, *_lift_last_chorus(tail))
+
+
+def _lift_last_chorus(form: Sequence[Section]) -> tuple[Section, ...]:
+    choruses = [index for index, section in enumerate(form) if section.name == CHORUS]
+    if not choruses:
+        return tuple(form)
     last = choruses[-1]
     peak = form[last]
     lifted = peak.model_copy(
@@ -152,6 +214,17 @@ def with_climax(form: Sequence[Section]) -> tuple[Section, ...]:
         }
     )
     return (*form[:last], lifted, *form[last + 1 :])
+
+
+def _brief_like(section: Section) -> SongBrief:
+    """The song a section belongs to, as far as generating more of it needs."""
+    return SongBrief(
+        key=section.key,
+        scale=section.scale,
+        bpm=section.bpm,
+        feel=section.feel,
+        minimum_seconds=section.total_seconds(),
+    )
 
 
 def _section(

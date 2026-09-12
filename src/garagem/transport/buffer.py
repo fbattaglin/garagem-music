@@ -68,6 +68,12 @@ class ScoreBuffer:
             for stale in [key for key in self._scores if key < self._floor]:
                 del self._scores[stale]
 
+    def discard_from(self, index: int) -> None:
+        """Drop everything generated for `index` and after. What a re-planned form means."""
+        with self._lock:
+            for stale in [key for key in self._scores if key >= index]:
+                del self._scores[stale]
+
     def clear(self) -> None:
         """Throw everything away. What a rewind means: those bars are not coming."""
         with self._lock:

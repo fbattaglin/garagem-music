@@ -16,24 +16,27 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import AsyncIterator
 from pathlib import Path
 
 from garagem.agents import Producer, structural, worth_asking
 from garagem.daw import FakeDawAdapter
-from garagem.domain import Feel, Instrument, Section
-from garagem.dsl import serialize_section
+from garagem.domain import Cue, CueKind, Feel, Instrument, Section
+from garagem.dsl import brief, serialize_section
 from garagem.engines import SongBrief, arrange, endings_for, play_section, with_climax
 from garagem.llm import (
     FakeProvider,
     FakeResponse,
     LLMProvider,
     ProviderUnavailableError,
+    Request,
     StopReason,
+    StreamEvent,
     Usage,
     load_catalog,
 )
 from garagem.obs import Event, EventLog, rate_of
-from garagem.transport import BarClock, Scheduler, ScoreBuffer
+from garagem.transport import BarClock, CueQueue, FormPlan, Scheduler, ScoreBuffer
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG = load_catalog(ROOT / "config" / "models.toml")
@@ -356,3 +359,79 @@ def test_the_models_sections_get_the_same_endings_as_the_floors() -> None:
         if event.detail.get("source") == "buffer"
     ]
     assert len(from_buffer) == len(jam.asked)
+
+
+# ------------------------------------------------------------------- a jump with the model in
+
+
+class Answering:
+    """A perfect model for whatever briefing it is sent, including ones a jump created."""
+
+    name = "answering"
+
+    def __init__(self, plan: FormPlan, seed: int) -> None:
+        self.plan = plan
+        self.seed = seed
+        self.asked: list[str] = []
+
+    async def stream(self, request: Request) -> AsyncIterator[StreamEvent]:
+        content = request.messages[0].content
+        self.asked.append(content)
+        section = next(s for s in self.plan.sections() if brief(s) == content)
+        response = perfect_response(section, self.seed)
+        async for event in FakeProvider([response]).stream(request):
+            yield event
+
+
+def a_jam_with_a_jump(cue_beat: int) -> tuple[Scheduler, EventLog, Answering, FormPlan]:
+    form = with_climax(arrange(BRIEF, SEED))
+    plan = FormPlan(form, endings_for(form))
+    daw = FakeDawAdapter(scenes=4)
+    clock = BarClock(daw)
+    clock.start()
+    buffer = ScoreBuffer()
+    log = EventLog(None)
+    queue = CueQueue(stamp=lambda: clock.beat)
+    provider = Answering(plan, SEED)
+    producer = Producer(provider, buffer, log, plan, model=MODEL, seed=SEED)
+    scheduler = Scheduler(
+        daw, clock, buffer, TRACKS, log, seed=SEED, cues=queue, candidates={"chorus": 2}, plan=plan
+    )
+    scheduler.begin(form, endings=endings_for(form))
+    beat = 0
+    while not scheduler.finished and beat < 20_000:
+        index = producer._next_wanted()
+        if index is not None:
+            asyncio.run(producer.produce(index))
+        daw.push_beat(beat)
+        if beat == cue_beat:
+            queue.offer(Cue(kind=CueKind.CHORUS_NOW))
+        scheduler.tick()
+        beat += 1
+    return scheduler, log, provider, plan
+
+
+def test_after_a_jump_the_model_is_asked_for_the_section_that_follows_the_chorus() -> None:
+    """ADR-021's second new criterion, offline: the re-planned briefing reaches the model."""
+    scheduler, log, provider, plan = a_jam_with_a_jump(cue_beat=25)
+    (applied,) = log.of_kind("cue_applied")
+    target = int(str(applied.detail["section"]))
+    following = plan.at(target + 1)
+    assert following is not None
+    assert brief(following) in provider.asked
+    assert scheduler.finished
+
+
+def test_a_stale_section_never_plays_across_a_jump() -> None:
+    """Every section written after the jump is the plan's own briefing, whoever wrote it."""
+    scheduler, log, _, plan = a_jam_with_a_jump(cue_beat=25)
+    written = [int(str(event.detail["section"])) for event in log.of_kind("section_written")]
+    generated = {
+        int(str(event.detail["section"])): event
+        for event in log.of_kind("section_generated")
+        if event.detail.get("source") == "buffer"
+    }
+    assert written[-1] == len(plan) - 1
+    assert generated, "the model's sections never reached the buffer; this proves nothing"
+    assert all(index < len(plan) for index in generated)
+    assert scheduler.sections == plan.sections()

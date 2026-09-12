@@ -36,7 +36,7 @@ from garagem.llm import (
 )
 from garagem.obs import EventLog
 from garagem.theory import parse_chart, validate
-from garagem.transport import ScoreBuffer
+from garagem.transport import FormPlan, ScoreBuffer
 
 ROOT = Path(__file__).resolve().parents[2]
 MODEL = structural(load_catalog(ROOT / "config" / "models.toml"))
@@ -427,3 +427,56 @@ def test_a_provider_with_no_pool_to_open_is_not_an_error() -> None:
     rig = Rig(responding(dsl_for(FORM[0])))
     asyncio.run(rig.producer._warm())
     assert rig.produce(0)
+
+
+# ------------------------------------------------------------- a form that changes (ADR-022)
+
+
+class Replanning:
+    """A provider that re-plans the form while it is answering, as a jump cue would."""
+
+    def __init__(self, inner: FakeProvider, plan: FormPlan, replacement: tuple[Section, ...]):
+        self.inner = inner
+        self.plan = plan
+        self.replacement = replacement
+
+    @property
+    def name(self) -> str:
+        return "replanning"
+
+    async def stream(self, request: Request) -> AsyncIterator[StreamEvent]:
+        self.plan.replace(self.replacement, None)
+        async for event in self.inner.stream(request):
+            yield event
+
+
+def test_a_re_planned_index_is_a_new_question_for_the_model() -> None:
+    plan = FormPlan(FORM)
+    provider = responding(dsl_for(FORM[0]), dsl_for(FORM[1]), dsl_for(FORM[0]))
+    buffer = ScoreBuffer()
+    producer = Producer(provider, buffer, EventLog(None), plan, model=MODEL, seed=7)
+    assert asyncio.run(producer.produce(0))
+    assert asyncio.run(producer.produce(1))
+
+    replanned = (FORM[0], FORM[0], FORM[2])
+    plan.replace(replanned, None)
+    buffer.discard_from(1)
+    assert producer._next_wanted() == 1
+    assert asyncio.run(producer.produce(1))
+    assert "verse" in provider.calls[-1].messages[0].content
+    assert buffer.take(1) is not None
+    assert buffer.take(1).section == FORM[0]  # type: ignore[union-attr]
+
+
+def test_music_for_a_briefing_replaced_mid_answer_is_never_offered() -> None:
+    plan = FormPlan(FORM)
+    replanned = (FORM[0], FORM[0], FORM[2])
+    provider = Replanning(responding(dsl_for(FORM[1])), plan, replanned)
+    buffer = ScoreBuffer()
+    log = EventLog(None)
+    producer = Producer(provider, buffer, log, plan, model=MODEL, seed=7)
+
+    assert not asyncio.run(producer.produce(1))
+    assert buffer.take(1) is None
+    assert [event.detail.get("reason") for event in log.of_kind("fallback")] == ["stale"]
+    assert log.of_kind("section_parsed") == ()

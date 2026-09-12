@@ -87,7 +87,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **1850 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **1895 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -153,13 +153,18 @@ Done, with the suite at **1850 passed, 27 live-marked skipped**, `ruff` and `myp
   diagnosed; the loop is now in `session.toml`, and a run that ends early says whether the
   transport stopped or the position went back. Cues are read a bar after they arrive — the
   latency Stage 3 must remove.
+- **Stage 3 is built, and not yet heard** (`phase-4-findings.md` §9). The song's chorus is
+  written into scene 2 before the downbeat; pad 5 fires it for the next bar — read inside
+  the bar it arrives in, even mid-write — and the rest of the song is re-planned behind it,
+  with the model asked for what follows the chorus and stale sections refused twice. Offline,
+  `fired_bar − cue_bar = 1` holds, no write lands in a playing scene, and a performance with
+  jumps replays byte for byte. **Gate pending:** the band follows Fabiano to the chorus.
 
 Next, in order:
 
-1. **Stage 3: jump cues and the re-planned form** (ADR-022). Candidates written before the
-   downbeat, "chorus now" fired for the next bar, the form re-planned from the cue and the
-   producer re-targeted, with the scheduler waking inside the bar so a cue is not read a bar
-   late. Gate, by ear: the band follows the chorus cue.
+1. **Stage 3's gate, by ear.** `uv run python scripts/jam.py --controller minilab
+   --seconds 120`, striking pad 5 (chorus now) at different points of the song. The printed
+   summary must say every jump landed after 1 bar; the ear says whether the band followed.
 2. **Stages 4–5: bar cues and knobs** (ADR-022), each gated by ear and hand.
 
 ## Phase 3 — closed with one waiver

@@ -13,8 +13,18 @@ from itertools import pairwise
 
 import pytest
 
-from garagem.domain import Feel, Quality
-from garagem.engines import SHAPES, SongBrief, arrange, diatonic, play_section, with_climax
+from garagem.domain import Feel, Quality, Section
+from garagem.engines import (
+    SHAPES,
+    SongBrief,
+    arrange,
+    candidate_for,
+    continue_from,
+    diatonic,
+    jump_plan,
+    play_section,
+    with_climax,
+)
 from garagem.engines.arranger import CHORUS, INTRO, OUTRO
 from garagem.theory import TheoryError, render_chord, validate
 
@@ -184,3 +194,85 @@ def test_the_climax_never_passes_the_top_of_the_scale() -> None:
 def test_a_lifted_song_still_validates_section_by_section(seed: int) -> None:
     form = with_climax(arrange(a_brief(), seed))
     assert all(validate(play_section(section, seed)) == () for section in form)
+
+
+# ------------------------------------------------------------------------ jumps (ADR-022)
+
+
+def a_form(seed: int = 7) -> tuple[Section, ...]:
+    return with_climax(arrange(a_brief(), seed))
+
+
+def test_the_chorus_candidate_is_the_songs_own_chorus_at_its_ordinary_size() -> None:
+    form = a_form()
+    candidate = candidate_for(form, CHORUS, 1)
+    first = next(section for section in form if section.name == CHORUS)
+    assert candidate.chart == first.chart
+    assert (candidate.dyn, candidate.tension) == (SHAPES[CHORUS].dyn, SHAPES[CHORUS].tension)
+
+
+def test_a_form_with_no_chorus_still_gets_a_chorus_candidate_in_its_key() -> None:
+    form = tuple(section for section in a_form() if section.name != CHORUS)
+    candidate = candidate_for(form, CHORUS, 1)
+    assert candidate.name == CHORUS
+    assert (candidate.key, candidate.scale, candidate.bpm) == (
+        form[0].key,
+        form[0].scale,
+        form[0].bpm,
+    )
+
+
+def test_a_continuation_ends_with_the_outro_and_never_repeats_a_kind() -> None:
+    form = a_form()
+    tail = continue_from(form[1], CHORUS, 3, 60.0)
+    assert tail[-1].name == OUTRO
+    names = [CHORUS, *(section.name for section in tail[:-1])]
+    assert all(before != after for before, after in pairwise(names))
+
+
+def test_a_continuation_with_no_time_left_is_only_the_outro() -> None:
+    assert [section.name for section in continue_from(a_form()[1], CHORUS, 3, 0.0)] == [OUTRO]
+
+
+@pytest.mark.parametrize("playing", [0, 1, 4, 9])
+def test_a_jump_keeps_what_played_and_puts_the_chorus_next(playing: int) -> None:
+    form = a_form()
+    candidate = candidate_for(form, CHORUS, 1)
+    plan = jump_plan(form, playing, candidate, 5)
+    assert plan[: playing + 1] == form[: playing + 1]
+    assert plan[playing + 1] == candidate
+    assert plan[-1].name == OUTRO
+
+
+def test_a_jump_reshapes_the_song_rather_than_lengthening_it() -> None:
+    form = a_form()
+    candidate = candidate_for(form, CHORUS, 1)
+    plan = jump_plan(form, 1, candidate, 5)
+    planned = sum(section.total_seconds() for section in form)
+    jumped = sum(section.total_seconds() for section in plan)
+    # The walk stops after it passes the time left, so it can overshoot by a section.
+    assert abs(jumped - planned) <= max(section.total_seconds() for section in form) + 1e-6
+
+
+def test_the_climax_moves_to_the_new_tail_and_never_onto_the_candidate() -> None:
+    form = a_form()
+    candidate = candidate_for(form, CHORUS, 1)
+    plan = jump_plan(form, 1, candidate, 5)
+    assert plan[2] == candidate
+    tail_choruses = [section for section in plan[3:] if section.name == CHORUS]
+    if tail_choruses:
+        assert tail_choruses[-1].dyn == SHAPES[CHORUS].dyn + 1
+
+
+def test_the_same_jump_gives_the_same_song() -> None:
+    form = a_form()
+    candidate = candidate_for(form, CHORUS, 1)
+    assert jump_plan(form, 3, candidate, 5) == jump_plan(form, 3, candidate, 5)
+
+
+@pytest.mark.parametrize("seed", range(6))
+def test_every_section_of_a_jumped_song_validates(seed: int) -> None:
+    form = a_form(seed)
+    candidate = candidate_for(form, CHORUS, seed)
+    plan = jump_plan(form, 2, candidate, seed + 1)
+    assert all(validate(play_section(section, seed)) == () for section in plan)

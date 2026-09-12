@@ -11,9 +11,11 @@ out of the event log rather than out of the scheduler's own opinion of itself.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
+
 import pytest
 
-from garagem.daw import ClipAddress, DawTimeoutError, FakeDawAdapter
+from garagem.daw import ClipAddress, DawTimeoutError, FakeDawAdapter, MidiNote
 from garagem.domain import Cue, CueKind, Feel, Instrument, Macro, MacroKind, Section, SectionScore
 from garagem.engines import Ending, coherence_of, compose, play_section
 from garagem.obs import Event, EventLog
@@ -539,3 +541,234 @@ def test_a_song_position_that_keeps_going_back_is_told_apart_from_a_stop() -> No
     assert not scheduler.finished
     assert scheduler.stopped_because == "position_went_back"
     assert log.of_kind("beat_lost")[-1].detail["reason"] == "position_went_back"
+
+
+# ------------------------------------------------------------------------ jumps (Stage 3)
+
+
+CHORUS_SCENE = 2
+JUMPING = {"chorus": CHORUS_SCENE}
+
+
+class WatchedDaw(FakeDawAdapter):
+    """A fake that remembers, for every write, which scene the scheduler said was playing."""
+
+    def __init__(self) -> None:
+        super().__init__(scenes=4)
+        self.scheduler: Scheduler | None = None
+        self.writes: list[tuple[int, int]] = []
+        self.during_write: list[Callable[[], None]] = []
+
+    def write_notes(self, at: ClipAddress, notes: Iterable[MidiNote]) -> None:
+        playing = self.scheduler.playing_scene if self.scheduler is not None else -1
+        self.writes.append((at.scene, playing))
+        super().write_notes(at, notes)
+        while self.during_write:
+            self.during_write.pop(0)()
+
+
+class JumpRig:
+    """FORM with a chorus candidate and a cue queue, driven a beat at a time."""
+
+    def __init__(self, *, candidates: dict[str, int] | None = None) -> None:
+        self.daw = WatchedDaw()
+        self.clock = BarClock(self.daw)
+        self.clock.start()
+        self.buffer = ScoreBuffer()
+        self.log = EventLog(None)
+        self.queue = CueQueue(stamp=lambda: self.clock.beat)
+        self.scheduler = Scheduler(
+            self.daw,
+            self.clock,
+            self.buffer,
+            TRACKS,
+            self.log,
+            seed=7,
+            cues=self.queue,
+            candidates=JUMPING if candidates is None else candidates,
+        )
+        self.daw.scheduler = self.scheduler
+        self.beat = 0
+
+    def play(
+        self,
+        strikes: dict[int, CueKind] | None = None,
+        after_tick: dict[int, Callable[[JumpRig], None]] | None = None,
+        limit: int = 4000,
+    ) -> JumpRig:
+        strikes = strikes or {}
+        after_tick = after_tick or {}
+        self.scheduler.begin(FORM)
+        while not self.scheduler.finished and self.beat < limit:
+            self.daw.push_beat(self.beat)
+            if self.beat in strikes:
+                self.queue.offer(Cue(kind=strikes[self.beat]))
+            self.scheduler.tick()
+            if self.beat in after_tick:
+                after_tick[self.beat](self)
+            self.beat += 1
+        return self
+
+    def of_kind(self, kind: str) -> tuple[Event, ...]:
+        return self.log.of_kind(kind)
+
+
+def test_the_chorus_candidate_is_written_before_the_downbeat() -> None:
+    rig = JumpRig()
+    rig.scheduler.begin(FORM)
+    kinds = [event.kind for event in rig.log]
+    assert kinds.index("candidate_written") < kinds.index("scene_fired")
+    assert rig.daw.has_clip(ClipAddress(track=TRACKS[Instrument.DRUMS], scene=CHORUS_SCENE))
+
+
+def test_a_chorus_cue_is_fired_for_the_very_next_bar() -> None:
+    """The criterion ADR-021 added: `fired_bar - cue_bar = 1`."""
+    rig = JumpRig().play({13: CueKind.CHORUS_NOW})
+    (applied,) = rig.of_kind("cue_applied")
+    assert applied.detail["cue_bar"] == 3
+    assert applied.detail["fired_bar"] == 4
+    assert CHORUS_SCENE in rig.daw.fired
+
+
+def test_after_a_jump_the_candidate_plays_and_the_song_is_re_planned_from_it() -> None:
+    rig = JumpRig().play({13: CueKind.CHORUS_NOW})
+    (applied,) = rig.of_kind("cue_applied")
+    target = int(str(applied.detail["section"]))
+    assert rig.scheduler.sections[target].name == "chorus"
+    assert rig.scheduler.sections[-1].name == "outro"
+    (replanned,) = rig.of_kind("form_replanned")
+    assert replanned.detail["from_section"] == target
+    assert rig.scheduler.finished
+
+
+def test_no_write_ever_lands_in_the_scene_that_is_playing_even_across_jumps() -> None:
+    rig = JumpRig().play({13: CueKind.CHORUS_NOW, 45: CueKind.CHORUS_NOW})
+    candidate_writes = len(Instrument)
+    assert len(rig.of_kind("cue_applied")) == 2
+    for scene, playing in rig.daw.writes[candidate_writes + len(Instrument) :]:
+        assert scene != playing
+        assert scene != CHORUS_SCENE
+
+
+def test_a_jump_in_the_bar_the_next_section_was_fired_replaces_that_section() -> None:
+    """Live's last trigger wins, and ADR-022 says the person's is the one that should."""
+    plain = Rig()
+    plain.play()
+    fired_at = next(e.at_beats for e in plain.of_kind("scene_fired") if e.detail["section"] == 2)
+    cue_beat = int(fired_at) + 1
+    rig = JumpRig().play({cue_beat: CueKind.CHORUS_NOW})
+    (applied,) = rig.of_kind("cue_applied")
+    assert applied.detail["cue_bar"] == int(fired_at // 4)
+    boundary_beat = (int(str(applied.detail["fired_bar"]))) * 4
+    rig_after = JumpRig().play(
+        {cue_beat: CueKind.CHORUS_NOW},
+        after_tick={boundary_beat: lambda r: setattr(r, "seen", r.scheduler.playing_scene)},
+    )
+    assert rig_after.seen == CHORUS_SCENE  # type: ignore[attr-defined]
+
+
+def test_a_second_jump_while_the_chorus_plays_starts_it_again() -> None:
+    rig = JumpRig().play({13: CueKind.CHORUS_NOW, 21: CueKind.CHORUS_NOW})
+    applied = rig.of_kind("cue_applied")
+    assert [event.detail["fired_bar"] for event in applied] == [4, 6]
+    assert rig.daw.fired.count(CHORUS_SCENE) == 2
+    assert rig.scheduler.finished
+
+
+def test_a_jump_before_the_first_beat_is_declined() -> None:
+    rig = JumpRig()
+    rig.queue.offer(Cue(kind=CueKind.CHORUS_NOW))
+    rig.play()
+    (declined,) = rig.of_kind("cue_declined")
+    assert declined.detail["reason"] == "before_the_downbeat"
+    assert rig.of_kind("cue_applied") == ()
+
+
+def test_without_a_candidate_a_jump_is_declined_and_the_song_is_unchanged() -> None:
+    rig = JumpRig(candidates={}).play({13: CueKind.CHORUS_NOW})
+    (declined,) = rig.of_kind("cue_declined")
+    assert declined.detail["reason"] == "no_candidate"
+    assert rig.scheduler.sections == FORM
+
+
+def test_a_score_generated_for_a_briefing_the_jump_replaced_never_plays() -> None:
+    def offer_stale(rig: JumpRig) -> None:
+        target = int(str(rig.of_kind("cue_applied")[0].detail["section"]))
+        rig.buffer.offer(target + 1, play_section(FORM[3], 1234))
+
+    rig = JumpRig().play({13: CueKind.CHORUS_NOW}, after_tick={13: offer_stale})
+    stale = [event for event in rig.of_kind("fallback") if event.detail.get("reason") == "stale"]
+    assert stale
+    assert 1234 not in [event.detail["seed"] for event in rig.of_kind("section_written")]
+
+
+def test_a_performance_with_jumps_is_replayed_byte_for_byte_from_its_seed_and_cues() -> None:
+    strikes = {13: CueKind.CHORUS_NOW, 45: CueKind.CHORUS_NOW}
+    first, second = JumpRig().play(strikes), JumpRig().play(strikes)
+    assert [(e.kind, musical_detail(e)) for e in first.log] == [
+        (e.kind, musical_detail(e)) for e in second.log
+    ]
+
+
+def test_the_chorus_a_jump_lands_on_is_measured_like_any_section() -> None:
+    rig = JumpRig().play({13: CueKind.CHORUS_NOW})
+    target = rig.of_kind("cue_applied")[0].detail["section"]
+    assert target in [event.detail["section"] for event in rig.of_kind("section_measured")]
+
+
+def test_a_cue_that_arrives_during_a_section_write_is_fired_before_the_write_ends() -> None:
+    """A write is up to two seconds; the cue waits one track, not four."""
+    rig = JumpRig()
+
+    def strike_during_the_next_write(r: JumpRig) -> None:
+        r.daw.during_write.append(lambda: r.queue.offer(Cue(kind=CueKind.CHORUS_NOW)))
+        r.daw.calls.clear()
+
+    rig.play(after_tick={8: strike_during_the_next_write})
+    (applied,) = rig.of_kind("cue_applied")
+    assert int(str(applied.detail["fired_bar"])) - int(str(applied.detail["cue_bar"])) == 1
+    calls = rig.daw.calls
+    first_write = calls.index("write_notes")
+    assert "fire_scene" in calls[first_write : first_write + 8]
+
+
+def test_run_reads_a_cue_inside_the_bar_it_arrives_in() -> None:
+    """Stage 2 read cues a bar late; `run` now wakes in slices (`phase-4-findings.md` §8)."""
+    import threading
+    import time
+
+    daw = FakeDawAdapter(scenes=4)
+    clock = BarClock(daw)
+    clock.start()
+    log = EventLog(None)
+    queue = CueQueue(stamp=lambda: clock.beat)
+    scheduler = Scheduler(
+        daw,
+        clock,
+        ScoreBuffer(),
+        TRACKS,
+        log,
+        seed=7,
+        cues=queue,
+        candidates=JUMPING,
+        wake_s=0.002,
+        bar_timeout_s=2.0,
+    )
+
+    def a_band_playing() -> None:
+        time.sleep(0.05)
+        for beat in range(80):
+            daw.push_beat(beat)
+            if beat == 13:
+                time.sleep(0.01)
+                queue.offer(Cue(kind=CueKind.CHORUS_NOW))
+            time.sleep(0.03)
+            if scheduler.finished:
+                return
+
+    pusher = threading.Thread(target=a_band_playing)
+    pusher.start()
+    scheduler.run(FORM)
+    pusher.join()
+    (applied,) = log.of_kind("cue_applied")
+    assert int(str(applied.detail["fired_bar"])) - int(str(applied.detail["cue_bar"])) == 1

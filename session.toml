@@ -60,7 +60,9 @@ instrument = "Drift"
 armed = false
 
 # Two scenes minimum: ADR-001 writes into the one that is not playing, so with a single
-# scene there is nowhere safe to write.
+# scene there is nowhere safe to write. The other six are ADR-022's layout for cues from the
+# MiniLab: material a pad can fire is written ahead into scenes nothing else writes to.
+# `scripts/jam.py` finds the chorus candidate by its name here.
 [[scene]]
 index = 0
 name = "A"
@@ -68,3 +70,27 @@ name = "A"
 [[scene]]
 index = 1
 name = "B"
+
+[[scene]]
+index = 2
+name = "CHORUS"
+
+[[scene]]
+index = 3
+name = "BRIDGE"
+
+[[scene]]
+index = 4
+name = "STOP A"
+
+[[scene]]
+index = 5
+name = "STOP B"
+
+[[scene]]
+index = 6
+name = "FILL A"
+
+[[scene]]
+index = 7
+name = "FILL B"

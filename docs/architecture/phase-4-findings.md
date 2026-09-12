@@ -598,3 +598,68 @@ drained two bars late arrived while a section write held the tick for up to two 
 ADR-022 already plans for both: `run` wakes in short slices rather than once per bar, and a
 write checks for cues between tracks. Stage 3 has to show them working, measured the same
 way.
+
+## 9. Stage 3 is built: "chorus now" lands on the next bar, and the song re-plans behind it
+
+ADR-022's jump, end to end, offline. **The gate — Fabiano conducting the band to the chorus
+from pad 5, judged by ear — has not run.**
+
+### What happens when the pad is struck
+
+1. **Before the downbeat**, the scheduler writes the song's own first chorus, at its ordinary
+   size, into the `CHORUS` scene (scene 2) — `candidate_written` in the log. A write costs
+   nothing musical there.
+2. **Inside the bar the cue arrives in**, the scheduler reads it. `run` waits for the next bar
+   in 20 ms slices and reads the queue between them, and a section write reads it between
+   tracks. Stage 2 read every cue a bar late (§8); this is what removes that.
+3. **One send fires scene 2.** Live launches it on the next bar, from its first bar, crash
+   included. If the scheduler had already fired the next section in that bar, Live's last
+   trigger wins, and it is the person's.
+4. **Then the bookkeeping, while Live counts down.**
+   - The form after the jump is re-planned, `engines.jump_plan`: what played stays, the chorus
+     comes next, and a new tail walks the transition table for about as long as the old one
+     would have lasted, then the outro.
+   - The climax moves to the tail's last chorus, never onto the candidate, which was written
+     before it could be lifted.
+   - Endings are recomputed.
+   - The buffer drops everything generated past the jump.
+   - The shared `FormPlan` is replaced.
+   - The log gets `cue_applied` (with `cue_bar` and `fired_bar`) and `form_replanned`.
+5. **While the chorus plays**, the section after it is written into a main scene — both are
+   silent — and the producer, reading the same plan, asks the model for it.
+
+### What is measured, offline
+
+- A cue in bar 3 is fired for bar 4: `fired_bar − cue_bar = 1`. That holds when it arrives
+  mid-bar with `run` driving a real `BarClock` on a thread, and when it arrives in the
+  middle of a section write: the fire goes out between two tracks.
+- No write lands in the scene that is playing across two jumps. After the downbeat, no
+  write touches the candidate's scene at all.
+- A jump in the bar the next section was fired replaces it; a second jump while the chorus
+  plays starts it again; a jump before the first beat, or with no candidate, is declined and
+  logged.
+- **The model is asked for the section after the chorus with the re-planned briefing**, and
+  a score generated for a briefing the jump replaced is refused twice. The producer refuses
+  it before offering (`fallback reason=stale`), and the scheduler refuses it again on the way
+  out of the buffer. Across a jump every section that plays is the plan's own.
+- Seed plus cue log replays the performance byte for byte. Every section that plays is
+  measured, the jumped-to chorus included.
+
+Suite: **1895 passed, 27 live-marked skipped**; `ruff`, `mypy` and the timing properties
+clean.
+
+### What the ear is asked, written before it is asked
+
+**Does the band follow you to the chorus?** Strike pad 5 anywhere in a song, several times,
+and say whether the chorus arrives when you expect it and whether the song goes somewhere
+sensible afterwards.
+
+Named in advance:
+
+- **The chorus always arrives on the next downbeat, however far into a bar the pad was
+  struck.** Struck late in a bar, that is almost immediate. Struck early, it is nearly two
+  seconds. `quantum_bars` exists to try "the next phrase" by ear if the downbeat feels wrong.
+- **A jump cuts the section it interrupts wherever it is.** Its fill, build or stop is not
+  heard, because the chorus replaces its last bars. A band cued mid-verse does the same, but
+  whether it feels abrupt is the ear's to say.
+- **The jumped-to chorus is always the deterministic one**, never the model's (ADR-022).

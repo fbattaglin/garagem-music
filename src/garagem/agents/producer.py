@@ -27,6 +27,12 @@ the guitar and keys clips would still hold the *previous* section's notes and pl
 under the new one. So a partial section is completed from `engines.band` before it is
 offered, and the log says which parts were the model's.
 
+**The form can change under it** (ADR-022). A jump cue makes the scheduler re-plan every
+section after the one it jumped to, through the shared `FormPlan`. The producer reads each
+briefing from the plan when it asks, remembers what it asked as *(index, briefing)* so a
+re-planned index is a new question, and refuses to offer a score whose briefing the plan no
+longer holds — `fallback reason=stale`. The scheduler refuses it again on the way out.
+
 `produce()` is separate from the loop for the same reason `Scheduler.tick()` is separate
 from `run()`: it makes the whole thing testable against a cassette with no thread, no
 clock and no sleeping.
@@ -47,7 +53,7 @@ from garagem.engines import play_section
 from garagem.llm import LLMProvider, ModelSpec, ProviderError, Request, Usage, Warmable
 from garagem.obs import EventLog
 from garagem.theory import repair, validate
-from garagem.transport import ScoreBuffer
+from garagem.transport import FormPlan, ScoreBuffer
 
 # How long the loop waits before looking at the buffer again when there is nothing to do.
 # A section lasts ten seconds or more, so a quarter of a second is far finer than the
@@ -67,7 +73,7 @@ class Producer:
         provider: LLMProvider,
         buffer: ScoreBuffer,
         log: EventLog,
-        sections: Sequence[Section],
+        sections: Sequence[Section] | FormPlan,
         *,
         model: ModelSpec,
         seed: int = 0,
@@ -75,14 +81,18 @@ class Producer:
         self._provider = provider
         self._buffer = buffer
         self._log = log
-        self._sections = tuple(sections)
+        # A fixed form is a plan nobody re-plans; wrapping it keeps one code path.
+        self._plan = sections if isinstance(sections, FormPlan) else FormPlan(sections)
         self._model = model
         self._seed = seed
 
         # Attempted once and never again, whatever the outcome (P7). A section that came
         # back malformed is not more likely to come back well the second time, and the
         # deterministic floor is already playing.
-        self._attempted: set[int] = set()
+        #
+        # Keyed by the briefing as well as the index: after a jump the same index holds a
+        # different section, and that is a question nobody has asked yet.
+        self._attempted: set[tuple[int, Section]] = set()
         self._stopping = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -104,8 +114,8 @@ class Producer:
 
     @property
     def attempted(self) -> frozenset[int]:
-        """Which sections have had their one shot."""
-        return frozenset(self._attempted)
+        """Which section indices have had their one shot, for any briefing."""
+        return frozenset(index for index, _ in self._attempted)
 
     @property
     def running(self) -> bool:
@@ -148,7 +158,8 @@ class Producer:
     def _next_wanted(self) -> int | None:
         """The first gap in the window that has not had its shot, in play order."""
         for index in self._buffer.wanted():
-            if index < len(self._sections) and index not in self._attempted:
+            section = self._plan.at(index)
+            if section is not None and (index, section) not in self._attempted:
                 return index
         return None
 
@@ -160,10 +171,10 @@ class Producer:
         Never raises. Every failure is an event, because the scheduler on the other side
         of the buffer has no code for an exception and should not need any.
         """
-        if index >= len(self._sections):
+        section = self._plan.at(index)
+        if section is None:
             return False
-        self._attempted.add(index)
-        section = self._sections[index]
+        self._attempted.add((index, section))
         request = request_for(section, self._model)
 
         if not worth_asking(section):
@@ -213,7 +224,7 @@ class Producer:
             )
             return False
 
-        return self._publish(index, parsed, usage)
+        return self._publish(index, section, parsed, usage)
 
     async def _stream(self, section: Section, request: Request) -> tuple[ParsedSection, Usage]:
         """Drive the stream through the incremental parser. Cancellable at every await."""
@@ -227,10 +238,9 @@ class Producer:
 
     # ----------------------------------------------------------------------- publishing
 
-    def _publish(self, index: int, parsed: ParsedSection, usage: Usage) -> bool:
+    def _publish(self, index: int, section: Section, parsed: ParsedSection, usage: Usage) -> bool:
         """Realise, complete, repair, offer. What lands in the buffer is a whole band."""
         seed = self._seed + index
-        section = self._sections[index]
 
         for violation in parsed.violations:
             self._log.record(
@@ -267,6 +277,12 @@ class Producer:
                 reason="irreparable",
                 rules=",".join(sorted({violation.rule for violation in left})),
             )
+            return False
+
+        if self._plan.at(index) != section:
+            # Re-planned while the model was answering: music for a section that will not
+            # be played. Offering it would be a race the scheduler has to win.
+            self._log.record("fallback", 0.0, section=index, model=self._model.id, reason="stale")
             return False
 
         accepted = self._buffer.offer(index, repaired)

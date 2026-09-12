@@ -35,11 +35,12 @@ last one, a final chord at the end, and the last chorus lifted above the others.
 turns all of it off and plays the form exactly as every listening before Phase 4 heard it,
 which is what makes the two comparable by ear.
 
-**The MiniLab can be listened to** (`--controller minilab`, ADR-021). In this stage every pad
-strike and knob position is logged as `cue_received`, with the beat it arrived at, and none
-of them changes the music yet: the controller is proved against a real jam before it is
-allowed to. The legend of what each control will do is printed before the downbeat, and a
-count of what was heard after the last bar.
+**The MiniLab conducts** (`--controller minilab`, ADR-021, ADR-022). Every pad strike and
+knob position is logged as `cue_received`, with the beat it arrived at. **"chorus now" is
+acted on:** the chorus candidate, written into the `CHORUS` scene before the downbeat, is
+fired for the next bar and the rest of the song is re-planned from it. The other cues are
+still only logged. The legend is printed before the downbeat, and after the last bar a count
+of what was heard and how many bars each jump took to land.
 
 `--dry-run` prints the form and exits without opening a socket, which makes it the
 cheapest way to see what a seed produces. `--provider cassette:<path>` replays a recording
@@ -79,10 +80,12 @@ from garagem.daw import (
     observe,
     render_divergences,
 )
+from garagem.daw.errors import SessionSpecError
 from garagem.daw.live_log import control_surfaces, latest_log, listening_to
 from garagem.daw.session import SessionSpec
 from garagem.domain import Feel, Instrument, Section
 from garagem.engines import Ending, SongBrief, arrange, endings_for, with_climax
+from garagem.engines.arranger import CHORUS
 from garagem.llm import (
     AnthropicAdapter,
     BreakerPolicy,
@@ -99,7 +102,14 @@ from garagem.llm import (
     prices_of,
 )
 from garagem.obs import EventLog
-from garagem.transport import BAR_TIMEOUT_S, BarClock, CueQueue, Scheduler, ScoreBuffer
+from garagem.transport import (
+    BAR_TIMEOUT_S,
+    BarClock,
+    CueQueue,
+    FormPlan,
+    Scheduler,
+    ScoreBuffer,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SESSION = ROOT / "session.toml"
@@ -107,6 +117,7 @@ DEFAULT_LOG = ROOT / "bench" / "jam.jsonl"
 DEFAULT_CATALOG = ROOT / "config" / "models.toml"
 DEFAULT_BUDGET = ROOT / "config" / "budget.toml"
 DEFAULT_CONTROLLER = ROOT / "controller.toml"
+CHORUS_SCENE = "CHORUS"
 
 CASSETTE_PREFIX = "cassette:"
 
@@ -213,13 +224,39 @@ def stopped_early(scheduler: Scheduler, sections: int, bar: int) -> str:
 
 
 def render_cues(log: EventLog) -> str:
-    """What the controller was heard asking for, counted. The Stage 2 gate reads this."""
+    """What the controller asked for, and how each jump landed. The gates read this."""
     received = log.of_kind("cue_received")
     if not received:
         return "no cue was received\n"
     heard = Counter(str(event.detail.get("cue", event.detail.get("macro"))) for event in received)
     listed = ", ".join(f"{name} x{count}" for name, count in sorted(heard.items()))
-    return f"{len(received)} controls received: {listed}\n"
+    lines = [f"{len(received)} controls received: {listed}"]
+    applied = log.of_kind("cue_applied")
+    if applied:
+        landed = Counter(
+            int(str(event.detail["fired_bar"])) - int(str(event.detail["cue_bar"]))
+            for event in applied
+        )
+        bars = ", ".join(
+            f"{gap} bar{'s' if gap != 1 else ''} x{n}" for gap, n in sorted(landed.items())
+        )
+        lines.append(f"{len(applied)} jumps landed after: {bars}")
+    declined = log.of_kind("cue_declined")
+    if declined:
+        reasons = Counter(str(event.detail["reason"]) for event in declined)
+        lines.append("declined: " + ", ".join(f"{r} x{n}" for r, n in sorted(reasons.items())))
+    return "\n".join(lines) + "\n"
+
+
+def candidate_scenes(spec: SessionSpec) -> dict[str, int]:
+    """Which scene each jump's candidate is written into, found by name in `session.toml`."""
+    named = {scene.name: scene.index for scene in spec.scenes}
+    if CHORUS_SCENE not in named:
+        raise SessionSpecError(
+            f"session.toml names no {CHORUS_SCENE!r} scene; ADR-022 writes the chorus candidate "
+            "there"
+        )
+    return {CHORUS: named[CHORUS_SCENE]}
 
 
 def tracks_of(spec: SessionSpec) -> dict[Instrument, int]:
@@ -376,6 +413,10 @@ def main() -> int:
     buffer = ScoreBuffer()
     producer: Producer | None = None
     controller = build_controller(controls) if controls is not None else None
+    # One form, shared: a jump re-plans it on the scheduler's thread, and the producer
+    # must ask the model for what replaced it (ADR-022).
+    shared = FormPlan(form, endings)
+    jumps = candidate_scenes(spec) if controller is not None else {}
     # Stamped with the beat Live last reported, read on the controller's own thread.
     cues = CueQueue(stamp=lambda: clock.beat) if controller is not None else None
     try:
@@ -400,10 +441,12 @@ def main() -> int:
                 sys.stderr.write(f"{exc}\n")
                 return 1
             sys.stderr.write(controls.legend())
-            sys.stderr.write("cues are logged only in this stage; the music does not change\n")
+            sys.stderr.write(
+                "chorus_now jumps on the next bar; the other cues are logged only in this stage\n"
+            )
         if provider is not None and model is not None:
             sys.stderr.write(f"generating with {model.id}\n")
-            producer = Producer(provider, buffer, log, form, model=model, seed=args.seed)
+            producer = Producer(provider, buffer, log, shared, model=model, seed=args.seed)
             producer.start()
             waited = prime(buffer, form[0])
             if buffer.take(0) is not None:
@@ -421,7 +464,17 @@ def main() -> int:
 
         clock.start()
         daw.start_playing()
-        scheduler = Scheduler(daw, clock, buffer, tracks, log, seed=args.seed, cues=cues)
+        scheduler = Scheduler(
+            daw,
+            clock,
+            buffer,
+            tracks,
+            log,
+            seed=args.seed,
+            cues=cues,
+            candidates=jumps,
+            plan=shared,
+        )
         scheduler.run(form, endings=endings)
         if not scheduler.finished:
             sys.stderr.write(stopped_early(scheduler, len(form), clock.bar))

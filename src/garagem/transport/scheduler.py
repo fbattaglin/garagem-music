@@ -36,10 +36,22 @@ kept, so the result is validated, and a section whose ending would not validate 
 it was generated, with the log saying so. `endings=None` is Phase 3's scheduler, byte for
 byte.
 
-**A person's cues arrive through a `CueQueue`, never a call** (ADR-022). In Stage 2 of the
-MiniLab plan the scheduler only logs them — `cue_received`, stamped with the beat each one
-arrived at — so the controller can be proved against a jam before it is allowed to change a
-single note. `cues=None` is a scheduler with no controller, byte for byte.
+**A person's cues arrive through a `CueQueue`, never a call** (ADR-022). Every one is logged
+as `cue_received`, stamped with the beat it arrived at. **A jump cue is acted on** (Stage 3):
+the candidate section written before the downbeat is fired for the next bar, and the form
+after it is re-planned. Everything else is still only logged. `cues=None` is a scheduler with
+no controller, byte for byte.
+
+**A cue must be read inside the bar it arrives in**, or it fires for the bar after next.
+Stage 2's gate measured that: 62 of 63 cues read a bar late, one two bars late
+(`phase-4-findings.md` §8). So `run` waits for the bar in slices of `WAKE_S` and reads the
+queue between them, and a section write reads it between tracks — a cue waits at most one
+track's write, not the whole section's.
+
+**Candidates never move the main scenes' alternation.** A jump plays the candidate from its
+own scene; while it plays, both main scenes are silent, and the next section is written into
+the first of them. A jump beats a section change fired in the same bar, because Live's last
+trigger wins and the person is the one conducting.
 
 **Bar-driven, not time-driven.** `tick()` makes one bar's worth of decisions from the
 clock's current position and returns; `run()` is the thin wrapper that waits for the next
@@ -56,13 +68,23 @@ from typing import Final
 
 from garagem.daw import ClipAddress, DawError, DawPort
 from garagem.daw.session import ensure_clip
-from garagem.domain import Instrument, Section, SectionScore
-from garagem.engines import Ending, coherence_of, compose, play_section
+from garagem.domain import Cue, CueKind, Instrument, Section, SectionScore
+from garagem.engines import (
+    Ending,
+    candidate_for,
+    coherence_of,
+    compose,
+    endings_for,
+    jump_plan,
+    play_section,
+)
+from garagem.engines.arranger import CHORUS
 from garagem.obs import EventLog
 from garagem.theory import validate
 from garagem.transport.buffer import ScoreBuffer
 from garagem.transport.clock import BEATS_PER_BAR, NO_BEAT, BarClock
-from garagem.transport.cues import CueQueue, describe
+from garagem.transport.cues import CueQueue, Received, describe
+from garagem.transport.plan import FormPlan
 from garagem.transport.render import render_score
 
 # How long `run` will wait for a bar that should be one bar away before deciding the
@@ -87,6 +109,18 @@ MAX_REPEATS: Final = 2
 # (`phase-4-findings.md` §1) — and few enough that the log stays readable.
 METRIC_DECIMALS: Final = 3
 
+# How often `run` looks at the cue queue while it waits for the next bar. A bar at 132 BPM
+# is 1.82 s; this is about one percent of it, and a wait on a condition costs nothing.
+WAKE_S: Final = 0.02
+
+# Which cue jumps to which kind of section. The only jump in Stage 3.
+JUMPS: Final[dict[CueKind, str]] = {CueKind.CHORUS_NOW: CHORUS}
+
+# Seeds for material that is not a section of the planned form, kept far from `seed + index`
+# so a candidate or a re-planned tail never shares a seed with a planned section by accident.
+CANDIDATE_SEED: Final = 90_000
+JUMP_SEED_STEP: Final = 100_000
+
 
 class Scheduler:
     """Plays a sequence of sections through two scenes, writing one ahead."""
@@ -104,6 +138,9 @@ class Scheduler:
         seed: int = 0,
         cues: CueQueue | None = None,
         bar_timeout_s: float = BAR_TIMEOUT_S,
+        candidates: Mapping[str, int] | None = None,
+        plan: FormPlan | None = None,
+        wake_s: float = WAKE_S,
     ) -> None:
         self._daw = daw
         self._clock = clock
@@ -115,6 +152,10 @@ class Scheduler:
         self._seed = seed
         self._cues = cues
         self._bar_timeout_s = bar_timeout_s
+        # Kind of section -> the scene its candidate is written into (ADR-022's layout).
+        self._candidate_scenes = dict(candidates or {})
+        self._plan = plan
+        self._wake_s = wake_s
 
         self._sections: tuple[Section, ...] = ()
         self._endings: tuple[Ending, ...] | None = None
@@ -128,6 +169,16 @@ class Scheduler:
         self.finished = False
         self.stopped_because: str | None = None
 
+        # Written before the downbeat, by kind. A jump can only land on one of these.
+        self._candidates: dict[str, SectionScore] = {}
+        # A jump fired but not yet heard: the bar it lands on, and the scene it plays from.
+        self._boundary_override: int | None = None
+        self._jump_scene: int | None = None
+        self._jumps = 0
+        # Bumped whenever the form is re-planned, so a write that straddled a jump knows
+        # the section it wrote is no longer the next one.
+        self._generation = 0
+
     # ---------------------------------------------------------------------------- state
 
     @property
@@ -140,15 +191,31 @@ class Scheduler:
         return self._playing_scene
 
     def free_scene(self) -> int:
-        """The scene that is not playing. The only legal write target (invariant 6)."""
+        """The main scene that is not playing. The only legal write target (invariant 6).
+
+        While a candidate plays, both main scenes are silent and the first one is used.
+        """
         first, second = self._scenes
-        return second if self._playing_scene == first else first
+        if self._playing_scene == first:
+            return second
+        return first
 
     def boundary_bar(self) -> int:
-        """The bar at which the current section ends and the next one starts."""
+        """The bar at which the current section ends and the next one starts.
+
+        After a jump it is the bar the candidate was fired for, whatever the interrupted
+        section's length said.
+        """
+        if self._boundary_override is not None:
+            return self._boundary_override
         if self._start_bar == NO_BEAT or not self._sections:
             return NO_BEAT
         return self._start_bar + self._sections[self._index].bars
+
+    @property
+    def sections(self) -> tuple[Section, ...]:
+        """The form as it stands, after any re-plan."""
+        return self._sections
 
     # ------------------------------------------------------------------------- the loop
 
@@ -171,31 +238,37 @@ class Scheduler:
         back before the next bar — which is what Live's arrangement loop does.
         """
         self.begin(sections, seed, endings=endings)
+        waiting_for = self._clock.bar + 1
+        deadline = time.monotonic() + self._bar_timeout_s
         while not self.finished:
-            waiting_for = self._clock.bar + 1
-            if not self._clock.wait_for_bar(waiting_for, self._bar_timeout_s):
-                # The next bar never came. Ending is the honest answer: nothing here
-                # retries, and a scheduler that kept firing into a transport it cannot
-                # follow would fill the Set with clips nobody asked for. But it is written
-                # down, because from inside Python both causes look like silence.
-                self.stopped_because = (
-                    "position_went_back"
-                    if self._clock.epoch != self._epoch
-                    else "transport_stopped"
-                )
-                self._log.record(
-                    "beat_lost",
-                    self._beats(),
-                    reason=self.stopped_because,
-                    bar=self._clock.bar,
-                    waiting_for_bar=waiting_for,
-                    section=self._index,
-                    waited_s=self._bar_timeout_s,
-                )
-                break
-            self.tick()
+            if self._clock.wait_for_bar(waiting_for, self._wake_s):
+                self.tick()
+                waiting_for = self._clock.bar + 1
+                deadline = time.monotonic() + self._bar_timeout_s
+                continue
+            # Inside the bar: a cue read now can still be fired for the next one.
+            self._conduct()
+            if time.monotonic() < deadline:
+                continue
+            # The next bar never came. Ending is the honest answer: nothing here retries,
+            # and a scheduler that kept firing into a transport it cannot follow would fill
+            # the Set with clips nobody asked for. But it is written down, because from
+            # inside Python both causes look like silence.
+            self.stopped_because = (
+                "position_went_back" if self._clock.epoch != self._epoch else "transport_stopped"
+            )
+            self._log.record(
+                "beat_lost",
+                self._beats(),
+                reason=self.stopped_because,
+                bar=self._clock.bar,
+                waiting_for_bar=waiting_for,
+                section=self._index,
+                waited_s=self._bar_timeout_s,
+            )
+            break
         # A cue struck in the last bar would otherwise be heard and never written down.
-        self._drain_cues()
+        self._conduct()
 
     def begin(
         self,
@@ -221,6 +294,12 @@ class Scheduler:
         self._index = 0
         self._playing_scene = self._scenes[0]
         self._epoch = self._clock.epoch
+        if self._plan is not None:
+            self._plan.replace(self._sections, self._endings)
+
+        # Before the downbeat, when a write costs nothing musical (ADR-022).
+        for kind, scene in self._candidate_scenes.items():
+            self._write_candidate(kind, scene)
 
         score, ending = self._section_score(0)
         self._write(score, self._playing_scene, 0, ending)
@@ -240,19 +319,23 @@ class Scheduler:
         self._fired = 0
 
     def tick(self) -> bool:
-        """One bar's worth of decisions. False once the run is over."""
+        """One bar's worth of decisions, then the cues. False once the run is over."""
         if self.finished:
             return False
-        self._drain_cues()
+        self._decide()
+        self._conduct()
+        return not self.finished
+
+    def _decide(self) -> None:
         bar = self._clock.bar
         if bar == NO_BEAT:
             # Live has not reported a beat yet: the scene was fired and the transport is
             # still catching up to the launch quantum. Nothing to decide.
-            return True
+            return
 
         if self._clock.epoch != self._epoch:
             self._on_rewind(bar)
-            return True
+            return
 
         if self._start_bar == NO_BEAT:
             self._start_bar = bar
@@ -261,7 +344,6 @@ class Scheduler:
         self._prepare_next()
         self._fire_if_due(bar)
         self._advance_if_past(bar)
-        return not self.finished
 
     # ------------------------------------------------------------------------ the steps
 
@@ -271,6 +353,7 @@ class Scheduler:
         if following >= len(self._sections) or self._prepared >= following:
             return
         scene = self.free_scene()
+        generation = self._generation
         try:
             score, ending = self._section_score(following)
             self._write(score, scene, following, ending)
@@ -280,6 +363,10 @@ class Scheduler:
             self._log.record(
                 "beat_lost", self._beats(), section=following, scene=scene, error=str(error)
             )
+            return
+        if self._generation != generation:
+            # A jump re-planned the form while this was being written. What was written is
+            # not the next section any more, and the jump has already said what is.
             return
         self._prepared = following
 
@@ -333,8 +420,12 @@ class Scheduler:
                 self.finished = True
             return
         self._index += 1
-        self._playing_scene = self.free_scene()
+        self._playing_scene = (
+            self._jump_scene if self._jump_scene is not None else self.free_scene()
+        )
         self._start_bar = boundary
+        self._boundary_override = None
+        self._jump_scene = None
         self._repeats = 0
         self._buffer.advance(self._index)
 
@@ -345,23 +436,91 @@ class Scheduler:
         self._prepared = self._index
         self._fired = self._index
         self._start_bar = bar
+        self._boundary_override = None
+        self._jump_scene = None
         self._log.record("beat_lost", self._beats(), reason="rewind", bar=bar)
 
     # ----------------------------------------------------------------------------- cues
 
-    def _drain_cues(self) -> None:
-        """Log every control that arrived. Stage 2: nothing it asks for is acted on yet."""
+    def _conduct(self) -> None:
+        """Log every control that arrived, and act on the jumps. Never waits."""
         if self._cues is None:
             return
         for received in self._cues.drain():
-            arrived = received.beat
             self._log.record(
                 "cue_received",
-                float(max(arrived, 0)),
-                bar=NO_BEAT if arrived == NO_BEAT else int(arrived // BEATS_PER_BAR),
+                float(max(received.beat, 0)),
+                bar=_bar_of(received.beat),
                 drained_bar=self._clock.bar,
                 **describe(received.control),
             )
+            control = received.control
+            if isinstance(control, Cue) and control.kind in JUMPS:
+                self._jump(received, control.kind, JUMPS[control.kind])
+
+    def _jump(self, received: Received, cue: CueKind, kind: str) -> None:
+        """Fire the candidate for the next bar, then re-plan everything after it.
+
+        The fire comes first and costs one send: it is the only part with a deadline. The
+        re-plan is bookkeeping, done while Live counts down to the bar.
+        """
+        bar = self._clock.bar
+        cue_bar = _bar_of(received.beat)
+        declined = self._why_not_jump(bar, kind)
+        if declined is not None:
+            self._log.record(
+                "cue_declined", self._beats(), cue=str(cue), cue_bar=cue_bar, reason=declined
+            )
+            return
+
+        scene = self._candidate_scenes[kind]
+        self._daw.fire_scene(scene)
+
+        candidate = self._candidates[kind]
+        target = self._index + 1
+        self._jumps += 1
+        seed = self._seed + JUMP_SEED_STEP * self._jumps
+        sections = jump_plan(self._sections, self._index, candidate.section, seed)
+        self._sections = sections
+        self._endings = None if self._endings is None else endings_for(sections)
+        self._generation += 1
+        self._boundary_override = bar + 1
+        self._jump_scene = scene
+        self._prepared = target
+        self._fired = target
+        self._buffer.discard_from(target)
+        if self._plan is not None:
+            self._plan.replace(sections, self._endings)
+
+        self._log.record(
+            "cue_applied",
+            self._beats(),
+            cue=str(cue),
+            cue_bar=cue_bar,
+            fired_bar=bar + 1,
+            scene=scene,
+            section=target,
+            name=candidate.section.name,
+            seed=candidate.seed,
+        )
+        self._log.record(
+            "form_replanned",
+            self._beats(),
+            from_section=target,
+            seed=seed,
+            sections=len(sections),
+            names=",".join(section.name for section in sections[target:]),
+        )
+        self._measure(candidate, target)
+
+    def _why_not_jump(self, bar: int, kind: str) -> str | None:
+        if self.finished:
+            return "song_over"
+        if bar == NO_BEAT or self._start_bar == NO_BEAT:
+            return "before_the_downbeat"
+        if kind not in self._candidates:
+            return "no_candidate"
+        return None
 
     # ------------------------------------------------------------------------- plumbing
 
@@ -372,6 +531,10 @@ class Scheduler:
         """
         section = self._sections[index]
         score = self._buffer.take(index)
+        if score is not None and score.section != section:
+            # Generated for a briefing a jump has since replaced. It must never play.
+            self._log.record("fallback", self._beats(), section=index, reason="stale")
+            score = None
         if score is not None:
             self._log.record(
                 "section_generated", self._beats(), section=index, seed=score.seed, source="buffer"
@@ -420,6 +583,53 @@ class Scheduler:
                 f"refusing to write section {index} into scene {scene}, which is playing "
                 "(invariant 6: never rewrite a clip that is playing)"
             )
+        ms = self._write_tracks(score, scene)
+        self._log.record(
+            "section_written",
+            self._beats(),
+            section=index,
+            scene=scene,
+            seed=score.seed,
+            notes=sum(len(part.notes) for part in score.parts),
+            ms=ms,
+            **({} if ending is None else {"ending": str(ending)}),
+        )
+        self._measure(score, index)
+
+    def _write_candidate(self, kind: str, scene: int) -> None:
+        """A section a jump cue can land on, written before the song starts."""
+        if scene in self._scenes:
+            raise ValueError(f"candidate scene {scene} is a main scene {self._scenes}")
+        seed = self._seed + CANDIDATE_SEED + scene
+        score = play_section(candidate_for(self._sections, kind, seed), seed)
+        try:
+            ms = self._write_tracks(score, scene)
+        except DawError as error:
+            self._log.record(
+                "fallback",
+                self._beats(),
+                reason="candidate_not_written",
+                section_kind=kind,
+                error=str(error),
+            )
+            return
+        self._candidates[kind] = score
+        self._log.record(
+            "candidate_written",
+            self._beats(),
+            section_kind=kind,
+            scene=scene,
+            seed=seed,
+            notes=sum(len(part.notes) for part in score.parts),
+            ms=ms,
+        )
+
+    def _write_tracks(self, score: SectionScore, scene: int) -> float:
+        """Every track of a score into one scene; the cost in milliseconds.
+
+        The cue queue is read between tracks: a section write is up to two seconds, and a
+        jump that waited for all of it would land a bar late (`phase-4-findings.md` §8).
+        """
         length = score.section.total_beats()
         # Wall time, and only here. `at_beats` is the event's musical position and stays
         # that way (P6); `ms` is how much of a bar the write actually cost, which is the
@@ -432,16 +642,10 @@ class Scheduler:
             at = ClipAddress(track=track, scene=scene)
             ensure_clip(self._daw, at, length)
             self._daw.write_notes(at, notes)
-        self._log.record(
-            "section_written",
-            self._beats(),
-            section=index,
-            scene=scene,
-            seed=score.seed,
-            notes=sum(len(part.notes) for part in score.parts),
-            ms=round((time.monotonic() - started) * 1000.0, 1),
-            **({} if ending is None else {"ending": str(ending)}),
-        )
+            self._conduct()
+        return round((time.monotonic() - started) * 1000.0, 1)
+
+    def _measure(self, score: SectionScore, index: int) -> None:
         coherence = coherence_of(score)
         self._log.record(
             "section_measured",
@@ -457,3 +661,7 @@ class Scheduler:
     def _beats(self) -> float:
         beat = self._clock.beat
         return 0.0 if beat == NO_BEAT else float(beat)
+
+
+def _bar_of(beat: int) -> int:
+    return NO_BEAT if beat == NO_BEAT else int(beat // BEATS_PER_BAR)

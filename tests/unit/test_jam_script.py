@@ -445,7 +445,7 @@ def test_the_controller_is_heard_during_the_run_and_stopped_after_it(
     ) -> None:
         controller.receive("note_on", 9, 36, 110)
         controller.turn(MacroKind.DENSITY, 0.5)
-        self._drain_cues()  # type: ignore[attr-defined]
+        self._conduct()  # type: ignore[attr-defined]
         self.finished = True  # type: ignore[attr-defined]
 
     monkeypatch.setattr(jam.Scheduler, "run", performance)
@@ -575,3 +575,48 @@ def test_a_looping_song_position_is_reported_as_the_loop_not_as_a_stop(
     printed = capsys.readouterr().err
     assert "went back before the next bar" in printed
     assert "arrangement loop" in printed
+
+
+# ------------------------------------------------------------------------------- jumps
+
+
+def test_the_chorus_candidate_goes_into_the_scene_session_toml_names_chorus() -> None:
+    spec = jam.load_session(jam.DEFAULT_SESSION)
+    assert jam.candidate_scenes(spec) == {"chorus": 2}
+
+
+def test_a_session_with_no_chorus_scene_is_refused_with_the_reason() -> None:
+    spec = jam.load_session(jam.DEFAULT_SESSION)
+    unnamed = type(spec)(
+        name=spec.name,
+        tempo_bpm=spec.tempo_bpm,
+        quantization=spec.quantization,
+        tracks=spec.tracks,
+        scenes=spec.scenes[:2],
+        loop=spec.loop,
+    )
+    with pytest.raises(jam.SessionSpecError, match="CHORUS"):
+        jam.candidate_scenes(unnamed)
+
+
+def test_the_summary_says_how_many_bars_each_jump_took_to_land() -> None:
+    from garagem.obs import EventLog
+
+    log = EventLog(None)
+    log.record("cue_received", 12.0, bar=3, drained_bar=3, cue="chorus_now", family="jump")
+    log.record(
+        "cue_applied",
+        12.0,
+        cue="chorus_now",
+        cue_bar=3,
+        fired_bar=4,
+        scene=2,
+        section=2,
+        name="chorus",
+        seed=1,
+    )
+    log.record("cue_received", 1.0, bar=-1, drained_bar=-1, cue="chorus_now", family="jump")
+    log.record("cue_declined", 1.0, cue="chorus_now", cue_bar=-1, reason="before_the_downbeat")
+    text = jam.render_cues(log)
+    assert "1 jumps landed after: 1 bar x1" in text
+    assert "declined: before_the_downbeat x1" in text

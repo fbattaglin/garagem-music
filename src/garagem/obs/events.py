@@ -62,6 +62,13 @@ KINDS: Final[tuple[str, ...]] = (
     # Phase 4, the MiniLab (ADR-021, ADR-022). A pad strike or a knob position, stamped with
     # the beat it arrived at — the `cue_bar` the next-bar criterion is measured from.
     "cue_received",
+    # Phase 4, Stage 3 (ADR-022). A candidate section written before the downbeat, a cue
+    # acted on (with the bar it arrived in and the bar it was fired for), a cue that could
+    # not be, and the form that replaced the old one after a jump.
+    "candidate_written",
+    "cue_applied",
+    "cue_declined",
+    "form_replanned",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so
