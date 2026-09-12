@@ -17,6 +17,10 @@
     pre-registered preference gate; arrangement work is judged by ear.
   - `ADR-020-endings-are-composed-over-the-score.md` — builds, stops and the final chord,
     composed over a finished section by the scheduler, whoever wrote the groove.
+  - `ADR-021-the-minilab-joins-phase-4.md` — the MiniLab becomes Phase 4's tactical input;
+    Setlist Mode and voice stay in Phase 5.
+  - `ADR-022-a-cue-costs-a-fire-never-a-write.md` — how a cue lands on the next bar:
+    pre-written candidates and legato variants, fired, never written at cue time.
 - `phase-0-findings.md` … `phase-4-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 

@@ -26,6 +26,10 @@ written to a file is in English.
   and reports what came back. Read-only; the cheapest place to find a wrong constant.
 - `uv run python scripts/install_abletonosc.py` — installs AbletonOSC into Live's Remote
   Scripts. Enabling the Control Surface and restarting Live stay manual.
+- `uv run python scripts/probe_minilab.py` — lists what the MiniLab 3 sends, control by
+  control. Read-only: opens inputs, never an output.
+- `uv run python scripts/spike_cues.py` — asks the real Set how clip launches, legato and
+  track stops behave (ADR-022). Changes the Set and puts it back; refuses if it is playing.
 
 Run `ruff` and `mypy` before any commit.
 

@@ -287,6 +287,8 @@ Cache hits cost 10% of base input at Anthropic; the Batch API gives a further 50
 | [ADR-018](ADR-018-the-ab-waiver.md) | **The Phase 3 blind A/B is waived, not met**; threshold intact, carried into Phase 4 | **New** — waives one clause of §7's Phase 3 exit criterion |
 | [ADR-019](ADR-019-the-ear-is-the-instrument.md) | **The ear is the instrument**; no metric is a target until one passes a pre-registered preference gate | **New** — amends §7's Phase 4 metrics clause; discharges ADR-018's debt #1 |
 | [ADR-020](ADR-020-endings-are-composed-over-the-score.md) | **Endings are composed over the finished score**, by the scheduler: fills, builds, stops, the final chord | **New** — realises §7's Phase 4 transitions; refines ADR-017 |
+| [ADR-021](ADR-021-the-minilab-joins-phase-4.md) | **The MiniLab joins Phase 4** as the tactical layer's instrument; Setlist Mode and voice stay in Phase 5 | **New** — amends §7's Phases 4 and 5 |
+| [ADR-022](ADR-022-a-cue-costs-a-fire-never-a-write.md) | **A cue costs a fire, never a write**: candidates, legato variants, re-plan, explicit precedence | **New** — extends ADR-001 to human cues |
 
 ADR-001 is written down in [`ADR-001-clip-ahead-and-quantised-launch.md`](ADR-001-clip-ahead-and-quantised-launch.md).
 
@@ -361,6 +363,13 @@ used as a target until one has passed a pre-registered preference gate. Three pr
 mechanisms failed to predict the ear (`phase-4-findings.md` §1, §3, §5), which discharges
 the calibration debt above by answering it. The A/B re-run at 8 of 12 is untouched.
 
+**The MiniLab 3 moves into this phase** ([ADR-021](ADR-021-the-minilab-joins-phase-4.md),
+2026-09-12) as the tactical layer's input, with tension and density as its first two macros.
+A cue costs a fire, never a write ([ADR-022](ADR-022-a-cue-costs-a-fire-never-a-write.md)).
+The exit criterion gains three lines: a cue lands on the next bar, measured in the event
+log; the section after a jump is requested from the model and a stale one never plays; and
+a session directed from the MiniLab is judged by ear.
+
 ### **Phase 5 — Human in the loop and Setlist Mode** · ~2 weeks
 
 - MiniLab 3: 8 encoders -> macros (`tension`, `density`, `brightness`, `syncopation`, `harmonic_risk`, `humanize`, `arrangement_size`, `lead_activity`); pads -> structural cues and `KEEP`/`VETO` curation (which becomes a preference dataset in the event log).
@@ -369,6 +378,11 @@ the calibration debt above by answering it. The A/B re-run at 8 of 12 is untouch
 - **Setlist Mode — the architectural answer to network dependence:** pre-generate an entire repertoire online (sections, variants, fills, transitions), persist it to disk as parameterised deterministic material, and **play it fully offline**. Connected pre-production, disconnected performance. This is how the system becomes usable on a stage.
 
 **Exit criterion:** a 10-minute session driven only by the MiniLab and by voice; and a 10-minute session **with the Wi-Fi off** using a pre-baked setlist.
+
+**Amended by [ADR-021](ADR-021-the-minilab-joins-phase-4.md)**: the MiniLab reading and its first two
+macros (tension, density) are delivered in Phase 4. This phase keeps Setlist Mode, the
+voice/MCP control plane, KEEP/VETO curation and the other six macros; the exit criterion's
+MiniLab half is already met by the time it starts.
 
 ### **Phase 6 — Timbre, mixing and the asset bakery** · ~2 weeks
 

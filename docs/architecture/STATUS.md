@@ -5,7 +5,8 @@
 ## Phase 4 exit criteria
 
 ADR-000 §7, amended by [ADR-017](ADR-017-composition-over-generation.md),
-`phase-3-findings.md` §14 and [ADR-019](ADR-019-the-ear-is-the-instrument.md): the
+`phase-3-findings.md` §14, [ADR-019](ADR-019-the-ear-is-the-instrument.md) and
+[ADR-021](ADR-021-the-minilab-joins-phase-4.md): the
 arrangement is composed deterministically over the model's groove, because asking for it in
 one call was measured at 30 cancellations in 30 attempts; and a human cue takes effect
 deterministically on the next bar while the model refines the next section, because the
@@ -39,6 +40,15 @@ deterministically on the next bar while the model refines the next section, beca
 - [ ] Chaos test: the network dies mid-session and nothing is audible (P2, by ear as well
       as by log)
 - [ ] Musical regression suite in CI against cassettes, detecting model drift
+
+Added by [ADR-021](ADR-021-the-minilab-joins-phase-4.md), when the MiniLab moved into this
+phase. How a cue reaches the bar is [ADR-022](ADR-022-a-cue-costs-a-fire-never-a-write.md).
+
+- [ ] A MiniLab cue takes effect on the next bar — `fired_bar − cue_bar = 1` for every
+      next-bar cue in a session's event log
+- [ ] After a jump cue, the section that follows is requested from the model with the
+      re-planned briefing, and a stale section never plays (event log)
+- [ ] A session directed from the MiniLab, judged by ear, the verdict recorded verbatim
 
 Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md)):
 
@@ -124,14 +134,19 @@ Done, with the suite at **1741 passed, 25 live-marked skipped**, `ruff` and `myp
   as absolute CCs, all on one port, and Live launches nothing from them. `mido` and
   `python-rtmidi` are added; `scripts/probe_minilab.py` and `scripts/spike_cues.py` are
   how these were measured.
+- **Stage 1: the decisions are written down.** [ADR-021](ADR-021-the-minilab-joins-phase-4.md)
+  moves the MiniLab into this phase and adds the three criteria above;
+  [ADR-022](ADR-022-a-cue-costs-a-fire-never-a-write.md) fixes the mechanism — candidates
+  written before the downbeat, legato variants written a section ahead, a scene layout in
+  eight scenes, legato off on main clips, and a jump cue beating a scheduled section change
+  while a bar cue never displaces one.
 
 Next, in order:
 
-1. **The tactical layer, played from the MiniLab.** Stage 1 writes the roadmap change and
-   the mechanism down (ADR-021, ADR-022); Stage 2 brings the controller in without changing
-   the music; Stages 3–5 add jump cues, bar cues and knobs, each gated by ear. A cue costs
-   a fire, never a write, and the model refines the section after it. An ending chosen by
-   a person is the first thing a cue can land on (ADR-020).
+1. **Stage 2: the MiniLab in, the music unchanged.** A `control/` port with a fake and a
+   `mido` adapter, `controller.toml`, a `CueQueue` between threads, `cue_received` in the
+   log, and the band's tracks declared disarmed. Gate: every mapped control named in a jam.
+2. **Stages 3–5: jump cues, bar cues, knobs** (ADR-022), each gated by ear and hand.
 
 ## Phase 3 — closed with one waiver
 
