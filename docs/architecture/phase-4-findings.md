@@ -572,3 +572,29 @@ that can move the transport — and it was committed before a second run could d
 tell was in the first log all along: cue stamps going *backwards* is a moving position, not a
 stopped one. A stopped transport stamps every later cue with the same beat. The scheduler now
 tells the two apart itself, so the next reading does not depend on noticing it.
+
+### Third and fourth runs: the gate passes
+
+With the loop off and Live's surface off the cue port, the third run played the whole
+song — eight sections, every fire with a bar of slack, every ending as planned, eight
+`section_measured`, exit 0 — and heard no control, because the jam was started while
+nobody was at the MiniLab. Fabiano started the fourth himself, hands on the controller.
+
+**Fourth run, 2026-09-12: passed.**
+
+- **The whole song**: intro to outro, eight fires, minimum slack one bar, no `beat_lost`,
+  writes at most 1995 ms, endings `fill build fill stop fill stop fill final`.
+- **63 controls, all eight mapped kinds**: `stop` ×9, `fill` ×11, `drums_and_bass` ×7,
+  `chorus_now` ×5, `next_bridge` ×3, `end` ×8, `density` ×12, `tension` ×8 — from bar 0 to
+  bar 57 of a 58-bar song, with pad stamps that never go backwards.
+
+### What it says about Stage 3
+
+**A cue is read a bar after it arrives: 62 of 63 were drained one bar later, and one two
+bars later.** That is Stage 2 working as built — the scheduler drains once per bar, at the
+tick — and it is exactly the latency Stage 3 cannot keep. A jump cue drained a bar late
+can only fire for the bar after, so `fired_bar − cue_bar` would read 2, not 1. The one
+drained two bars late arrived while a section write held the tick for up to two seconds.
+ADR-022 already plans for both: `run` wakes in short slices rather than once per bar, and a
+write checks for cues between tracks. Stage 3 has to show them working, measured the same
+way.

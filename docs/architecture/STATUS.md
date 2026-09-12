@@ -147,19 +147,20 @@ Done, with the suite at **1850 passed, 27 live-marked skipped**, `ruff` and `myp
   `cue_received`. `jam.py --controller minilab` prints the legend before the downbeat and a
   count after the last bar. `session.toml` declares every band track disarmed, which the
   bootstrap now checks and repairs — it caught KEYS armed in the real Set.
-  **Gate run twice, not yet passed** (`phase-4-findings.md` §8). The second run heard all
-  eight mapped controls — but both runs stopped at bar 5, and the cause was Live's
-  arrangement loop (on, beats 8–24), not the MiniLab as the first diagnosis said. The loop is
-  now part of `session.toml`, a run that ends early says whether the transport stopped or the
-  position went back, and `--controller` still refuses a Live surface on the cue port.
+  **Gate passed on the fourth run, 2026-09-12** (`phase-4-findings.md` §8). The whole song
+  played to its end while 63 controls arrived, all eight mapped kinds among them. The two
+  runs that stopped at bar 5 were Live's arrangement loop, not the MiniLab as first
+  diagnosed; the loop is now in `session.toml`, and a run that ends early says whether the
+  transport stopped or the position went back. Cues are read a bar after they arrive — the
+  latency Stage 3 must remove.
 
 Next, in order:
 
-1. **Stage 2's gate, a third time.** `uv run python scripts/bootstrap_set.py --apply` turns
-   the loop off; then `uv run python scripts/jam.py --controller minilab --seconds 90`,
-   pressing every mapped pad and turning both knobs. The song must play to its end, and the
-   count printed after it must name all eight.
-2. **Stages 3–5: jump cues, bar cues, knobs** (ADR-022), each gated by ear and hand.
+1. **Stage 3: jump cues and the re-planned form** (ADR-022). Candidates written before the
+   downbeat, "chorus now" fired for the next bar, the form re-planned from the cue and the
+   producer re-targeted, with the scheduler waking inside the bar so a cue is not read a bar
+   late. Gate, by ear: the band follows the chorus cue.
+2. **Stages 4–5: bar cues and knobs** (ADR-022), each gated by ear and hand.
 
 ## Phase 3 — closed with one waiver
 
