@@ -6,8 +6,10 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "httpx[http2]>=0.27",
+    "mido>=1.3.3",
     "pydantic>=2.9",
     "python-osc>=1.10.2",
+    "python-rtmidi>=1.5.8",
 ]
 
 [dependency-groups]
@@ -52,6 +54,13 @@ files = ["src", "tests", "scripts"]
 # directory on the path at load time. Tell mypy the same thing.
 mypy_path = "scripts/recipes"
 plugins = ["pydantic.mypy"]
+
+# `mido` ships no type information. It is confined to the controller adapter and the
+# MiniLab probe (`.claude/rules/domain-purity.md` forbids it everywhere pure), so the
+# untyped surface stays a couple of files wide.
+[[tool.mypy.overrides]]
+module = ["mido", "mido.*", "rtmidi", "rtmidi.*"]
+ignore_missing_imports = true
 
 # --------------------------------------------------------------------------- pytest
 

@@ -116,12 +116,22 @@ Done, with the suite at **1741 passed, 25 live-marked skipped**, `ruff` and `myp
   lot. The verdict is on the whole; no move was singled out as working or not.
 - **Every section carries its metrics in the event log** (`section_measured`), as
   telemetry and never as a target (ADR-019). About 0.1 ms per section, at write time.
+- **Stage 0 of the MiniLab plan is done** (`phase-4-findings.md` §7). The MiniLab moves into
+  Phase 4 as the tactical layer's instrument — Setlist Mode and voice stay in Phase 5 — and
+  the real Set answered what that rests on: clip fires and track stops wait for the bar,
+  legato carries position and can be set just before a fire, the last trigger wins, and
+  this Live allows 16 scenes. The MiniLab sends pads on channel 10, notes 36–43, and knobs
+  as absolute CCs, all on one port, and Live launches nothing from them. `mido` and
+  `python-rtmidi` are added; `scripts/probe_minilab.py` and `scripts/spike_cues.py` are
+  how these were measured.
 
 Next, in order:
 
-1. **The tactical layer**: a cue changes the next bar deterministically, and the model is
-   asked to refine the section after it. An ending chosen by a person is the first cue it
-   can land on (ADR-020).
+1. **The tactical layer, played from the MiniLab.** Stage 1 writes the roadmap change and
+   the mechanism down (ADR-021, ADR-022); Stage 2 brings the controller in without changing
+   the music; Stages 3–5 add jump cues, bar cues and knobs, each gated by ear. A cue costs
+   a fire, never a write, and the model refines the section after it. An ending chosen by
+   a person is the first thing a cue can land on (ADR-020).
 
 ## Phase 3 — closed with one waiver
 

@@ -416,3 +416,92 @@ No model material was generated. ADR-019's condition on the inverted `kit_collis
 a pre-registration written before Stage 2 generates any — is unaffected, and still has to
 be written before the first `jam.py --generate` of this stage if that question is going to
 be asked.
+
+## 7. Stage 0 of the MiniLab plan: what Live actually does when a cue fires
+
+The tactical layer's design rests on one rule — **a cue may cost a fire, never a write**,
+because a section write costs about a bar (§3 of Phase 2; 2039 ms at worst on 2026-09-12).
+Everything a pad can trigger is therefore written ahead and launched by Live. Whether that
+can work was, until this run, read from the manual and from AbletonOSC's source.
+`scripts/spike_cues.py` asked the real Set on 2026-09-12 (Live 12 Lite, 132 BPM, `1 Bar`),
+and put it back: 8 scenes, transport stopped, no clip left behind. Raw answers in
+`bench/spike-cues.json`.
+
+### The Live half
+
+| Question | Answer | Evidence |
+|---|---|---|
+| Does `/live/clip/fire` wait for the next bar? | **Yes** | fired at beat 1.56, launched at 3.78 against a bar line at 4.0 |
+| Does legato carry position on a clip fire? | **Yes** | the new clip picked up at 13.57, where the old one was |
+| …and on a scene fire? | **Yes** | 17.55, continuing |
+| Does legato set immediately before a fire apply to it? | **Yes** | both sends took 0.18 ms together |
+| Two triggers in one track before the same bar? | **The second wins** | the track played the later clip |
+| Does `/live/track/stop_all_clips` wait for the bar? | **Yes** | sent at 29.69, stopped at 32.33 against 32.0 |
+| How many scenes does this Live allow? | **16** | appending stopped at 16 from 8 |
+| What does a call cost? | **send ~0.01 ms; request ~100 ms** | median of 20 each |
+
+**The 0.22-beat offsets are the measurement, not Live.** Every launch and stop above reads
+about a fifth of a beat early or late, and that is exactly one request: a read costs
+~100 ms, which is 0.22 beats at 132 BPM, and the song time and the clip position are two
+reads in a row. The launches themselves are on the bar.
+
+### What it decides
+
+- **The "next bar" promise holds for every cue in the plan.** Jump cues fire a pre-written
+  scene; bar cues fire legato variants; DRUMS+BASS stops two tracks — all quantised by Live,
+  none needing a write at cue time.
+- **The scene budget is 16, not 8.** The plan's cramped branch is not taken: A/B, a chorus
+  and a bridge candidate, and a variant pair each for STOP and FILL fit with room to spare.
+- **Legato must be off on the main clips.** A scene fire honours legato, so a jump into a
+  candidate — or the scheduler's own section change — would otherwise start the new section
+  mid-way. Variants carry legato; the return to a main clip sets it on just before the fire
+  and off again after, which the fourth row shows Live accepts.
+- **The last trigger wins, so precedence is the scheduler's to decide.** A cue pressed in
+  the bar after the scheduler fired the next section silently replaces that fire, and the
+  reverse. It has to be an explicit rule with a test, not whichever send happened last.
+- **A cue must never wait on a read.** A request is a fifth of a beat; a send is nothing.
+  Fires stay unconfirmed, as ADR-001 already has them.
+
+### The MiniLab half
+
+Fabiano touched every control for 120 s on 2026-09-12 with `scripts/probe_minilab.py`
+listening on all four MiniLab ports and Live open.
+
+**Everything arrived on `Minilab3 MIDI`, and nothing on `DIN THRU`, `MCU/HUI` or `ALV`.**
+
+| Control | What it sends |
+|---|---|
+| 8 pads | `note_on`, channel 10, notes **36–43**, with velocity — and polytouch pressure while held |
+| 8 knobs | CC on channel 1, in the order touched **74, 71, 76, 77, 93, 18, 19, 16**; absolute 0–127 |
+| 4 faders | CC on channel 1, **82, 83, 85, 17**; absolute 0–127 |
+| keys | `note_on`, channel 1; 36–81 heard across the octave buttons |
+| two buttons | CC **9** and CC **105**, 127 then 0 — press and release; which buttons, not confirmed |
+| touch strips, main encoder | nothing heard |
+
+The pad rows of that run's summary counted pressure together with strikes, which is why
+one pad read as three hundred presses; the probe now keeps polytouch on a row of its own.
+
+**Live launched nothing.** Read straight after the run: transport stopped, no slot fired
+and none playing on any track. In this mode the pads reach Python and the `MiniLab_3`
+control-surface script does not turn them into clip launches.
+
+**But the KEYS track is armed**, with monitoring on Auto. While it is, every note the
+MiniLab sends — pads included — plays KEYS' Drift. A pad pressed as a cue would sound a
+note inside the band.
+
+### What the MiniLab half decides
+
+- **Python listens to `Minilab3 MIDI` alone.**
+- **A cue is a strike:** `note_on` with velocity above zero on channel 10. Releases and
+  pressure are ignored, or a held pad would cue again every few milliseconds.
+- **Knobs and faders are absolute.** A value maps straight to a macro with nothing to
+  accumulate. The knob's physical position is unknown until it moves, so a macro starts
+  from the briefing's value and jumps to the knob's the first time it is turned — named
+  here so the listening can say whether that jump is audible.
+- **The band's tracks are disarmed while it plays**, declared in `session.toml` and checked
+  by the bootstrap. `arm` is writable over AbletonOSC, so `--apply` can fix it; nothing
+  else stops a cue from being heard as a note.
+- **The Stage 0 gate is met:** every control touched was named by the probe.
+
+Still open, and only Fabiano can answer it: whether anything in Live visibly reacted, or
+was heard, when the pads were pressed.

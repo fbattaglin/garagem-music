@@ -1,0 +1,68 @@
+[
+  {
+    "question": "clip fire waits for the next bar",
+    "answer": "quantised",
+    "evidence": {
+      "fired_beat": 1.556,
+      "launched_beat": 3.78,
+      "bar": 4.0
+    }
+  },
+  {
+    "question": "legato continues position on clip fire",
+    "answer": "legato",
+    "evidence": {
+      "legato_confirmed": 1,
+      "position": 13.572
+    }
+  },
+  {
+    "question": "legato continues position on scene fire",
+    "answer": "legato",
+    "evidence": {
+      "position": 17.554
+    }
+  },
+  {
+    "question": "legato set immediately before a fire applies to it",
+    "answer": "legato",
+    "evidence": {
+      "position": 21.514,
+      "set_and_fire_ms": 0.18
+    }
+  },
+  {
+    "question": "a second trigger before the bar replaces the first",
+    "answer": "the second wins",
+    "evidence": {
+      "slot": 2
+    }
+  },
+  {
+    "question": "track stop waits for the next bar",
+    "answer": "quantised",
+    "evidence": {
+      "fired_beat": 29.694,
+      "stopped_beat": 32.334,
+      "bar": 32.0
+    }
+  },
+  {
+    "question": "what each call costs (median ms)",
+    "answer": "measured",
+    "evidence": {
+      "get_position_ms": 99.99,
+      "get_legato_ms": 99.99,
+      "get_playing_slot_ms": 99.98,
+      "send_ms": 0.01
+    }
+  },
+  {
+    "question": "how many scenes this Live allows",
+    "answer": "16",
+    "evidence": {
+      "before": 8,
+      "reached": 16
+    }
+  }
+]
