@@ -239,3 +239,13 @@ def test_the_arranged_song_is_audibly_not_the_plain_one() -> None:
     plain = notes(a_jam()[2])
     arranged = notes(a_jam(arranged=True)[2])
     assert plain != arranged
+
+
+def test_every_section_of_a_whole_song_carries_its_metrics() -> None:
+    """The metrics criterion over three minutes, arranged and plain alike."""
+    for arranged in (False, True):
+        _, _, log, _ = a_jam(arranged=arranged)
+        written = [event.detail["section"] for event in log.of_kind("section_written")]
+        measured = [event.detail["section"] for event in log.of_kind("section_measured")]
+        assert measured == written
+        assert len(set(measured)) == len(arrange(BRIEF, SEED))

@@ -330,7 +330,7 @@ drafted in `ADR-019-the-ear-is-the-instrument.md` for Fabiano to accept, amend o
 It was written as a proposal, with nothing in this document depending on its outcome, and
 **Fabiano accepted it as drafted on 2026-09-12**.
 
-## 6. Stage 2 is built: the song hands over from section to section, and nobody has heard it
+## 6. Stage 2 is built: the song hands over from section to section, and the ear approves
 
 ADR-019 took the metric out of Stage 2's way. What replaced it is built and tested, and the
 decision about where it lives is ADR-020. **This section records what exists and what the
@@ -387,6 +387,28 @@ Named in advance so they are not discovered afterwards as excuses:
   ADR-020 rejected seeded variety on purpose; this is the evidence that would reverse it.
 - **The drums are a synthesiser.** A "snare roll" is one Drift note repeated, and may not
   read as a roll at all.
+
+### The listening
+
+**Fabiano listened on 2026-09-12** and said: *"Gostei muito do resultado."* — I liked the
+result a lot.
+
+What he heard is in `bench/jam.jsonl`, appended by the run itself: **the arranged song
+twice**, 14 sections each, every ending exactly as planned — `build` four times, `stop`
+twice, `final` once — and **the plain song for four sections** in between, stopped early.
+Against the real Set: **zero endings declined**, every one of the 31 fires with at least a
+bar of slack, and the slowest section write 2039 ms, against Phase 2's 1939 ms maximum —
+within the same band, and the write happens at the start of a section, not near its
+boundary.
+
+That answers question 1 in the affirmative, as a verdict on the whole, in the same form
+Phase 2's floor was approved in. It does not answer question 2: no move was named as
+working or failing, so the three risks above are neither confirmed nor retired — they are
+simply not what was heard as a problem. n = 1, unblinded, and he knew which version he was
+listening to, which is what ADR-019 accepted as the cost of judging arrangement by ear.
+Every section played from the floor (`not_in_buffer`, no `--generate`), so this approves
+the endings over the deterministic band; over a model's groove they are validated, not
+yet heard.
 
 ### What this does not touch
 

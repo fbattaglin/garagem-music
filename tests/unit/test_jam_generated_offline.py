@@ -22,7 +22,7 @@ from garagem.agents import Producer, structural, worth_asking
 from garagem.daw import FakeDawAdapter
 from garagem.domain import Feel, Instrument, Section
 from garagem.dsl import serialize_section
-from garagem.engines import SongBrief, arrange, play_section
+from garagem.engines import SongBrief, arrange, endings_for, play_section, with_climax
 from garagem.llm import (
     FakeProvider,
     FakeResponse,
@@ -66,8 +66,11 @@ def perfect_response(section: Section, seed: int) -> FakeResponse:
 class Jam:
     """A whole performance: producer, scheduler, fake Live, simulated musical time."""
 
-    def __init__(self, provider: LLMProvider | None = None, seed: int = SEED) -> None:
-        self.form = arrange(BRIEF, seed)
+    def __init__(
+        self, provider: LLMProvider | None = None, seed: int = SEED, *, arranged: bool = False
+    ) -> None:
+        self.form = with_climax(arrange(BRIEF, seed)) if arranged else arrange(BRIEF, seed)
+        self.endings = endings_for(self.form) if arranged else None
         self.daw = FakeDawAdapter(scenes=4)
         self.clock = BarClock(self.daw)
         self.clock.start()
@@ -106,7 +109,7 @@ class Jam:
         """
         if prime:
             self._generate_ahead()
-        self.scheduler.begin(self.form)
+        self.scheduler.begin(self.form, endings=self.endings)
         while not self.scheduler.finished and self.beats < limit:
             self._generate_ahead()
             self.daw.push_beat(self.beats)
@@ -326,3 +329,30 @@ def test_a_different_seed_is_a_different_performance() -> None:
     assert [e.detail.get("name") for e in first.of_kind("scene_fired")] != [
         e.detail.get("name") for e in second.of_kind("scene_fired")
     ] or first.buffer.take(0) != second.buffer.take(0)
+
+
+# ------------------------------------------------------------------------------ Phase 4
+
+
+def test_every_section_is_measured_whoever_wrote_it() -> None:
+    """The metrics criterion with the model in the loop: buffer and floor alike."""
+    jam = Jam(arranged=True).play()
+    written = [event.detail["section"] for event in jam.of_kind("section_written")]
+    measured = [event.detail["section"] for event in jam.of_kind("section_measured")]
+    assert measured == written
+    assert len(set(measured)) == len(jam.form)
+
+
+def test_the_models_sections_get_the_same_endings_as_the_floors() -> None:
+    """ADR-020: the form does not depend on who wrote the groove."""
+    jam = Jam(arranged=True).play()
+    assert jam.endings is not None
+    written = [str(event.detail["ending"]) for event in jam.of_kind("section_written")]
+    assert written == [str(ending) for ending in jam.endings]
+    assert jam.of_kind("transition_declined") == []
+    from_buffer = [
+        event
+        for event in jam.of_kind("section_generated")
+        if event.detail.get("source") == "buffer"
+    ]
+    assert len(from_buffer) == len(jam.asked)

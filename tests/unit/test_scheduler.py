@@ -15,9 +15,10 @@ import pytest
 
 from garagem.daw import ClipAddress, DawTimeoutError, FakeDawAdapter
 from garagem.domain import Feel, Instrument, Section, SectionScore
-from garagem.engines import Ending, compose, play_section
+from garagem.engines import Ending, coherence_of, compose, play_section
 from garagem.obs import Event, EventLog
 from garagem.theory import parse_chart
+from garagem.theory.coherence import Coherence
 from garagem.transport import BarClock, Scheduler, ScoreBuffer, render_score
 
 TRACKS = {
@@ -399,3 +400,38 @@ def test_a_run_with_endings_is_deterministic() -> None:
     assert [musical_detail(event) for event in first.log] == [
         musical_detail(event) for event in second.log
     ]
+
+
+# ----------------------------------------------------------------------------- metrics
+
+
+METRICS = frozenset(Coherence.model_fields)
+
+
+def test_every_written_section_is_measured_exactly_once() -> None:
+    """Phase 4's amended criterion: every section carries its metrics in the log."""
+    rig = EndingRig()
+    rig.play_with_endings()
+    written = [event.detail["section"] for event in rig.of_kind("section_written")]
+    measured = [event.detail["section"] for event in rig.of_kind("section_measured")]
+    assert measured == written == [0, 1, 2, 3]
+
+
+def test_a_measurement_carries_every_metric_as_a_fraction_and_the_seed() -> None:
+    rig = Rig()
+    rig.play()
+    for event in rig.of_kind("section_measured"):
+        assert set(event.detail) >= METRICS
+        assert all(0.0 <= float(str(event.detail[name])) <= 1.0 for name in METRICS)
+        assert "seed" in event.detail
+
+
+def test_what_is_measured_is_what_was_written_ending_and_all() -> None:
+    """Not the section before its ending: the metrics describe what actually played."""
+    rig = EndingRig()
+    rig.play_with_endings()
+    written = compose(play_section(FORM[-1], 7 + 3), Ending.FINAL)
+    expected = coherence_of(written)
+    last = rig.of_kind("section_measured")[-1]
+    for name in METRICS:
+        assert last.detail[name] == round(getattr(expected, name), 3)

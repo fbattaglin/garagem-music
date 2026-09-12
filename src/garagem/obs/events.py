@@ -54,6 +54,11 @@ KINDS: Final[tuple[str, ...]] = (
     # Phase 4. An ending the scheduler would not compose because the result broke a rule
     # (ADR-020). The section still plays, as generated; this says which ending was lost.
     "transition_declined",
+    # Phase 4. The coherence metrics of a section as it was written, one per
+    # `section_written`. Telemetry, and barred from being a target (ADR-019): three
+    # proposed mechanisms failed to predict the ear, so these describe what played and
+    # decide nothing about what plays next.
+    "section_measured",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so

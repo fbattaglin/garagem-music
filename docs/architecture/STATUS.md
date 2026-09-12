@@ -28,8 +28,13 @@ deterministically on the next bar while the model refines the next section, beca
       2026-09-12.** ADR-000 §7 asked for these *"in range"*, which assumed a cheap metric
       that tracks the ear exists; three mechanisms were proposed and none predicted what
       Fabiano hears (`phase-4-findings.md` §1, §3, §5). No threshold moved, and the
-      amendment adds a prohibition the original text did not have. **Still unticked**: the
-      metrics have not yet been shown on every section of an 8-minute session.
+      amendment adds a prohibition the original text did not have.
+
+      **The mechanism exists; the evidence does not yet.** Every section the scheduler
+      writes now records a `section_measured` event beside its `section_written` — all
+      five metrics of exactly what was written, ending included, with its seed — whether
+      the model or the floor wrote it. Ticked when the 8-minute session's log shows one per
+      section.
 - [ ] Cost per session inside the declared budget, hard-capped by the `Governor`
 - [ ] Chaos test: the network dies mid-session and nothing is audible (P2, by ear as well
       as by log)
@@ -72,7 +77,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **1734 passed, 25 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **1741 passed, 25 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -100,20 +105,21 @@ Done, with the suite at **1734 passed, 25 live-marked skipped**, `ruff` and `myp
   The metrics stay in the event log as telemetry and are barred from being targets; the
   inverted sign of `kit_collision` is a hypothesis, not a steer, and testing it needs its
   own pre-registration written before Stage 2's material exists.
-- **Stage 2 is built, and not yet heard** (`phase-4-findings.md` §6,
+- **Stage 2 is built, and approved by ear** (`phase-4-findings.md` §6,
   [ADR-020](ADR-020-endings-are-composed-over-the-score.md)). A verse builds into a chorus
   — snare roll, swell, the band letting go of the last beat; a bridge, and the step into
   the last chorus, stop dead with a drummer's pickup; the last chorus is lifted above the
   others; and the song ends on a ringing chord. Composed over the finished section by the
   scheduler, so a model's groove and the floor get the same form. The generators and their
   eight golden files are untouched; `jam.py --plain` plays the song as it was.
+  **Fabiano listened on 2026-09-12**: *"Gostei muito do resultado."* — I liked the result a
+  lot. The verdict is on the whole; no move was singled out as working or not.
+- **Every section carries its metrics in the event log** (`section_measured`), as
+  telemetry and never as a target (ADR-019). About 0.1 ms per section, at write time.
 
 Next, in order:
 
-1. **Listen: Stage 2's gate, by ear.** `uv run python scripts/jam.py --seconds 180 --seed 7`
-   against the same command with `--plain`. The two questions and the three risks are
-   written down in §6 before the listening, so the listening can disagree with them.
-2. **The tactical layer**: a cue changes the next bar deterministically, and the model is
+1. **The tactical layer**: a cue changes the next bar deterministically, and the model is
    asked to refine the section after it. An ending chosen by a person is the first cue it
    can land on (ADR-020).
 

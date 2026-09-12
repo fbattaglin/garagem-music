@@ -18,8 +18,10 @@ metrics are computed and reported because ADR-000 §7 asks for them, and they co
 nothing.
 
 What `messiness` reads instead is `kit_collision`, the one measured difference that points
-the same way as the three votes — and it is a **candidate under test**, not a settled
-number, until `scripts/calibrate_metrics.py` says a blind listen agrees with it.
+the same way as the three votes. **Two blind listens disagreed with it** — 6 of 10 as a
+label, 5 of 16 as a preference with the sign inverted (`phase-4-findings.md` §3, §5) — so
+under ADR-019 every metric here is telemetry: logged for every section the scheduler
+writes, and never a target.
 
 Every metric returns a fraction in `[0, 1]` where **1 is the good end**, so a composite
 needs no sign-juggling and a report reads the same way down every column.

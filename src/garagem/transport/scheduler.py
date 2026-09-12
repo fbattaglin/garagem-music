@@ -24,7 +24,9 @@ Three rules the code makes it hard to break, each named where it is enforced:
   section's length, and the log says so. A repeat is not a glitch; a gap would be.
 - **Every write and every fire is an event, stamped with the beat it happened at.** That
   is where the "zero glitches" criterion is read from — mechanically, out of the log,
-  not by watching.
+  not by watching. Every write is also *measured*: the coherence metrics of exactly what
+  was written, ending included, which is what Phase 4's amended criterion asks of every
+  section and all ADR-019 lets them be.
 
 **Transitions are composed here, at write time, and only when the caller passes them.**
 This is the one place that knows which section a score is actually handing over to, and
@@ -50,7 +52,7 @@ from typing import Final
 from garagem.daw import ClipAddress, DawError, DawPort
 from garagem.daw.session import ensure_clip
 from garagem.domain import Instrument, Section, SectionScore
-from garagem.engines import Ending, compose, play_section
+from garagem.engines import Ending, coherence_of, compose, play_section
 from garagem.obs import EventLog
 from garagem.theory import validate
 from garagem.transport.buffer import ScoreBuffer
@@ -74,6 +76,10 @@ FIRE_LEAD_BARS: Final = 1
 # refused and the boundary moved with it. Two passes is about thirty seconds at 132 BPM,
 # long enough to survive one bad section and short enough that a command still returns.
 MAX_REPEATS: Final = 2
+
+# Enough to tell 0.172 from 0.060 — the one difference the corpus ever showed
+# (`phase-4-findings.md` §1) — and few enough that the log stays readable.
+METRIC_DECIMALS: Final = 3
 
 
 class Scheduler:
@@ -379,6 +385,17 @@ class Scheduler:
             notes=sum(len(part.notes) for part in score.parts),
             ms=round((time.monotonic() - started) * 1000.0, 1),
             **({} if ending is None else {"ending": str(ending)}),
+        )
+        coherence = coherence_of(score)
+        self._log.record(
+            "section_measured",
+            self._beats(),
+            section=index,
+            seed=score.seed,
+            **{
+                name: round(value, METRIC_DECIMALS)
+                for name, value in coherence.model_dump().items()
+            },
         )
 
     def _beats(self) -> float:
