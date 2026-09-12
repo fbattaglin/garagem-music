@@ -327,4 +327,70 @@ leaves pointing backwards.
 
 What follows from that is an architecture question rather than a measurement one, and it is
 drafted in `ADR-019-the-ear-is-the-instrument.md` for Fabiano to accept, amend or reject.
-It is **proposed**, not accepted, and nothing in this document depends on its outcome.
+It was written as a proposal, with nothing in this document depending on its outcome, and
+**Fabiano accepted it as drafted on 2026-09-12**.
+
+## 6. Stage 2 is built: the song hands over from section to section, and nobody has heard it
+
+ADR-019 took the metric out of Stage 2's way. What replaced it is built and tested, and the
+decision about where it lives is ADR-020. **This section records what exists and what the
+ear is being asked, before the listening, so the listening can disagree with it.**
+
+### What the band now does, in sound
+
+- **Into a chorus from a verse, a build.** Over the last two bars the snare rolls —
+  quarters, eighths, then sixteenths — with the hi-hat gone and the kick still on the
+  groove. The whole band drops a little and swells, and on the very last beat everyone but
+  the drummer lets go, so the roll is alone for a beat before the crash.
+- **Into a chorus from a bridge, and into the last chorus from anything, a stop.** The band
+  hits the downbeat of the last bar with a crash and cuts. A beat and a half of the chord
+  rings, then silence, then the drummer picks up on the last beat into the chorus.
+- **The last chorus is the biggest.** One step up the groove table and a harder fill.
+- **The song ends on a chord.** Before, the outro ended on a fill leading into nothing and
+  the transport stopped. Now the last bar is one hit, kick and crash, and the chord rings
+  to the end.
+- **Everywhere else, the fill the band already played.**
+
+For the default song (`jam.py --seed 7`): intro fill, then build, stop (after the bridge),
+build, build, build, **stop into the last chorus**, and the final chord.
+
+### What is measured
+
+- `play_section` and `realise` are unchanged: **all eight golden files are byte-identical**.
+  Three new golden files pin the build, the stop and the final chord over one briefing.
+- For any briefing, seed, ending and following section, **the composed section validates
+  with no violations** — held at 2000 examples before being committed at the suite's 60 —
+  keeps all four instruments, invents no pitch, and rings nothing into the next clip.
+- **All three recorded model responses compose validly under every ending**, so a model's
+  groove gets the same form the floor does.
+- A three-minute arranged run against the fake Live fires every section with a bar of
+  slack, loses no beat, declines no ending, and is byte-identical for a seed.
+- Composing and validating one eight-bar section costs **under 1 ms**.
+
+Suite: **1734 passed, 25 live-marked skipped**; `ruff` and `mypy` clean.
+
+### What the ear is asked, written before it is asked
+
+The reference is `--plain`, which is the song every earlier listening heard.
+
+1. **Does the song go somewhere now?** The whole three minutes, arranged against plain.
+   This is the Stage 2 gate as ADR-019 describes it. No threshold, because n = 1 and one
+   comparison cannot carry one; the answer is recorded verbatim, as Phase 2's was.
+2. **Which of the three moves work, and which do not?** Build, stop, final chord — each can
+   be kept, changed or removed independently, because each is a row in a table.
+
+Named in advance so they are not discovered afterwards as excuses:
+
+- **Drift's velocity response is unknown.** Every instrument is Drift. If it barely answers
+  velocity, the swell is inaudible and the build is carried by the roll alone.
+- **Five identical builds in three minutes may be the problem**, rather than the build.
+  ADR-020 rejected seeded variety on purpose; this is the evidence that would reverse it.
+- **The drums are a synthesiser.** A "snare roll" is one Drift note repeated, and may not
+  read as a roll at all.
+
+### What this does not touch
+
+No model material was generated. ADR-019's condition on the inverted `kit_collision` sign —
+a pre-registration written before Stage 2 generates any — is unaffected, and still has to
+be written before the first `jam.py --generate` of this stage if that question is going to
+be asked.

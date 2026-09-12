@@ -1,7 +1,7 @@
 # ADR-019 — The ear is the instrument; the machine's job is to make listening cheap
 
-Status: **proposed** · Date: 2026-09-11 · Drafted for Fabiano to accept, amend or reject.
-Would amend ADR-000 §7's Phase 4 metrics criterion and discharge ADR-018's debt #1.
+Status: **accepted** · Drafted 2026-09-11 · **Accepted by Fabiano on 2026-09-12**, as drafted.
+Amends ADR-000 §7's Phase 4 metrics criterion and discharges ADR-018's debt #1.
 Depends on nothing; blocks nothing mechanical.
 
 ## Context
@@ -44,7 +44,7 @@ What has **not** been established is that no metric could work. Three were tried
 of the three cases against a mechanism invented after the fact. This ADR is about what to
 do with that, not about closing the question.
 
-## Decision (proposed)
+## Decision
 
 **1. No metric steers Stage 2.** The dynamics curve and the transitions — fills, breaks,
 builds — are composed over the model's groove (ADR-017) and judged the way Phase 2's floor
@@ -96,7 +96,7 @@ checks it has to pass to be honest, all of them falsifiable by reading the diff:
 
 If those three do not convince, the honest alternative is on the record below: hold the
 criterion exactly as ADR-000 wrote it and spend money on a fresh corpus. That is a
-legitimate call and it is Fabiano's to make.
+legitimate call and it was Fabiano's to make. **He chose this ADR over it on 2026-09-12.**
 
 ## Rejected alternatives
 

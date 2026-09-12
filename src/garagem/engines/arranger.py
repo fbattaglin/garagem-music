@@ -21,12 +21,13 @@ returns sections, and the scheduler does not care who chose them.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from random import Random
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from garagem.domain import PITCH_CLASSES, Chart, Chord, Feel, Quality, Section
+from garagem.domain import MAX_DYN, PITCH_CLASSES, Chart, Chord, Feel, Quality, Section
 from garagem.theory.errors import TheoryError
 from garagem.theory.scales import DEGREES, steps_of
 
@@ -97,6 +98,11 @@ MAJOR_CHARTS: Final[dict[str, tuple[tuple[int, ...], ...]]] = {
 }
 
 MINOR_THIRD: Final = 3
+
+# How much bigger the last chorus is than the others: one step of `dyn`, a little more
+# tension. One step, because `dyn` indexes the groove table and two would skip a pattern.
+CLIMAX_DYN: Final = 1
+CLIMAX_TENSION: Final = 0.1
 SECONDS_PER_MINUTE: Final = 60.0
 BEATS_PER_BAR: Final = 4.0
 
@@ -121,6 +127,31 @@ def arrange(brief: SongBrief, seed: int) -> tuple[Section, ...]:
     kinds.append(OUTRO)
 
     return tuple(_section(brief, kind, charts, rng) for kind in kinds)
+
+
+def with_climax(form: Sequence[Section]) -> tuple[Section, ...]:
+    """The same song with its last chorus lifted above the others: the dynamics curve.
+
+    Every chorus in `SHAPES` is the same size, so a song that repeats one five times has a
+    level rather than a shape. Lifting the last is the smallest change that gives it a peak,
+    and it is where a band would put one. A song with one chorus has nothing to rise above
+    and comes back as it was.
+
+    A separate function rather than a change to `arrange`, so the form a seed produced
+    before Phase 4 stays reachable: `scripts/jam.py --plain` plays it.
+    """
+    choruses = [index for index, section in enumerate(form) if section.name == CHORUS]
+    if len(choruses) < 2:
+        return tuple(form)
+    last = choruses[-1]
+    peak = form[last]
+    lifted = peak.model_copy(
+        update={
+            "dyn": min(MAX_DYN, peak.dyn + CLIMAX_DYN),
+            "tension": min(1.0, round(peak.tension + CLIMAX_TENSION, 2)),
+        }
+    )
+    return (*form[:last], lifted, *form[last + 1 :])
 
 
 def _section(

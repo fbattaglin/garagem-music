@@ -2,7 +2,8 @@
 
 Status: **accepted** · Date: 2026-09-01 · Written for the Phase 3 → Phase 4 gate.
 Waives one clause of ADR-000 §7's Phase 3 exit criterion. Depends on ADR-017;
-serves invariant P2.
+serves invariant P2. **Debt #1 discharged by [ADR-019](ADR-019-the-ear-is-the-instrument.md)
+on 2026-09-12** — not met, answered; debt #2 stands.
 
 ## Context
 

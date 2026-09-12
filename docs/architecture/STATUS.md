@@ -4,12 +4,13 @@
 
 ## Phase 4 exit criteria
 
-ADR-000 §7, amended by [ADR-017](ADR-017-composition-over-generation.md) and
-`phase-3-findings.md` §14: the arrangement is composed deterministically over the model's
-groove, because asking for it in one call was measured at 30 cancellations in 30 attempts;
-and a human cue takes effect deterministically on the next bar while the model refines the
-next section, because the 1–4 bar rewrite deadline is 0.73–2.91 s and `claude-haiku-4-5`
-measured p50 1.83 s, max 15.04 s.
+ADR-000 §7, amended by [ADR-017](ADR-017-composition-over-generation.md),
+`phase-3-findings.md` §14 and [ADR-019](ADR-019-the-ear-is-the-instrument.md): the
+arrangement is composed deterministically over the model's groove, because asking for it in
+one call was measured at 30 cancellations in 30 attempts; and a human cue takes effect
+deterministically on the next bar while the model refines the next section, because the
+1–4 bar rewrite deadline is 0.73–2.91 s and `claude-haiku-4-5` measured p50 1.83 s, max
+15.04 s.
 
 > **Exit criterion:** 8 minutes of continuous session; no deadline overrun left unhandled;
 > metrics within range; cost per session within the declared budget; a chaos test (kill the
@@ -19,14 +20,16 @@ measured p50 1.83 s, max 15.04 s.
 - [ ] No deadline overrun left unhandled — every one declines or falls back, logged with
       its reason and its seed. ADR-000 §9 still rates the tail High, and Phase 3's clean
       round (0 of 29 over) did not retire it.
-- [ ] Coherence metrics on every section in the event log, in range: bass/kick alignment,
-      harmonic conformance, register spread, density against the target `tension`
+- [ ] Coherence metrics on every section in the event log — bass/kick alignment, harmonic
+      conformance, register spread, density against the target `tension` — **and no
+      metric used as a target until one has passed a pre-registered preference gate**
 
-      **The premise of "in range" is contested.** Three mechanisms have been proposed and
-      none of them predicts what Fabiano hears (`phase-4-findings.md` §1, §3, §5). The
-      criterion is left exactly as ADR-000 §7 wrote it; whether it can be met as written
-      is the question [ADR-019](ADR-019-the-ear-is-the-instrument.md) puts to Fabiano, and
-      that ADR is a draft.
+      **Amended by [ADR-019](ADR-019-the-ear-is-the-instrument.md), accepted by Fabiano on
+      2026-09-12.** ADR-000 §7 asked for these *"in range"*, which assumed a cheap metric
+      that tracks the ear exists; three mechanisms were proposed and none predicted what
+      Fabiano hears (`phase-4-findings.md` §1, §3, §5). No threshold moved, and the
+      amendment adds a prohibition the original text did not have. **Still unticked**: the
+      metrics have not yet been shown on every section of an 8-minute session.
 - [ ] Cost per session inside the declared budget, hard-capped by the `Governor`
 - [ ] Chaos test: the network dies mid-session and nothing is audible (P2, by ear as well
       as by log)
@@ -34,7 +37,11 @@ measured p50 1.83 s, max 15.04 s.
 
 Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md)):
 
-- [ ] **The metrics reproduce the ear before anyone listens again.**
+- [~] **The metrics reproduce the ear before anyone listens again.**
+      — **NOT MET. DISCHARGED by [ADR-019](ADR-019-the-ear-is-the-instrument.md) on
+      2026-09-12**, by being answered: the metrics were given a falsifiable job before a
+      tuning job, and they failed it twice. The evidence below is unchanged.
+
       **Re-aimed, because the debt as written is not executable and its mechanism is
       refuted** (`phase-4-findings.md` §1–2). The model side of the twelve judged pairs
       was never persisted, and `register_spread` measures 1.000 on all 112 recorded model
@@ -65,7 +72,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **1619 passed, 25 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **1734 passed, 25 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -89,17 +96,26 @@ Done, with the suite at **1619 passed, 25 live-marked skipped**, `ruff` and `myp
   (§3, §5). `tally` is corrected a second time — it reported this result as a near miss
   when it was a reversal — and `--tally` now reads a finished log back, which it could
   not do when this one finished.
+- **[ADR-019](ADR-019-the-ear-is-the-instrument.md) accepted** by Fabiano on 2026-09-12.
+  The metrics stay in the event log as telemetry and are barred from being targets; the
+  inverted sign of `kit_collision` is a hypothesis, not a steer, and testing it needs its
+  own pre-registration written before Stage 2's material exists.
+- **Stage 2 is built, and not yet heard** (`phase-4-findings.md` §6,
+  [ADR-020](ADR-020-endings-are-composed-over-the-score.md)). A verse builds into a chorus
+  — snare roll, swell, the band letting go of the last beat; a bridge, and the step into
+  the last chorus, stop dead with a drummer's pickup; the last chorus is lifted above the
+  others; and the song ends on a ringing chord. Composed over the finished section by the
+  scheduler, so a model's groove and the floor get the same form. The generators and their
+  eight golden files are untouched; `jam.py --plain` plays the song as it was.
 
 Next, in order:
 
-1. **Decide [ADR-019](ADR-019-the-ear-is-the-instrument.md).** It blocks nothing
-   mechanical, and it settles what this phase's metrics criterion can mean — which is
-   what closes the phase.
-2. **Extend `_arranged()` with the dynamics curve and the transitions** — fills, breaks,
-   builds — as composition over the model's groove (ADR-017). No longer gated on a
-   metric, because there is no validated one; judged by ear at the gate.
-3. **The tactical layer**: a cue changes the next bar deterministically, and the model is
-   asked to refine the section after it.
+1. **Listen: Stage 2's gate, by ear.** `uv run python scripts/jam.py --seconds 180 --seed 7`
+   against the same command with `--plain`. The two questions and the three risks are
+   written down in §6 before the listening, so the listening can disagree with them.
+2. **The tactical layer**: a cue changes the next bar deterministically, and the model is
+   asked to refine the section after it. An ending chosen by a person is the first cue it
+   can land on (ADR-020).
 
 ## Phase 3 — closed with one waiver
 

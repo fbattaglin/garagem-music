@@ -26,6 +26,14 @@ Three rules the code makes it hard to break, each named where it is enforced:
   is where the "zero glitches" criterion is read from — mechanically, out of the log,
   not by watching.
 
+**Transitions are composed here, at write time, and only when the caller passes them.**
+This is the one place that knows which section a score is actually handing over to, and
+the one place both sources pass through — a score from the buffer and a fallback from the
+floor get the same ending (ADR-020). Composing can in principle break a rule the score
+kept, so the result is validated, and a section whose ending would not validate plays as
+it was generated, with the log saying so. `endings=None` is Phase 3's scheduler, byte for
+byte.
+
 **Bar-driven, not time-driven.** `tick()` makes one bar's worth of decisions from the
 clock's current position and returns; `run()` is the thin wrapper that waits for the next
 bar and calls it. That split is what lets the whole three-minute run be a unit test:
@@ -42,8 +50,9 @@ from typing import Final
 from garagem.daw import ClipAddress, DawError, DawPort
 from garagem.daw.session import ensure_clip
 from garagem.domain import Instrument, Section, SectionScore
-from garagem.engines import play_section
+from garagem.engines import Ending, compose, play_section
 from garagem.obs import EventLog
+from garagem.theory import validate
 from garagem.transport.buffer import ScoreBuffer
 from garagem.transport.clock import NO_BEAT, BarClock
 from garagem.transport.render import render_score
@@ -92,6 +101,7 @@ class Scheduler:
         self._seed = seed
 
         self._sections: tuple[Section, ...] = ()
+        self._endings: tuple[Ending, ...] | None = None
         self._index = -1
         self._playing_scene = scenes[0]
         self._start_bar = NO_BEAT
@@ -125,9 +135,15 @@ class Scheduler:
 
     # ------------------------------------------------------------------------- the loop
 
-    def run(self, sections: Sequence[Section], seed: int | None = None) -> None:
+    def run(
+        self,
+        sections: Sequence[Section],
+        seed: int | None = None,
+        *,
+        endings: Sequence[Ending] | None = None,
+    ) -> None:
         """Play the whole form. Returns when the last section has been played out."""
-        self.begin(sections, seed)
+        self.begin(sections, seed, endings=endings)
         while not self.finished:
             if not self._clock.wait_for_bar(self._clock.bar + 1, BAR_TIMEOUT_S):
                 # The transport stopped, or Live went quiet. Ending is the honest answer:
@@ -136,20 +152,33 @@ class Scheduler:
                 break
             self.tick()
 
-    def begin(self, sections: Sequence[Section], seed: int | None = None) -> None:
-        """Write the first section into the first scene and fire it."""
+    def begin(
+        self,
+        sections: Sequence[Section],
+        seed: int | None = None,
+        *,
+        endings: Sequence[Ending] | None = None,
+    ) -> None:
+        """Write the first section into the first scene and fire it.
+
+        `endings`, when given, is one per section: how each hands over to the next
+        (`engines.endings_for`). Without it every section plays exactly as generated.
+        """
+        if endings is not None and len(endings) != len(sections):
+            raise ValueError(f"one ending per section: {len(endings)} for {len(sections)}")
         if not sections:
             self.finished = True
             return
         self._sections = tuple(sections)
+        self._endings = None if endings is None else tuple(endings)
         if seed is not None:
             self._seed = seed
         self._index = 0
         self._playing_scene = self._scenes[0]
         self._epoch = self._clock.epoch
 
-        score = self._section_score(0)
-        self._write(score, self._playing_scene, 0)
+        score, ending = self._section_score(0)
+        self._write(score, self._playing_scene, 0, ending)
         self._daw.fire_scene(self._playing_scene)
         # `first=True` and no slack: there is no predecessor to be late for. Anything
         # reading the log for "every fire had a bar of slack" means the transitions, and
@@ -197,8 +226,8 @@ class Scheduler:
             return
         scene = self.free_scene()
         try:
-            score = self._section_score(following)
-            self._write(score, scene, following)
+            score, ending = self._section_score(following)
+            self._write(score, scene, following, ending)
         except DawError as error:
             # Not fatal and not retried (P7): the current clip loops, the next tick tries
             # again, and the log says the write did not land.
@@ -274,23 +303,55 @@ class Scheduler:
 
     # ------------------------------------------------------------------------- plumbing
 
-    def _section_score(self, index: int) -> SectionScore:
-        """From the buffer if it is there, from the deterministic floor if it is not."""
+    def _section_score(self, index: int) -> tuple[SectionScore, Ending | None]:
+        """From the buffer if it is there, from the deterministic floor if it is not.
+
+        Then its ending, when this run has endings. Returns the ending that actually plays.
+        """
         section = self._sections[index]
         score = self._buffer.take(index)
         if score is not None:
             self._log.record(
                 "section_generated", self._beats(), section=index, seed=score.seed, source="buffer"
             )
-            return score
-        seed = self._seed + index
-        score = play_section(section, seed)
-        self._log.record(
-            "fallback", self._beats(), section=index, seed=seed, reason="not_in_buffer"
-        )
-        return score
+        else:
+            seed = self._seed + index
+            score = play_section(section, seed)
+            self._log.record(
+                "fallback", self._beats(), section=index, seed=seed, reason="not_in_buffer"
+            )
+        return self._ended(score, index)
 
-    def _write(self, score: SectionScore, scene: int, index: int) -> None:
+    def _ended(self, score: SectionScore, index: int) -> tuple[SectionScore, Ending | None]:
+        """The section's transition composed over it, unless that would break a rule.
+
+        Declining is not an error and is not retried (P7): the section already ends on the
+        fill its generator wrote, which is music, and the log names the rules and the
+        ending that was wanted.
+        """
+        if self._endings is None:
+            return score, None
+        ending = self._endings[index]
+        following = index + 1
+        into = self._sections[following] if following < len(self._sections) else None
+        composed = compose(score, ending, into=into)
+        if composed is score:
+            return score, ending
+        broken = validate(composed)
+        if broken:
+            self._log.record(
+                "transition_declined",
+                self._beats(),
+                section=index,
+                ending=str(ending),
+                rules=",".join(sorted({violation.rule for violation in broken})),
+            )
+            return score, Ending.FILL
+        return composed, ending
+
+    def _write(
+        self, score: SectionScore, scene: int, index: int, ending: Ending | None = None
+    ) -> None:
         """Every track of one section into one scene. Never the scene that is playing."""
         if self._index >= 0 and scene == self._playing_scene and index != self._index:
             raise DawError(
@@ -317,6 +378,7 @@ class Scheduler:
             seed=score.seed,
             notes=sum(len(part.notes) for part in score.parts),
             ms=round((time.monotonic() - started) * 1000.0, 1),
+            **({} if ending is None else {"ending": str(ending)}),
         )
 
     def _beats(self) -> float:

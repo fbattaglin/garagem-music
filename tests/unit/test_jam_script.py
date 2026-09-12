@@ -98,6 +98,38 @@ def test_a_dry_run_prints_the_form_and_opens_nothing(
     assert "intro" in printed
 
 
+def test_a_dry_run_shows_how_each_section_hands_over(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with_argv(monkeypatch, "--dry-run", "--seconds", "180")
+    jam.main()
+    printed = capsys.readouterr().err
+    assert "-> build" in printed
+    assert "-> final" in printed
+
+
+def test_plain_is_the_form_as_it_played_before_phase_4(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with_argv(monkeypatch, "--dry-run", "--seconds", "180", "--plain")
+    jam.main()
+    printed = capsys.readouterr().err
+    assert "->" not in printed
+    spec = jam.load_session(jam.DEFAULT_SESSION)
+    brief = jam.brief_of(spec, 180.0, Feel.STRAIGHT8, 4, "minor")
+    assert jam.plan(brief, 7, plain=True) == (jam.arrange(brief, 7), None)
+
+
+def test_the_plan_lifts_the_last_chorus_and_ends_the_song() -> None:
+    spec = jam.load_session(jam.DEFAULT_SESSION)
+    brief = jam.brief_of(spec, 180.0, Feel.STRAIGHT8, 4, "minor")
+    form, endings = jam.plan(brief, 7, plain=False)
+    assert endings is not None
+    assert len(endings) == len(form)
+    assert str(endings[-1]) == "final"
+    assert form != jam.arrange(brief, 7)
+
+
 def test_the_seed_reaches_the_arranger(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -146,7 +178,7 @@ def test_the_transport_is_stopped_even_when_the_run_fails(
 ) -> None:
     """Leaving Live playing a loop nobody is driving is not a tidy end."""
 
-    def explode(self: object, form: object, seed: object = None) -> None:
+    def explode(self: object, form: object, seed: object = None, endings: object = None) -> None:
         raise RuntimeError("something went wrong mid-performance")
 
     monkeypatch.setattr(jam.Scheduler, "run", explode)
@@ -171,7 +203,7 @@ def test_without_the_flag_no_provider_is_ever_constructed(
         raise AssertionError("a run without --generate must not build a provider")
 
     monkeypatch.setattr(jam, "build_provider", refuse)
-    monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None: None)
+    monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None, endings=None: None)
     with_argv(monkeypatch, "--seconds", "10", "--log", str(LOG))
 
     assert jam.main() == 0
@@ -221,7 +253,7 @@ def test_the_producer_is_started_and_stopped_in_the_finally(
 
     monkeypatch.setattr(jam, "Producer", Recording)
     monkeypatch.setattr(jam, "build_provider", lambda spec, catalog, budget: object())
-    monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None: None)
+    monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None, endings=None: None)
     # This test is about start/stop. The wait for a first section has its own test, and
     # leaving it in would spend the whole deadline waiting for a producer that is a stub.
     monkeypatch.setattr(jam, "prime", lambda buffer, first: 0.0)
@@ -243,7 +275,7 @@ def test_the_producer_is_stopped_even_when_the_run_fails(
         def stop(self) -> None:
             stopped.append("stop")
 
-    def explode(self: object, form: object, seed: object = None) -> None:
+    def explode(self: object, form: object, seed: object = None, endings: object = None) -> None:
         raise RuntimeError("mid-performance")
 
     monkeypatch.setattr(jam, "Producer", Recording)

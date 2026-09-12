@@ -13,7 +13,11 @@
   - `ADR-017-composition-over-generation.md` — the model writes the groove, the engines
     write the form.
   - `ADR-018-the-ab-waiver.md` — the Phase 3 blind A/B, waived with its threshold intact.
-- `phase-0-findings.md` … `phase-3-findings.md` — what the measurements and the
+  - `ADR-019-the-ear-is-the-instrument.md` — no metric is a target until one passes a
+    pre-registered preference gate; arrangement work is judged by ear.
+  - `ADR-020-endings-are-composed-over-the-score.md` — builds, stops and the final chord,
+    composed over a finished section by the scheduler, whoever wrote the groove.
+- `phase-0-findings.md` … `phase-4-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 
 ADR format: context, decision, rejected alternatives, consequences.

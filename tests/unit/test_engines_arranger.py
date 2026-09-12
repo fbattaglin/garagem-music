@@ -14,7 +14,7 @@ from itertools import pairwise
 import pytest
 
 from garagem.domain import Feel, Quality
-from garagem.engines import SHAPES, SongBrief, arrange, diatonic, play_section
+from garagem.engines import SHAPES, SongBrief, arrange, diatonic, play_section, with_climax
 from garagem.engines.arranger import CHORUS, INTRO, OUTRO
 from garagem.theory import TheoryError, render_chord, validate
 
@@ -133,3 +133,54 @@ def test_a_whole_song_validates_in_any_key_and_mode(scale: str, key: int) -> Non
     """The floor has to hold everywhere, not only in E minor."""
     form = arrange(a_brief(key=key, scale=scale, minimum_seconds=40.0), 7)
     assert all(validate(play_section(section, 7)) == () for section in form)
+
+
+# ------------------------------------------------------------------------------ climax
+
+
+@pytest.mark.parametrize("seed", range(12))
+def test_the_last_chorus_is_the_biggest_section_of_the_song(seed: int) -> None:
+    form = with_climax(arrange(a_brief(), seed))
+    choruses = [section for section in form if section.name == CHORUS]
+    assert len(choruses) > 1
+    peak = choruses[-1]
+    assert all(peak.dyn > other.dyn for other in choruses[:-1])
+    assert all(peak.tension > other.tension for other in choruses[:-1])
+    assert peak.dyn == max(section.dyn for section in form)
+
+
+@pytest.mark.parametrize("seed", range(12))
+def test_the_climax_changes_nothing_but_the_last_chorus(seed: int) -> None:
+    plain = arrange(a_brief(), seed)
+    lifted = with_climax(plain)
+    last = max(index for index, section in enumerate(plain) if section.name == CHORUS)
+    assert len(lifted) == len(plain)
+    assert [s for i, s in enumerate(lifted) if i != last] == [
+        s for i, s in enumerate(plain) if i != last
+    ]
+    assert lifted[last].chart == plain[last].chart
+
+
+def test_a_song_with_one_chorus_has_nothing_to_rise_above() -> None:
+    form = tuple(
+        section for section in arrange(a_brief(minimum_seconds=20.0), 7) if section.name != CHORUS
+    )
+    one = (*form[:-1], arrange(a_brief(), 7)[2], form[-1])
+    assert with_climax(one) == one
+
+
+def test_the_climax_never_passes_the_top_of_the_scale() -> None:
+    form = arrange(a_brief(), 7)
+    peaked = {"dyn": 5, "tension": 0.95}
+    loud = tuple(
+        section.model_copy(update=peaked) if section.name == CHORUS else section for section in form
+    )
+    peak = [section for section in with_climax(loud) if section.name == CHORUS][-1]
+    assert peak.dyn == 5
+    assert peak.tension == 1.0
+
+
+@pytest.mark.parametrize("seed", range(4))
+def test_a_lifted_song_still_validates_section_by_section(seed: int) -> None:
+    form = with_climax(arrange(a_brief(), seed))
+    assert all(validate(play_section(section, seed)) == () for section in form)

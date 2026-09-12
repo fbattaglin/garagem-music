@@ -5,6 +5,7 @@
     uv run python scripts/jam.py --seconds 30 --log bench/jam.jsonl
     uv run python scripts/jam.py --generate           # ask a model; needs ANTHROPIC_API_KEY
     uv run python scripts/jam.py --generate --provider cassette:path.jsonl   # no network
+    uv run python scripts/jam.py --plain              # no transitions, no climax: Phase 3
 
 This is Phase 2's exit criterion as a command. It arranges a form, generates every
 section with the deterministic engines, writes them into alternating scenes and fires
@@ -27,6 +28,11 @@ Four rules, each of them load-bearing:
   `tests/unit/test_architecture.py` is what keeps that true rather than merely intended.
 - **It writes the event log**, which is where the "zero glitches" claim is read from:
   every write and every fire, stamped with the beat it happened at.
+
+**Sections hand over to each other** (ADR-020): a build into a chorus, a stop before the
+last one, a final chord at the end, and the last chorus lifted above the others. `--plain`
+turns all of it off and plays the form exactly as every listening before Phase 4 heard it,
+which is what makes the two comparable by ear.
 
 `--dry-run` prints the form and exits without opening a socket, which makes it the
 cheapest way to see what a seed produces. `--provider cassette:<path>` replays a recording
@@ -57,7 +63,7 @@ from garagem.daw import (
 )
 from garagem.daw.session import SessionSpec
 from garagem.domain import Feel, Instrument, Section
-from garagem.engines import SongBrief, arrange
+from garagem.engines import Ending, SongBrief, arrange, endings_for, with_climax
 from garagem.llm import (
     AnthropicAdapter,
     BreakerPolicy,
@@ -151,10 +157,22 @@ def brief_of(spec: SessionSpec, seconds: float, feel: Feel, key: int, scale: str
     return SongBrief(key=key, scale=scale, bpm=spec.tempo_bpm, feel=feel, minimum_seconds=seconds)
 
 
-def render_form(form: tuple[Section, ...]) -> str:
+def plan(
+    brief: SongBrief, seed: int, *, plain: bool
+) -> tuple[tuple[Section, ...], tuple[Ending, ...] | None]:
+    """The song and how its sections hand over. `plain` is the form before Phase 4."""
+    form = arrange(brief, seed)
+    if plain:
+        return form, None
+    form = with_climax(form)
+    return form, endings_for(form)
+
+
+def render_form(form: tuple[Section, ...], endings: tuple[Ending, ...] | None = None) -> str:
     lines = [
         f"{index:>3}  {section.name:<8} {section.bars:>2} bars  dyn={section.dyn} "
         f"tension={section.tension:.2f}  {section.total_seconds():5.1f}s"
+        + ("" if endings is None else f"  -> {endings[index]}")
         for index, section in enumerate(form)
     ]
     total = sum(section.total_seconds() for section in form)
@@ -202,6 +220,11 @@ def main() -> int:
         help="print the form and exit. Opens no socket and writes nothing.",
     )
     parser.add_argument(
+        "--plain",
+        action="store_true",
+        help="no transitions and no climax: the form as it played before Phase 4.",
+    )
+    parser.add_argument(
         "--generate",
         action="store_true",
         help="ask a model for each section. Off by default: without it this is Phase 2, "
@@ -217,10 +240,11 @@ def main() -> int:
     args = parser.parse_args()
 
     spec = load_session(args.session)
-    form = arrange(brief_of(spec, args.seconds, Feel(args.feel), args.key, args.scale), args.seed)
+    brief = brief_of(spec, args.seconds, Feel(args.feel), args.key, args.scale)
+    form, endings = plan(brief, args.seed, plain=args.plain)
 
     if args.dry_run:
-        sys.stderr.write(render_form(form))
+        sys.stderr.write(render_form(form, endings))
         return 0
 
     # Before anything opens a socket to Live: a missing key should not cost a Set check.
@@ -261,7 +285,7 @@ def main() -> int:
             sys.stderr.write("Run scripts/bootstrap_set.py before playing.\n")
             return 1
 
-        sys.stderr.write(render_form(form))
+        sys.stderr.write(render_form(form, endings))
         if provider is not None and model is not None:
             sys.stderr.write(f"generating with {model.id}\n")
             producer = Producer(provider, buffer, log, form, model=model, seed=args.seed)
@@ -282,7 +306,7 @@ def main() -> int:
 
         clock.start()
         daw.start_playing()
-        Scheduler(daw, clock, buffer, tracks, log, seed=args.seed).run(form)
+        Scheduler(daw, clock, buffer, tracks, log, seed=args.seed).run(form, endings=endings)
         return 0
     finally:
         # A Ctrl-C during a performance must still stop the transport and still leave the

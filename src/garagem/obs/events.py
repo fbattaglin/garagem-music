@@ -51,6 +51,9 @@ KINDS: Final[tuple[str, ...]] = (
     "section_parsed",
     "deadline_missed",
     "schema_violation",
+    # Phase 4. An ending the scheduler would not compose because the result broke a rule
+    # (ADR-020). The section still plays, as generated; this says which ending was lost.
+    "transition_declined",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so

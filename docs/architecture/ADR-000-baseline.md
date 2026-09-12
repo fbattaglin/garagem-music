@@ -285,6 +285,8 @@ Cache hits cost 10% of base input at Anthropic; the Batch API gives a further 50
 | [ADR-016](ADR-016-the-producer-thread.md) | **The producer thread**; `transport/` may not import `llm/` | **New** — invariant 1, enforced statically |
 | [ADR-017](ADR-017-composition-over-generation.md) | **The model writes the groove; the engines write the form** | **New** — supersedes part of §7's Phase 4 |
 | [ADR-018](ADR-018-the-ab-waiver.md) | **The Phase 3 blind A/B is waived, not met**; threshold intact, carried into Phase 4 | **New** — waives one clause of §7's Phase 3 exit criterion |
+| [ADR-019](ADR-019-the-ear-is-the-instrument.md) | **The ear is the instrument**; no metric is a target until one passes a pre-registered preference gate | **New** — amends §7's Phase 4 metrics clause; discharges ADR-018's debt #1 |
+| [ADR-020](ADR-020-endings-are-composed-over-the-score.md) | **Endings are composed over the finished score**, by the scheduler: fills, builds, stops, the final chord | **New** — realises §7's Phase 4 transitions; refines ADR-017 |
 
 ADR-001 is written down in [`ADR-001-clip-ahead-and-quantised-launch.md`](ADR-001-clip-ahead-and-quantised-launch.md).
 
@@ -352,6 +354,12 @@ takes effect deterministically on the next bar and the model refines the next se
 separate the three "messy" losses in `bench/ab-phase3-final.jsonl` from the other nine,
 and the blind A/B is re-run at this phase's close on the same design and the same
 threshold — 8 of 12.
+
+**"Metrics within range" is amended by [ADR-019](ADR-019-the-ear-is-the-instrument.md)**,
+accepted on 2026-09-12: every section carries its metrics in the event log, and no metric is
+used as a target until one has passed a pre-registered preference gate. Three proposed
+mechanisms failed to predict the ear (`phase-4-findings.md` §1, §3, §5), which discharges
+the calibration debt above by answering it. The A/B re-run at 8 of 12 is untouched.
 
 ### **Phase 5 — Human in the loop and Setlist Mode** · ~2 weeks
 

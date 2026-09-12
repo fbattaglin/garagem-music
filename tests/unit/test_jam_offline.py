@@ -15,7 +15,7 @@ from collections.abc import Iterable
 
 from garagem.daw import ClipAddress, FakeDawAdapter, MidiNote
 from garagem.domain import Feel, Instrument
-from garagem.engines import SongBrief, arrange
+from garagem.engines import SongBrief, arrange, compose, endings_for, play_section, with_climax
 from garagem.obs import EventLog
 from garagem.theory import validate
 from garagem.transport import BarClock, Scheduler, ScoreBuffer
@@ -51,8 +51,14 @@ class RecordingDaw(FakeDawAdapter):
         super().write_notes(at, notes)
 
 
-def a_jam(seed: int = SEED) -> tuple[RecordingDaw, Scheduler, EventLog, int]:
-    """One whole performance. Returns the rig and how many beats it took."""
+def a_jam(
+    seed: int = SEED, *, arranged: bool = False
+) -> tuple[RecordingDaw, Scheduler, EventLog, int]:
+    """One whole performance. Returns the rig and how many beats it took.
+
+    `arranged` is Phase 4's: the last chorus lifted and every section handing over to the
+    next. Without it this is the performance Phase 2 closed on.
+    """
     daw = RecordingDaw()
     clock = BarClock(daw)
     clock.start()
@@ -60,7 +66,11 @@ def a_jam(seed: int = SEED) -> tuple[RecordingDaw, Scheduler, EventLog, int]:
     scheduler = Scheduler(daw, clock, ScoreBuffer(), TRACKS, log, seed=seed)
 
     form = arrange(BRIEF, seed)
-    scheduler.begin(form)
+    if arranged:
+        form = with_climax(form)
+        scheduler.begin(form, endings=endings_for(form))
+    else:
+        scheduler.begin(form)
     beat = 0
     while not scheduler.finished and beat < 20_000:
         daw.push_beat(beat)
@@ -159,8 +169,6 @@ def test_a_different_seed_is_a_different_performance() -> None:
 
 def test_every_section_the_band_played_validates() -> None:
     """The floor held for a whole song, not only for a section somebody picked."""
-    from garagem.engines import play_section
-
     form = arrange(BRIEF, SEED)
     assert all(
         validate(play_section(section, SEED + index)) == () for index, section in enumerate(form)
@@ -186,3 +194,48 @@ def test_the_log_replays_into_the_same_section_sequence() -> None:
     form = arrange(BRIEF, SEED)
     replayed = [str(event.detail["name"]) for event in log.of_kind("scene_fired")]
     assert replayed == [section.name for section in form]
+
+
+# ------------------------------------------------------------------------------ Phase 4
+
+
+def test_an_arranged_song_is_still_three_minutes_with_no_glitch() -> None:
+    """Transitions change the notes, never the transport: same fires, same slack."""
+    _, scheduler, log, _ = a_jam(arranged=True)
+    assert scheduler.finished
+    fired = log.of_kind("scene_fired")
+    assert len(fired) == len(arrange(BRIEF, SEED))
+    assert all(int(str(event.detail["slack_bars"])) >= 1 for event in fired[1:])
+    assert log.of_kind("beat_lost") == ()
+
+
+def test_every_section_of_an_arranged_song_hands_over_as_planned() -> None:
+    """No ending was declined: the floor composes validly for a whole song."""
+    _, _, log, _ = a_jam(arranged=True)
+    form = with_climax(arrange(BRIEF, SEED))
+    written = [str(event.detail["ending"]) for event in log.of_kind("section_written")]
+    assert written == [str(ending) for ending in endings_for(form)]
+    assert log.of_kind("transition_declined") == ()
+
+
+def test_every_section_of_an_arranged_song_validates() -> None:
+    form = with_climax(arrange(BRIEF, SEED))
+    endings = endings_for(form)
+    for index, (section, ending) in enumerate(zip(form, endings, strict=True)):
+        into = form[index + 1] if index + 1 < len(form) else None
+        assert validate(compose(play_section(section, SEED + index), ending, into=into)) == ()
+
+
+def test_an_arranged_run_is_byte_identical_for_the_same_seed() -> None:
+    assert musical(a_jam(arranged=True)[2]) == musical(a_jam(arranged=True)[2])
+
+
+def test_the_arranged_song_is_audibly_not_the_plain_one() -> None:
+    """Otherwise the listening would be comparing a performance with itself."""
+
+    def notes(log: EventLog) -> list[object]:
+        return [event.detail["notes"] for event in log.of_kind("section_written")]
+
+    plain = notes(a_jam()[2])
+    arranged = notes(a_jam(arranged=True)[2])
+    assert plain != arranged

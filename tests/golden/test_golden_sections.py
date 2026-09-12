@@ -23,7 +23,7 @@ import pytest
 
 from garagem.domain import Feel, Section
 from garagem.dsl import serialize_score, serialize_section
-from garagem.engines import play_section
+from garagem.engines import Ending, compose, play_section
 from garagem.theory import parse_chart
 
 DATA = Path(__file__).parent / "data"
@@ -82,6 +82,12 @@ SEEDS = (7, 1729)
 
 CASES = [(name, seed) for name in BRIEFINGS for seed in SEEDS]
 
+# Phase 4's endings, over one briefing, handing over to the loud chorus above. One seed is
+# enough: what these pin is the composition, and the seed's work is already pinned above.
+ENDED = "verse-straight8"
+INTO = "chorus-straight16"
+ENDINGS = (Ending.BUILD, Ending.STOP, Ending.FINAL)
+
 
 def rendered(name: str, seed: int) -> str:
     """Both forms in one file, so a single diff shows the notation and the notes."""
@@ -99,9 +105,22 @@ def test_the_section_matches_its_golden_file(name: str, seed: int) -> None:
     assert produced == path.read_text(encoding="utf-8")
 
 
+@pytest.mark.parametrize("ending", ENDINGS, ids=str)
+def test_the_ending_matches_its_golden_file(ending: Ending) -> None:
+    path = DATA / f"{ENDED}-{SEEDS[0]}-{ending}.dsl"
+    score = compose(play_section(BRIEFINGS[ENDED], SEEDS[0]), ending, into=BRIEFINGS[INTO])
+    produced = f"{serialize_section(score)}\n{serialize_score(score)}"
+    if UPDATE:
+        path.write_text(produced, encoding="utf-8")
+    assert path.exists(), f"missing golden file {path.name}; regenerate deliberately"
+    assert produced == path.read_text(encoding="utf-8")
+
+
 def test_every_golden_file_belongs_to_a_case() -> None:
     """An orphan file is a briefing somebody deleted and a test that stopped running."""
-    expected = {f"{name}-{seed}.dsl" for name, seed in CASES}
+    expected = {f"{name}-{seed}.dsl" for name, seed in CASES} | {
+        f"{ENDED}-{SEEDS[0]}-{ending}.dsl" for ending in ENDINGS
+    }
     assert {path.name for path in DATA.glob("*.dsl")} == expected
 
 

@@ -13,12 +13,12 @@ from __future__ import annotations
 
 import pytest
 
-from garagem.daw import DawTimeoutError, FakeDawAdapter
-from garagem.domain import Feel, Instrument, Section
-from garagem.engines import play_section
+from garagem.daw import ClipAddress, DawTimeoutError, FakeDawAdapter
+from garagem.domain import Feel, Instrument, Section, SectionScore
+from garagem.engines import Ending, compose, play_section
 from garagem.obs import Event, EventLog
 from garagem.theory import parse_chart
-from garagem.transport import BarClock, Scheduler, ScoreBuffer
+from garagem.transport import BarClock, Scheduler, ScoreBuffer, render_score
 
 TRACKS = {
     Instrument.DRUMS: 0,
@@ -303,3 +303,99 @@ def test_a_section_that_never_writes_stops_the_run_instead_of_looping_forever() 
     assert any(
         event.detail.get("reason") == "repeated_too_long" for event in rig.of_kind("fallback")
     )
+
+
+# ---------------------------------------------------------------------------- endings
+
+
+ENDINGS = (Ending.FILL, Ending.BUILD, Ending.STOP, Ending.FINAL)
+
+
+class EndingRig(Rig):
+    def play_with_endings(self, endings: tuple[Ending, ...] = ENDINGS) -> None:
+        self.scheduler.begin(FORM, endings=endings)
+        while not self.scheduler.finished and self.beat < 2000:
+            self.daw.push_beat(self.beat)
+            self.scheduler.tick()
+            self.beat += 1
+
+
+def test_without_endings_every_section_is_written_as_generated() -> None:
+    """Phase 3's scheduler, byte for byte: the log says nothing about endings at all."""
+    rig = Rig()
+    rig.play()
+    assert all("ending" not in event.detail for event in rig.of_kind("section_written"))
+
+
+def test_every_written_section_names_the_ending_it_plays() -> None:
+    rig = EndingRig()
+    rig.play_with_endings()
+    written = {
+        event.detail["section"]: event.detail["ending"] for event in rig.of_kind("section_written")
+    }
+    assert written == {0: "fill", 1: "build", 2: "stop", 3: "final"}
+
+
+def test_the_last_section_is_written_with_its_final_chord() -> None:
+    rig = EndingRig()
+    rig.play_with_endings()
+    outro = FORM[-1]
+    expected = compose(play_section(outro, 7 + 3), Ending.FINAL)
+    written = rig.daw.read_notes(ClipAddress(track=TRACKS[Instrument.KEYS], scene=1))
+    assert written == render_score(expected)[Instrument.KEYS]
+
+
+def test_a_section_from_the_buffer_gets_the_same_ending_as_the_floor_would() -> None:
+    """Both sources pass through one place, so the form does not depend on who wrote it."""
+    rig = EndingRig()
+    rig.buffer.offer(1, play_section(FORM[1], 1234))
+    rig.play_with_endings()
+    expected = compose(play_section(FORM[1], 1234), Ending.BUILD, into=FORM[2])
+    # Section 1 went to scene 1 and was later overwritten by section 3, so read the log.
+    written = [event for event in rig.of_kind("section_written") if event.detail["section"] == 1]
+    assert written[0].detail["ending"] == "build"
+    assert written[0].detail["notes"] == sum(len(part.notes) for part in expected.parts)
+
+
+def test_an_ending_that_would_break_a_rule_is_declined_and_logged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P4 over our own composition: the section plays as generated, and the log says why."""
+    import garagem.transport.scheduler as scheduler
+
+    def breaks_the_range(score: SectionScore, ending: Ending, *, into: Section | None) -> object:
+        if ending is Ending.FILL:
+            return score
+        bass = score.part(Instrument.BASS)
+        low = bass.notes[0].model_copy(update={"pitch": 1})
+        parts = tuple(
+            part.model_copy(update={"notes": (low, *part.notes[1:])})
+            if part.instrument is Instrument.BASS
+            else part
+            for part in score.parts
+        )
+        return score.model_copy(update={"parts": parts})
+
+    monkeypatch.setattr(scheduler, "compose", breaks_the_range)
+    rig = EndingRig()
+    rig.play_with_endings()
+    declined = rig.of_kind("transition_declined")
+    assert [event.detail["ending"] for event in declined] == ["build", "stop", "final"]
+    assert all("range" in str(event.detail["rules"]).split(",") for event in declined)
+    written = [event.detail["ending"] for event in rig.of_kind("section_written")]
+    assert written == ["fill", "fill", "fill", "fill"]
+
+
+def test_endings_must_cover_the_whole_form() -> None:
+    rig = Rig()
+    with pytest.raises(ValueError, match="one ending per section"):
+        rig.scheduler.begin(FORM, endings=(Ending.FILL,))
+
+
+def test_a_run_with_endings_is_deterministic() -> None:
+    first, second = EndingRig(), EndingRig()
+    first.play_with_endings()
+    second.play_with_endings()
+    assert [musical_detail(event) for event in first.log] == [
+        musical_detail(event) for event in second.log
+    ]
