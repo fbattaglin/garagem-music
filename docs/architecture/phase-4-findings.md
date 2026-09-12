@@ -506,61 +506,69 @@ note inside the band.
 Still open, and only Fabiano can answer it: whether anything in Live visibly reacted, or
 was heard, when the pads were pressed.
 
-## 8. Stage 2's first gate: the MiniLab talks to Live too, and a song ended without a word
+## 8. Stage 2's gate, run twice: the song never left bar 5, and the first diagnosis was wrong
 
-Fabiano ran `bootstrap_set.py --apply`, which disarmed KEYS, and then
+### First run
+
+Fabiano ran `bootstrap_set.py --apply`, which disarmed KEYS, then
 `jam.py --controller minilab --seconds 90` on 2026-09-12, touching **every control on the
 MiniLab** — not only the mapped ones.
 
-### What the gate showed
+- **The controller path worked end to end.** Ten controls reached the event log, each
+  stamped with the bar it arrived in. Seven of the eight mapped kinds arrived;
+  **`fill` (pad 2, note 37) did not**.
+- **The song ended ten seconds in, and the run said nothing.** The intro played and the
+  verse fired at beat 20. Then no bar 6 ever came. Two later cues were stamped at beats 11
+  and 14, *after* ones stamped 23. The scheduler waited `BAR_TIMEOUT_S`, 30 s, gave up — and
+  `jam.py` exited 0, the code that means *the form was played to the end*.
 
-- **The controller path works end to end.** Ten controls reached the event log, each
-  stamped with the bar it arrived in: `stop` ×3, `next_bridge` ×2, `chorus_now`,
-  `drums_and_bass`, `end`, `density`, `tension`. **`fill` (pad 2, note 37) never arrived.**
-- **The song stopped ten seconds in, and the run said nothing.** The intro played and the
-  verse fired at beat 20. Then Live stopped sending beats. Two later cues were stamped at
-  beats 11 and 14, *after* ones stamped 23, so the playhead went back, played and stopped
-  again. The scheduler waited `BAR_TIMEOUT_S`, 30 s, for a bar that never came, ended the
-  run — and `jam.py` exited 0, the code that means *the form was played to the end*.
+Live's log also showed `MiniLab_3` in Control Surface slot 1, listening to
+`Minilab3 (MIDI)` — the same port as the band. **The first diagnosis blamed it:** a MiniLab
+button, through Live's surface, stopping and restarting the transport. That was written into
+this section and into commit 9ef4716, and it was wrong.
 
-### Why
+### Second run, with Live's surface disconnected
 
-Live's own log names it. At 13:50 the MiniLab was plugged in and Live wrote:
+`MiniLab_3`'s Input and Output were set to None, the new preflight confirmed the cue port was
+free, and the jam ran again.
 
-    MidiRemoteScript 1 [Control Surface="MiniLab_3" Input="Minilab3 (MIDI)" Output="Minilab3 (MIDI)"]
+- **All eight mapped controls arrived**, `fill` included. The mapping holds with Live's
+  surface out of the way.
+- **The song stopped at bar 5 again**, exactly where it had before, with nothing of Live's
+  listening to the MiniLab. The cue stamps told the real story: 9, 11, 16, 20, then 11,
+  16, 8. The beats never stopped. The song position kept going **back**.
 
-**Live's `MiniLab_3` control-surface script listens to the same port the band's cues come
-from**, so every pad, knob and button reaches both. Live's surface acts on some of them. The
-transport stopping and restarting while Fabiano pressed every button is that. No
-`stop_playing` or `start_playing` came over AbletonOSC during the song: the only one is the
-jam's own teardown, exactly 30 s after the last fire.
-
-Stage 0 missed it because it asked the wrong question. With the transport stopped, it
-checked that the pads *launched* nothing. A surface that can stop a playing transport is
-invisible to a Set that is not playing.
-
-The error at 16:22:27 in the same log is not this. It is AbletonOSC's `clip_slot` handler
-calling `logger.info` with the wrong arguments — a logging error on every slot query,
-caught by the logging module, present before today.
+Asked directly, Live answered: **`loop` = True, `loop_start` = 8.0, `loop_length` = 16.0.**
+The arrangement loop was on, over beats 8 to 24. Clip launching ignores it, so the intro and
+the verse sounded. But the `BarClock` counts bars from the song position, which went back to
+beat 8 every time it reached 24. It could never see bar 6, the one the scheduler was waiting
+for. Both runs are that. When the loop was switched on is not known: it was off for every
+earlier listening, and Stage 0's probe, when every MiniLab button was pressed with Live's
+surface still attached, is the likeliest moment — likely, not shown.
 
 ### What changed
 
-- **A performance stopped from outside is a failure.** `Scheduler.run` logs
-  `beat_lost reason=transport_stopped` with the bar and the section, and `jam.py` exits 1,
-  naming the bar it stopped at. From inside Python a stop is silence; now it is an event.
-- **`jam.py --controller` refuses to start while a Live control surface listens to the cue
-  port**, and says which setting to change. AbletonOSC cannot list control surfaces, but
-  Live writes the table to `Log.txt` every time it opens its MIDI devices, and the last
-  table is the current one (`daw/live_log.py`). A log that cannot be read is a warning,
-  not a refusal.
-- **Unit tests never read this machine's Live log**; an autouse fixture gives each one its
-  own.
+- **The loop switch is part of the Set's contract.** `session.toml` declares `loop = false`;
+  the bootstrap reads `/live/song/get/loop`, reports it, and `--apply` turns it off.
+  `jam.py` already refuses a Set that does not match, so a loop left on is now caught before
+  the downbeat.
+- **A run that ends early says why.** `Scheduler.run` logs `beat_lost` with
+  `reason=transport_stopped` when the beats stopped, and `position_went_back` when they kept
+  coming but the position jumped back before the awaited bar. `jam.py` exits 1 and names the
+  bar and the likely cause for each.
+- **`--controller` still refuses to start while a Live control surface listens to the cue
+  port.** It is no longer credited with stopping the song. But the surface does hear every
+  pad and button, can act on them, and is the likeliest way the loop got switched on.
+  Keeping it off the port costs one setting.
 
-### Still open
+The error at 16:22:27 in Live's log is neither cause. It is AbletonOSC's `clip_slot` handler
+calling `logger.info` with the wrong arguments, a logging error on every slot query that
+predates today.
 
-- **Why `fill` never arrived.** Pad 2 may not have been struck, or struck with Shift held,
-  in which case the MiniLab sends Live a command instead of note 37.
-- **Whether the MiniLab keeps sending the Stage 0 numbers once Live's surface lets go of
-  it.** They are the MiniLab 3's factory user-mode values, which suggests it was never in
-  Live's DAW mode for pads and knobs. The re-run of the gate answers it either way: all
-  eight controls in the count, or a new probe.
+### What the mistake teaches
+
+The first diagnosis fitted the evidence available — beats that went quiet and a surface
+that can move the transport — and it was committed before a second run could disagree. The
+tell was in the first log all along: cue stamps going *backwards* is a moving position, not a
+stopped one. A stopped transport stamps every later cue with the same beat. The scheduler now
+tells the two apart itself, so the next reading does not depend on noticing it.

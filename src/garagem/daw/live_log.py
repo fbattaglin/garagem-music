@@ -1,9 +1,10 @@
 """What Live's own log says about its control surfaces — the only place they can be read.
 
-Found at Stage 2's first gate (`phase-4-findings.md` §8). Live's `MiniLab_3` control-surface
-script listens to `Minilab3 (MIDI)`, the same port the band's cues come from, so every pad,
-knob and button reaches both. One of them stopped Live's transport in the middle of a song,
-and Python cannot see that happen — the beats just stop arriving.
+Found at Stage 2's gate (`phase-4-findings.md` §8). Live's `MiniLab_3` control-surface script
+listens to `Minilab3 (MIDI)`, the same port the band's cues come from, so every pad, knob and
+button reaches both, and Live's surface acts on some of them. It was first blamed for a song
+that stopped at bar 5; the arrangement loop was the cause. But a surface that can switch the
+loop on from a pad has no business on the port a person conducts the band from.
 
 AbletonOSC exposes no list of control surfaces (`application.py` answers only the version
 and the CPU load). But Live writes the whole table to `Log.txt` each time it opens its MIDI

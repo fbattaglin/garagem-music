@@ -321,6 +321,47 @@ def test_a_quoted_boolean_for_armed_is_refused(tmp_path: Path) -> None:
         load_session(a_spec(tmp_path, body))
 
 
+# ------------------------------------------------------------------------------ loop
+
+LOOP_TOML = SPEC_TOML.replace('quantization = "1_bar"', 'quantization = "1_bar"\nloop = false')
+
+
+def test_the_shipped_session_declares_the_arrangement_loop_off() -> None:
+    """The BarClock counts bars from the song position; a loop sends it back forever."""
+    assert load_session(SHIPPED).loop is False
+
+
+def test_a_session_that_says_nothing_about_the_loop_does_not_check_it(tmp_path: Path) -> None:
+    spec = load_session(a_spec(tmp_path))
+    assert spec.loop is None
+    daw = FakeDawAdapter(track_names=("DRUMS", "BASS"), loop=True, tempo_bpm=132.0, scenes=2)
+    assert diff_session(spec, observe(daw)) == ()
+
+
+def test_the_loop_switch_left_on_is_a_fixable_divergence(tmp_path: Path) -> None:
+    spec = load_session(a_spec(tmp_path, LOOP_TOML))
+    daw = FakeDawAdapter(track_names=("DRUMS", "BASS"), loop=True, tempo_bpm=132.0, scenes=2)
+    divergences = diff_session(spec, observe(daw))
+    assert kinds(divergences) == ["loop"]
+    assert divergences[0].fixable
+
+
+def test_applying_turns_the_loop_off_and_the_second_pass_writes_nothing(tmp_path: Path) -> None:
+    spec = load_session(a_spec(tmp_path, LOOP_TOML))
+    daw = FakeDawAdapter(track_names=("DRUMS", "BASS"), loop=True, tempo_bpm=132.0, scenes=2)
+    assert apply_session(daw, spec) == ()
+    assert daw.song_loop() is False
+    daw.calls.clear()
+    assert apply_session(daw, spec) == ()
+    assert "set_song_loop" not in daw.calls
+
+
+def test_a_quoted_boolean_for_the_loop_is_refused(tmp_path: Path) -> None:
+    body = LOOP_TOML.replace("loop = false", 'loop = "false"')
+    with pytest.raises(SessionSpecError, match="loop must be true or false"):
+        load_session(a_spec(tmp_path, body))
+
+
 # ------------------------------------------------------------------------------ clips
 
 

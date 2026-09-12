@@ -87,7 +87,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **1841 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **1850 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -147,16 +147,16 @@ Done, with the suite at **1841 passed, 27 live-marked skipped**, `ruff` and `myp
   `cue_received`. `jam.py --controller minilab` prints the legend before the downbeat and a
   count after the last bar. `session.toml` declares every band track disarmed, which the
   bootstrap now checks and repairs — it caught KEYS armed in the real Set.
-  **First gate, not passed** (`phase-4-findings.md` §8): seven of the eight mapped controls
-  arrived, but Live's own `MiniLab_3` control surface listens to the same port and stopped
-  the transport ten seconds into the song — and the run exited 0. Now a stopped transport is
-  logged and fails the run, and `--controller` refuses to start while a Live surface is on
-  the cue port.
+  **Gate run twice, not yet passed** (`phase-4-findings.md` §8). The second run heard all
+  eight mapped controls — but both runs stopped at bar 5, and the cause was Live's
+  arrangement loop (on, beats 8–24), not the MiniLab as the first diagnosis said. The loop is
+  now part of `session.toml`, a run that ends early says whether the transport stopped or the
+  position went back, and `--controller` still refuses a Live surface on the cue port.
 
 Next, in order:
 
-1. **Stage 2's gate, again.** In Live, set Control Surface row 1 (`MiniLab_3`) Input and
-   Output to None; then `uv run python scripts/jam.py --controller minilab --seconds 90`,
+1. **Stage 2's gate, a third time.** `uv run python scripts/bootstrap_set.py --apply` turns
+   the loop off; then `uv run python scripts/jam.py --controller minilab --seconds 90`,
    pressing every mapped pad and turning both knobs. The song must play to its end, and the
    count printed after it must name all eight.
 2. **Stages 3–5: jump cues, bar cues, knobs** (ADR-022), each gated by ear and hand.

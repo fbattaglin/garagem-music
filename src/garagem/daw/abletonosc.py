@@ -69,6 +69,8 @@ GET_TRACK_NAME: Final = "/live/track/get/name"
 SET_TRACK_NAME: Final = "/live/track/set/name"
 GET_DEVICE_NAMES: Final = "/live/track/get/devices/name"
 GET_HAS_MIDI_INPUT: Final = "/live/track/get/has_midi_input"
+GET_LOOP: Final = "/live/song/get/loop"
+SET_LOOP: Final = "/live/song/set/loop"
 GET_TRACK_ARM: Final = "/live/track/get/arm"
 SET_TRACK_ARM: Final = "/live/track/set/arm"
 GET_METER_LEVEL: Final = "/live/track/get/output_meter_level"
@@ -99,6 +101,8 @@ ALL_ADDRESSES: Final[tuple[str, ...]] = (
     GET_NUM_SCENES,
     GET_QUANTIZATION,
     SET_QUANTIZATION,
+    GET_LOOP,
+    SET_LOOP,
     START_LISTEN_BEAT,
     STOP_LISTEN_BEAT,
     GET_BEAT,
@@ -329,6 +333,14 @@ class AbletonOSCAdapter:
             raise _unconfirmed(SET_QUANTIZATION, quantization, seen)
 
     # -- the Set's shape
+
+    def song_loop(self) -> bool:
+        return bool(self._one(GET_LOOP))
+
+    def set_song_loop(self, on: bool) -> None:
+        self._transport.send(SET_LOOP, on)
+        if (seen := self.song_loop()) != on:
+            raise _unconfirmed(SET_LOOP, on, seen)
 
     def track_names(self) -> tuple[str, ...]:
         return tuple(str(name) for name in self._transport.request(GET_TRACK_NAMES))

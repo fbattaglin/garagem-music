@@ -50,6 +50,7 @@ class FakeDawAdapter:
         scenes: int = 2,
         tempo_bpm: float = 120.0,
         quantization: Quantization = Quantization.BAR,
+        loop: bool = False,
         fail_with: Exception | None = None,
         fail_after: int = 0,
     ) -> None:
@@ -66,6 +67,7 @@ class FakeDawAdapter:
         self._scenes = scenes
         self._tempo_bpm = tempo_bpm
         self._quantization = quantization
+        self._loop = loop
         self._playing = False
         self._beat_handler: BeatHandler | None = None
         self._clips: dict[tuple[int, int], _Clip] = {}
@@ -145,6 +147,14 @@ class FakeDawAdapter:
         self._quantization = quantization
 
     # -- the Set's shape
+
+    def song_loop(self) -> bool:
+        self._record("song_loop")
+        return self._loop
+
+    def set_song_loop(self, on: bool) -> None:
+        self._record("set_song_loop")
+        self._loop = on
 
     def track_names(self) -> tuple[str, ...]:
         self._record("track_names")

@@ -38,6 +38,7 @@ from garagem.daw.abletonosc import (
     GET_HAS_CLIP,
     GET_HAS_MIDI_INPUT,
     GET_IS_PLAYING,
+    GET_LOOP,
     GET_METER_LEVEL,
     GET_NOTES,
     GET_NUM_SCENES,
@@ -47,6 +48,7 @@ from garagem.daw.abletonosc import (
     GET_TRACK_ARM,
     GET_TRACK_NAMES,
     REMOVE_NOTES,
+    SET_LOOP,
     SET_QUANTIZATION,
     SET_TEMPO,
     SET_TRACK_ARM,
@@ -81,6 +83,7 @@ HEALTHY: dict[str, tuple[OscArg, ...]] = {
     GET_HAS_CLIP: (3, 1, True),
     GET_HAS_MIDI_INPUT: (3, True),
     GET_TRACK_ARM: (3, False),
+    GET_LOOP: (False,),
     GET_CLIP_LENGTH: (3, 1, 16.0),
     GET_NOTES: (3, 1),
 }
@@ -193,6 +196,21 @@ def test_renaming_a_track_is_confirmed_against_the_track_names() -> None:
     transport = serving(GET_TRACK_NAMES=("DRUMS", "BASS", "GTR", "KEYS"))
     adapter(transport).set_track_name(2, "GTR")
     assert sent(transport) == [SET_TRACK_NAME, GET_TRACK_NAMES]
+
+
+def test_the_loop_switch_is_read_and_turning_it_off_is_confirmed() -> None:
+    transport = serving()
+    daw = adapter(transport)
+    assert daw.song_loop() is False
+    transport.sent.clear()
+    daw.set_song_loop(False)
+    assert transport.sent == [(SET_LOOP, (False,)), (GET_LOOP, ())]
+
+
+def test_a_loop_that_stayed_on_is_not_confirmed() -> None:
+    transport = serving(GET_LOOP=(True,))
+    with pytest.raises(DawWriteNotConfirmedError, match="did not take"):
+        adapter(transport).set_song_loop(False)
 
 
 def test_disarming_a_track_is_confirmed_by_reading_the_arm_back() -> None:

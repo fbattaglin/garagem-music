@@ -502,6 +502,40 @@ def test_a_transport_stopped_from_outside_is_logged_and_the_run_is_not_finished(
     scheduler = Scheduler(daw, clock, ScoreBuffer(), TRACKS, log, seed=7, bar_timeout_s=0.05)
     scheduler.run(FORM)
     assert not scheduler.finished
+    assert scheduler.stopped_because == "transport_stopped"
     (stopped,) = log.of_kind("beat_lost")
     assert stopped.detail["reason"] == "transport_stopped"
     assert stopped.detail["section"] == 0
+
+
+def test_a_song_position_that_keeps_going_back_is_told_apart_from_a_stop() -> None:
+    """What Live's arrangement loop did at the first MiniLab gate (`phase-4-findings.md` §8).
+
+    Beats keep arriving, so nothing is silent — but the position jumps back before the bar
+    the scheduler waits for, and the run can never reach it.
+    """
+    import threading
+    import time
+
+    daw = FakeDawAdapter(scenes=4)
+    clock = BarClock(daw)
+    clock.start()
+    log = EventLog(None)
+    scheduler = Scheduler(daw, clock, ScoreBuffer(), TRACKS, log, seed=7, bar_timeout_s=0.3)
+
+    def a_looping_song() -> None:
+        time.sleep(0.05)
+        for beat in range(0, 12):
+            daw.push_beat(beat)
+            time.sleep(0.002)
+        for beat in (4, 5, 6, 7, 8, 9, 10, 11, 4, 5):
+            daw.push_beat(beat)
+            time.sleep(0.002)
+
+    pusher = threading.Thread(target=a_looping_song)
+    pusher.start()
+    scheduler.run(FORM)
+    pusher.join()
+    assert not scheduler.finished
+    assert scheduler.stopped_because == "position_went_back"
+    assert log.of_kind("beat_lost")[-1].detail["reason"] == "position_went_back"

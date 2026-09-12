@@ -26,6 +26,10 @@ tempo_bpm = 132.0
 # Part of the contract, not a preference (ADR-001): with quantisation off, a fired
 # scene launches the instant the datagram lands, which is mid-bar and audibly wrong.
 quantization = "1_bar"
+# The arrangement loop off (`phase-4-findings.md` §8). Clips do not care, but the BarClock
+# counts bars from the song position, and with the loop on it goes back before the bar the
+# scheduler is waiting for — a song that silently never reaches its second section.
+loop = false
 
 [[track]]
 index = 0

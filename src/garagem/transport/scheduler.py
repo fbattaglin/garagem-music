@@ -126,6 +126,7 @@ class Scheduler:
         self._epoch = 0
         self._repeats = 0
         self.finished = False
+        self.stopped_because: str | None = None
 
     # ---------------------------------------------------------------------------- state
 
@@ -160,23 +161,34 @@ class Scheduler:
     ) -> None:
         """Play the whole form. Returns when it has been played out, or when Live stopped.
 
-        `finished` says which. A caller that reports success must check it: the first
-        MiniLab gate ended ten seconds into a song because a controller button stopped
-        Live's transport, and the run returned exactly as if it had played to the end
-        (`phase-4-findings.md` §8).
+        `finished` says which. A caller that reports success must check it: at the first
+        MiniLab gate a song ended ten seconds in, with Live's arrangement loop sending the
+        position back before the second section's bar, and the run returned exactly as if
+        it had played to the end (`phase-4-findings.md` §8).
+
+        `stopped_because` says why it did not: `transport_stopped` when the beats simply
+        stopped, `position_went_back` when they kept coming but the song position jumped
+        back before the next bar — which is what Live's arrangement loop does.
         """
         self.begin(sections, seed, endings=endings)
         while not self.finished:
-            if not self._clock.wait_for_bar(self._clock.bar + 1, self._bar_timeout_s):
-                # The transport stopped, or Live went quiet. Ending is the honest answer:
-                # nothing here retries, and a scheduler that kept firing into a stopped
-                # transport would fill the Set with clips nobody asked for. But it is
-                # written down, because from inside Python a stop looks like silence.
+            waiting_for = self._clock.bar + 1
+            if not self._clock.wait_for_bar(waiting_for, self._bar_timeout_s):
+                # The next bar never came. Ending is the honest answer: nothing here
+                # retries, and a scheduler that kept firing into a transport it cannot
+                # follow would fill the Set with clips nobody asked for. But it is written
+                # down, because from inside Python both causes look like silence.
+                self.stopped_because = (
+                    "position_went_back"
+                    if self._clock.epoch != self._epoch
+                    else "transport_stopped"
+                )
                 self._log.record(
                     "beat_lost",
                     self._beats(),
-                    reason="transport_stopped",
+                    reason=self.stopped_because,
                     bar=self._clock.bar,
+                    waiting_for_bar=waiting_for,
                     section=self._index,
                     waited_s=self._bar_timeout_s,
                 )

@@ -169,10 +169,11 @@ def find_live_log() -> Path | None:
 def surfaces_in_the_way(port: str) -> str | None:
     """Why the band should not start, if a Live control surface listens to the cue port.
 
-    Both would hear every pad, and Live's surface acts on some of them: at the first MiniLab
-    gate a button stopped the transport ten seconds into the song (`phase-4-findings.md`
-    §8). Read from Live's own log, the only place the table exists; `None` when nothing is
-    in the way *or* the log cannot be read, and the second case says so.
+    Both would hear every pad, and Live's surface acts on some of them — the likeliest way
+    the arrangement loop that stalled the first MiniLab gates got switched on
+    (`phase-4-findings.md` §8). Read from Live's own log, the only place the table exists;
+    `None` when nothing is in the way *or* the log cannot be read, and the second case says
+    so.
     """
     log = find_live_log()
     if log is None:
@@ -189,9 +190,25 @@ def surfaces_in_the_way(port: str) -> str | None:
     rows = ", ".join(f"slot {surface.slot} ({surface.name})" for surface in clashing)
     return (
         f"Live's control surface {rows} listens to {clashing[0].input}, the port the band's "
-        "cues come from. Both would hear every pad and button, and Live's surface can stop "
-        "the transport mid-song. In Live: Settings -> Link, Tempo & MIDI -> Control Surface, "
-        "set that row's Input and Output to None, then run this again.\n"
+        "cues come from. Both would hear every pad and button, and Live's surface acts on "
+        "them — it can move the transport or switch the loop on. In Live: Settings -> Link, "
+        "Tempo & MIDI -> Control Surface, set that row's Input and Output to None, then run "
+        "this again.\n"
+    )
+
+
+def stopped_early(scheduler: Scheduler, sections: int, bar: int) -> str:
+    """Why the form was not played to its end, in terms of what to go and look at in Live."""
+    where = f"the performance stopped at bar {bar}, section {scheduler.index + 1} of {sections}"
+    if scheduler.stopped_because == "position_went_back":
+        return (
+            f"{where}: Live kept playing, but its song position went back before the next "
+            f"bar for {BAR_TIMEOUT_S:g}s. The arrangement loop is the usual cause — "
+            "run scripts/bootstrap_set.py, which checks it.\n"
+        )
+    return (
+        f"{where}: Live sent no beat for {BAR_TIMEOUT_S:g}s. The transport was stopped outside "
+        "GARAGEM — from Live itself, or by a controller Live listens to.\n"
     )
 
 
@@ -407,12 +424,7 @@ def main() -> int:
         scheduler = Scheduler(daw, clock, buffer, tracks, log, seed=args.seed, cues=cues)
         scheduler.run(form, endings=endings)
         if not scheduler.finished:
-            sys.stderr.write(
-                f"the performance stopped at bar {clock.bar}, section {scheduler.index} of "
-                f"{len(form)}: Live sent no beat for {BAR_TIMEOUT_S:g}s. The transport was "
-                "stopped outside GARAGEM — from Live itself, or by a controller Live listens "
-                "to.\n"
-            )
+            sys.stderr.write(stopped_early(scheduler, len(form), clock.bar))
             return 1
         return 0
     finally:

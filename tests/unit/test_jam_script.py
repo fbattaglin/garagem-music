@@ -558,4 +558,20 @@ def test_a_performance_stopped_from_outside_is_a_failure_with_the_bar_it_stopped
     monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None, endings=None: None)
     with_argv(monkeypatch, "--seconds", "10", "--log", str(LOG))
     assert jam.main() == 1
-    assert "the performance stopped at bar" in capsys.readouterr().err
+    printed = capsys.readouterr().err
+    assert "the performance stopped at bar" in printed
+    assert "no beat" in printed
+
+
+def test_a_looping_song_position_is_reported_as_the_loop_not_as_a_stop(
+    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def looped(self: object, form: object, seed: object = None, endings: object = None) -> None:
+        self.stopped_because = "position_went_back"  # type: ignore[attr-defined]
+
+    monkeypatch.setattr(jam.Scheduler, "run", looped)
+    with_argv(monkeypatch, "--seconds", "10", "--log", str(LOG))
+    assert jam.main() == 1
+    printed = capsys.readouterr().err
+    assert "went back before the next bar" in printed
+    assert "arrangement loop" in printed

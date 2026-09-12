@@ -2,7 +2,7 @@
 
 ADR-013. `session.toml` describes the Set; this module reads it, observes the open Set
 through a `DawPort`, and reports every divergence. It repairs only what the Live API can
-repair safely — tempo, launch quantisation, track names, whether a track is armed. A
+repair safely — tempo, launch quantisation, the loop switch, track names and arm. A
 missing track or a track with no instrument is the human's job: no LOM call loads an
 instrument, so a track created from code would receive MIDI correctly and make no sound.
 
@@ -44,9 +44,12 @@ KINDS: Final[tuple[str, ...]] = (
     "no_instrument",
     "not_a_midi_track",
     "armed",
+    "loop",
 )
 # The ones the LOM can repair. Everything else is a human's job (ADR-013).
-FIXABLE_KINDS: Final[frozenset[str]] = frozenset({"tempo", "quantization", "track_name", "armed"})
+FIXABLE_KINDS: Final[frozenset[str]] = frozenset(
+    {"tempo", "quantization", "track_name", "armed", "loop"}
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,6 +78,9 @@ class SessionSpec:
     quantization: Quantization
     tracks: tuple[TrackSpec, ...]
     scenes: tuple[SceneSpec, ...]
+    # `None` means either. `false` for a jam: the `BarClock` counts bars from the song
+    # position, and an arrangement loop sends it back before the next section's bar.
+    loop: bool | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,6 +94,7 @@ class ObservedSet:
     accepts_midi: tuple[bool, ...]
     scene_count: int
     armed: tuple[bool, ...] = ()
+    loop: bool | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,6 +129,10 @@ def load_session(path: Path) -> SessionSpec:
             f"{path}: unknown quantization {quantization!r}. Known: {known}"
         ) from exc
 
+    loop = raw.get("loop")
+    if loop is not None and not isinstance(loop, bool):
+        raise SessionSpecError(f"{path}: loop must be true or false, got {loop!r}")
+
     tracks = _tracks(path, raw.get("track", []))
     scenes = _scenes(path, raw.get("scene", []))
     return SessionSpec(
@@ -130,6 +141,7 @@ def load_session(path: Path) -> SessionSpec:
         quantization=quantum,
         tracks=tracks,
         scenes=scenes,
+        loop=loop,
     )
 
 
@@ -204,6 +216,7 @@ def observe(daw: DawPort) -> ObservedSet:
         accepts_midi=tuple(daw.accepts_midi(index) for index in range(len(names))),
         scene_count=daw.scene_count(),
         armed=tuple(daw.track_armed(index) for index in range(len(names))),
+        loop=daw.song_loop(),
     )
 
 
@@ -220,6 +233,15 @@ def diff_session(spec: SessionSpec, observed: ObservedSet) -> tuple[Divergence, 
             Divergence(
                 "quantization",
                 f"{observed.quantization.value}, expected {spec.quantization.value}",
+                True,
+            )
+        )
+    if spec.loop is not None and observed.loop is not None and observed.loop != spec.loop:
+        found.append(
+            Divergence(
+                "loop",
+                f"the arrangement loop is {'on' if observed.loop else 'off'}, "
+                f"expected {'on' if spec.loop else 'off'}",
                 True,
             )
         )
@@ -310,6 +332,8 @@ def apply_session(daw: DawPort, spec: SessionSpec) -> tuple[Divergence, ...]:
             daw.set_tempo(spec.tempo_bpm)
         elif divergence.kind == "quantization":
             daw.set_quantization(spec.quantization)
+        elif divergence.kind == "loop" and spec.loop is not None:
+            daw.set_song_loop(spec.loop)
         elif divergence.kind == "track_name" and divergence.track is not None:
             daw.set_track_name(divergence.track, spec.tracks[divergence.track].name)
         elif divergence.kind == "armed" and divergence.track is not None:
