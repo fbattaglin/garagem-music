@@ -209,7 +209,7 @@ class Producer:
         )
 
         try:
-            parsed, usage = await asyncio.wait_for(
+            parsed, dsl, usage = await asyncio.wait_for(
                 self._stream(section, request), timeout=request.deadline_s
             )
         except TimeoutError:
@@ -240,22 +240,35 @@ class Producer:
             )
             return False
 
-        return self._publish(index, section, parsed, usage)
+        return self._publish(index, section, parsed, dsl, usage)
 
-    async def _stream(self, section: Section, request: Request) -> tuple[ParsedSection, Usage]:
-        """Drive the stream through the incremental parser. Cancellable at every await."""
+    async def _stream(self, section: Section, request: Request) -> tuple[ParsedSection, str, Usage]:
+        """Drive the stream through the incremental parser. Cancellable at every await.
+
+        Returns the DSL as written beside what was parsed from it: every outcome after this
+        point is logged with the model's own text (`phase-5-findings.md` §1).
+        """
         stream = SectionStream(section)
         usage = Usage()
         async for event in self._provider.stream(request):
             stream.feed(event)
             if event.type == "done":
                 usage = event.usage
-        return stream.result(), usage
+        return stream.result(), stream.text, usage
 
     # ----------------------------------------------------------------------- publishing
 
-    def _publish(self, index: int, section: Section, parsed: ParsedSection, usage: Usage) -> bool:
-        """Realise, complete, repair, offer. What lands in the buffer is a whole band."""
+    def _publish(
+        self, index: int, section: Section, parsed: ParsedSection, dsl: str, usage: Usage
+    ) -> bool:
+        """Realise, complete, repair, offer. What lands in the buffer is a whole band.
+
+        **Every outcome carries the DSL the model wrote.** A live session's event log is the
+        only record of its takes, and until Phase 5 it kept the briefing and the tokens but
+        not the text: the twelve sections the model wrote in Phase 4's paid session cannot be
+        replayed or curated (`phase-5-findings.md` §1). Refused takes keep theirs too, so a
+        stale or irreparable section can still be read back and heard.
+        """
         seed = self._seed + index
 
         for violation in parsed.violations:
@@ -272,7 +285,12 @@ class Producer:
         score = realise(parsed, seed)
         if not score.parts:
             self._log.record(
-                "fallback", 0.0, section=index, model=self._model.id, reason="nothing_parsed"
+                "fallback",
+                0.0,
+                section=index,
+                model=self._model.id,
+                reason="nothing_parsed",
+                dsl=dsl,
             )
             return False
 
@@ -295,13 +313,16 @@ class Producer:
                 model=self._model.id,
                 reason="irreparable",
                 rules=",".join(sorted({violation.rule for violation in left})),
+                dsl=dsl,
             )
             return False
 
         if self._plan.at(index) != section:
             # Re-planned while the model was answering: music for a section that will not
             # be played. Offering it would be a race the scheduler has to win.
-            self._log.record("fallback", 0.0, section=index, model=self._model.id, reason="stale")
+            self._log.record(
+                "fallback", 0.0, section=index, model=self._model.id, reason="stale", dsl=dsl
+            )
             return False
 
         accepted = self._buffer.offer(index, repaired)
@@ -320,6 +341,7 @@ class Producer:
             parts=",".join(from_model),
             input_tokens=usage.input_tokens,
             output_tokens=usage.output_tokens,
+            dsl=dsl,
             **({} if accepted else {"reason": "too_late"}),
         )
         return accepted

@@ -43,16 +43,23 @@ Like every engine, this ends with `separate(humanise(...))`. A model's part need
 release gap exactly as much as a generated one: Live silently truncates a note that
 overlaps the next attack of the same pitch, and the write-then-confirm then fails
 against a real Set and nowhere else (`phase-2-findings.md` §1).
+
+**Under a shuffle, the swing is ours as well** (`straightened`, ADR-024). `beats_of` swings a
+shuffle's eighths for everyone, and the prompt never told the model so: it writes attacks
+between the eighths as well, and the system then swings those a second time
+(`phase-4-findings.md` §16). Off by default until the ear has had its five minutes.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from random import Random
 from typing import Final
 
 from garagem.domain import (
     SIXTEENTHS_PER_BAR,
     Chord,
+    Feel,
     Grid,
     Instrument,
     Note,
@@ -106,8 +113,11 @@ CRASH_HEAD: Final[Grid] = parse_grid("x...............")
 KEYS_FLOOR: Final = RANGES[Instrument.BASS][1] + 1
 
 
-def realise(parsed: ParsedSection, seed: int) -> SectionScore:
+def realise(parsed: ParsedSection, seed: int, *, straighten: bool = False) -> SectionScore:
     """Everything that arrived, as a playable score. Seeded, pure, and total.
+
+    `straighten` moves a shuffle's in-between attacks onto the eighths first
+    (`straightened`). Every other feel is untouched by it.
 
     Takes a seed rather than a `Random` for the same reason `engines.band.play_section`
     does: a `SectionScore` must be able to name what produced it (invariant 7), and a
@@ -117,23 +127,30 @@ def realise(parsed: ParsedSection, seed: int) -> SectionScore:
     deterministic engine, which is P2 and is already the scheduler's behaviour for a
     section that never arrived at all.
     """
+    if straighten:
+        parsed = straightened(parsed)
     section = parsed.section
     rng = Random(seed)
     parts = [
         part
         for instrument in ORDER
-        if (part := _part(instrument, parsed.lines.get(instrument, ()), section, rng)) is not None
+        if (part := _part(instrument, parsed.lines.get(instrument, ()), section, rng, straighten))
+        is not None
     ]
     return SectionScore(section=section, parts=tuple(parts), seed=seed)
 
 
 def _part(
-    instrument: Instrument, lines: tuple[BarLine, ...], section: Section, rng: Random
+    instrument: Instrument,
+    lines: tuple[BarLine, ...],
+    section: Section,
+    rng: Random,
+    straighten: bool = False,
 ) -> Part | None:
     if not lines:
         return None
     if instrument is Instrument.DRUMS:
-        notes = _drums(lines, section)
+        notes = _drums(lines, section, straighten)
     elif instrument is Instrument.BASS:
         notes = _bass(lines, section)
     else:
@@ -156,7 +173,7 @@ def _for_bar(lines: tuple[BarLine, ...], bar: int) -> BarLine:
 # --------------------------------------------------------------------------------- drums
 
 
-def _drums(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
+def _drums(lines: tuple[BarLine, ...], section: Section, straighten: bool = False) -> list[Note]:
     velocity = BASE_VELOCITY + DYN_VELOCITY * section.dyn
     notes: list[Note] = []
     for bar in range(section.bars):
@@ -165,7 +182,7 @@ def _drums(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
             continue
         offset = bar * SIXTEENTHS_PER_BAR
         for field, pitch in DRUM_PITCHES:
-            grid = _arranged(line, field, bar, section)
+            grid = _arranged(line, field, bar, section, straighten)
             for slot, attack in enumerate(grid):
                 if not attack:
                     continue
@@ -180,7 +197,9 @@ def _drums(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
     return notes
 
 
-def _arranged(line: DrumLine, field: str, bar: int, section: Section) -> Grid:
+def _arranged(
+    line: DrumLine, field: str, bar: int, section: Section, straighten: bool = False
+) -> Grid:
     """The model's grid for this bar, with the section's form imposed on it.
 
     `engines/drums.py`'s two decisions and only those. The crash is the arrangement's
@@ -200,7 +219,10 @@ def _arranged(line: DrumLine, field: str, bar: int, section: Section) -> Grid:
             return NO_ATTACKS
     grid: Grid = getattr(line, field)
     if field == "hat":
-        return _lifted(grid, section)
+        lifted = _lifted(grid, section)
+        # Doubling fills the middle of each gap, and under a shuffle the middle of a
+        # two-slot gap is between the eighths: lifting would put back what was straightened.
+        return _onto_the_eighths(lifted) if straighten and section.feel is Feel.SHUFFLE else lifted
     return grid
 
 
@@ -260,6 +282,97 @@ def _doubled(grid: Grid) -> Grid:
         if gap >= 2 and gap % 2 == 0:
             filled.add((start + gap // 2) % SIXTEENTHS_PER_BAR)
     return tuple(slot in filled for slot in range(SIXTEENTHS_PER_BAR))
+
+
+# ---------------------------------------------------------------------------- straightening
+
+
+def straightened(parsed: ParsedSection) -> ParsedSection:
+    """Under a shuffle, every attack between two eighths moved back onto the eighth before it.
+
+    **Why.** A shuffle is played by moving the grid, not the notes: `beats_of` puts each
+    beat's "and" two thirds of the way through it, and the floor's shuffle grooves strike
+    the eighths only. The prompt never says so, and the model writes the shuffle into the
+    notes as well — `H:1,4,7,10,13,16`, an attack every three sixteenths — which the system
+    then swings a second time. No two beats of that bar share a pattern, and its last hat
+    lands a flam before the downbeat (`phase-4-findings.md` §16). Fabiano heard the model's
+    shuffles as the messy ones.
+
+    **The rule, one sentence and no judgement.** A sixteenth that is not an eighth moves one
+    sixteenth earlier, onto the eighth it follows. So within a beat, the "e" joins the beat
+    and the "a" joins the "and" — which is where a shuffle's short note already is. An attack
+    never leaves its beat, and never its bar. Nothing is invented: attacks only move or merge.
+
+    **Merging.** Two attacks that land together are one. The merged note keeps an accent if
+    either had one, and is a ghost only if both were ghosts: a real attack is not quietened
+    by a ghost beside it.
+
+    **Everything else is untouched.** Other feels come back as they were, and so do the
+    arrangement's own fill and crash, which `_arranged` composes after this runs. The floor
+    never passes through here at all. Serialised and read back, its shuffles are a fixed
+    point up to dyn 4; "shuffle, flat out" at dyn 5 is not, because its kick is
+    `1,4,7,9,12,15` — the same figure (`phase-5-findings.md` §2).
+
+    Straightening is composition, the way `_lifted` composes density: the model keeps where
+    it put its accents and which beats it struck, and the swing is the system's alone.
+    """
+    if parsed.section.feel is not Feel.SHUFFLE:
+        return parsed
+    return parsed.model_copy(
+        update={
+            "lines": {
+                instrument: tuple(_straight_line(line) for line in lines)
+                for instrument, lines in parsed.lines.items()
+            }
+        }
+    )
+
+
+def _straight_line(line: BarLine) -> BarLine:
+    if isinstance(line, DrumLine):
+        return line.model_copy(
+            update={
+                "kick": _onto_the_eighths(line.kick),
+                "snare": _onto_the_eighths(line.snare),
+                "hat": _onto_the_eighths(line.hat),
+                "crash": _onto_the_eighths(line.crash),
+            }
+        )
+    if isinstance(line, BassLine):
+        return line.model_copy(
+            update={
+                "rhythm": _onto_the_eighths(line.rhythm),
+                "ghosts": _merged(line.rhythm, line.ghosts, keep=all),
+            }
+        )
+    return line.model_copy(
+        update={
+            "rhythm": _onto_the_eighths(line.rhythm),
+            "accents": _merged(line.rhythm, line.accents, keep=any),
+        }
+    )
+
+
+def _eighth_of(slot: int) -> int:
+    """The eighth a sixteenth belongs to: itself, or the one just before it."""
+    return slot - slot % 2
+
+
+def _onto_the_eighths(grid: Grid) -> Grid:
+    struck = {_eighth_of(slot) for slot, attack in enumerate(grid) if attack}
+    return tuple(slot in struck for slot in range(len(grid)))
+
+
+def _merged(
+    rhythm: Grid, marked: tuple[int, ...], *, keep: Callable[[Iterable[bool]], bool]
+) -> tuple[int, ...]:
+    """Which straightened attacks keep a mark, when every attack merged into one must (`all`)
+    or any may (`any`). Marks on slots with no attack mean nothing and are dropped."""
+    merged: dict[int, list[bool]] = {}
+    for slot, attack in enumerate(rhythm):
+        if attack:
+            merged.setdefault(_eighth_of(slot), []).append(slot in marked)
+    return tuple(slot for slot in sorted(merged) if keep(merged[slot]))
 
 
 # ---------------------------------------------------------------------------------- bass

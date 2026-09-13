@@ -153,6 +153,38 @@ def test_token_usage_reaches_the_log() -> None:
     assert detail["output_tokens"] == 210
 
 
+# -------------------------------------------------------------------- material survives
+
+
+def test_the_dsl_the_model_wrote_reaches_the_log() -> None:
+    """A live take must be readable back: replayed, measured, curated.
+
+    Until Phase 5 the log kept the briefing and the tokens and threw the text away, so the
+    model's sections in Phase 4's paid session are unrecoverable (`phase-5-findings.md` §1).
+    """
+    written = dsl_for(FORM[0])
+    rig = Rig(responding(written))
+    rig.produce(0)
+    assert rig.of_kind("section_parsed")[0]["dsl"] == written
+
+
+def test_the_logged_dsl_is_what_arrived_not_what_parsed() -> None:
+    """A line that failed to parse is gone from the parse, and must not be gone from the log."""
+    broken = dsl_for(FORM[0]).replace("rhy:", "rhy:x", 1)
+    rig = Rig(responding(broken))
+    rig.produce(0)
+    assert rig.of_kind("section_parsed")[0]["dsl"] == broken
+
+
+def test_a_take_with_nothing_playable_keeps_its_dsl() -> None:
+    nonsense = "SEC nothing here\nDRM what"
+    rig = Rig(responding(nonsense))
+    assert not rig.produce(0)
+    fallback = rig.of_kind("fallback")[0]
+    assert fallback["reason"] == "nothing_parsed"
+    assert fallback["dsl"] == nonsense
+
+
 # ---------------------------------------------------------------------- partial sections
 
 
@@ -432,6 +464,7 @@ def test_the_whole_path_runs_against_a_real_cassette_provider(tmp_path: Path) ->
     assert score is not None
     assert score.instruments() == frozenset(Instrument)
     assert validate(score) == ()
+    assert rig.of_kind("section_parsed")[0]["dsl"] == dsl_for(section)
 
 
 def test_two_runs_with_one_seed_produce_the_same_music() -> None:
@@ -545,3 +578,4 @@ def test_music_for_a_briefing_replaced_mid_answer_is_never_offered() -> None:
     assert buffer.take(1) is None
     assert [event.detail.get("reason") for event in log.of_kind("fallback")] == ["stale"]
     assert log.of_kind("section_parsed") == ()
+    assert log.of_kind("fallback")[0].detail["dsl"] == dsl_for(FORM[1])

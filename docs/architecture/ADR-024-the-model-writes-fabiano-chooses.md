@@ -65,8 +65,10 @@ telemetry and decide nothing further (ADR-019).
 - **The mechanism is a defect, not a taste:** the system swings a shuffle for the model, the
   prompt never says so, and the model swings it again (`phase-4-findings.md` §16).
 - **The fix is composition:** under a shuffle, `dsl/realise.py` moves the model's attacks off the
-  eighths onto the eighths, the way `_lifted` composes density. Every floor section is a fixed
-  point, so the floor does not change.
+  eighths onto the eighths, the way `_lifted` composes density. The floor never passes through
+  it, so the floor does not change. *Corrected before the check:* this line first said every
+  floor section is a fixed point of it. The floor's loudest shuffle is not
+  (`phase-5-findings.md` §2).
 - **The check can stop it and claims nothing more.** Five pairs, as written against
   straightened, chosen and listed before listening. The fix is applied unless the as-written side
   is preferred in 4 or more of the 5.

@@ -58,15 +58,26 @@ ADR-000 §7, amended by [ADR-021](ADR-021-the-minilab-joins-phase-4.md),
 ### Where the phase actually is
 
 **Stage 0 is done: the plan is written.** ADR-024, these criteria and `phase-5-findings.md` §1,
-agreed before anything was measured, baked or heard. Suite at **2093 passed, 27 skipped** (all
-live-marked). Next, in order:
+agreed before anything was measured, baked or heard.
 
-1. **Material survives, and the shuffle fix.**
-   - The live event log keeps the model's DSL, so any take can be replayed and curated.
-   - Under a shuffle, `dsl/realise.py` moves the model's attacks off the eighths onto them. Every
-     floor section is a fixed point.
-   - The five-minute blind check: five pairs from the 19 recorded model shuffle sections,
-     chosen, listed and pre-registered before listening. No model call.
+**Stage 1 is built, and waits for five minutes of listening.** Suite at **2141 passed, 27
+skipped** (all live-marked); `ruff` and `mypy` clean.
+- **The live event log keeps the model's DSL.** Every `section_parsed`, and every refusal after
+  a parse (stale, too late, irreparable, nothing playable), carries the text the model wrote.
+- **The shuffle fix exists and is off.** Under a shuffle, `dsl/realise.py` can move the model's
+  attacks between the eighths onto them (`straightened`). The floor never passes through it.
+- **The check is pre-registered** in `phase-5-findings.md` §2. Five pairs are chosen by a rule
+  from the 19 recorded takes, leaving out the three Fabiano heard in the A/B, and each plays at
+  its own tempo. The fix is applied unless the take as written is preferred in 4 or more of 5.
+  Run `uv run python scripts/audition_shuffle.py` in Terminal: about five minutes, no model
+  call.
+- **Writing it found two things, neither acted on.** The floor's loudest shuffle pushes its kick
+  with the figure the model puts on its hat. And every A/B pair played at the Set's 132 BPM,
+  whatever its briefing's tempo.
+
+Next, in order:
+
+1. **Fabiano runs the shuffle check, and its consequence is applied.**
 2. **Bake and baked playback, Setlist Mode's core.**
    - `scripts/bake_setlist.py` generates songs online once, with the live deadlines and no retry.
    - `jam.py --setlist` plays them from disk. A section the bake does not hold plays the floor.

@@ -96,6 +96,16 @@ class SectionStream:
         self._done = False
         self._saw_tool = False
 
+    @property
+    def text(self) -> str:
+        """The DSL exactly as the model wrote it, decoded, before any line is interpreted.
+
+        Whole only once the stream is done. Kept because a parsed section is an
+        interpretation: a line that failed to parse is gone from it, and a take nobody can
+        read back cannot be replayed, measured or curated (`phase-5-findings.md` §1).
+        """
+        return self._decoder.value()
+
     # ---------------------------------------------------------------------------- feeding
 
     def feed(self, event: StreamEvent) -> tuple[Instrument, ...]:
