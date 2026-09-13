@@ -242,15 +242,31 @@ def render_cues(log: EventLog) -> str:
     listed = ", ".join(f"{name} x{count}" for name, count in sorted(heard.items()))
     lines = [f"{len(received)} controls received: {listed}"]
     applied = log.of_kind("cue_applied")
-    if applied:
+    fired = [event for event in applied if "fired_bar" in event.detail]
+    if fired:
         landed = Counter(
             int(str(event.detail["fired_bar"])) - int(str(event.detail["cue_bar"]))
-            for event in applied
+            for event in fired
         )
         bars = ", ".join(
             f"{gap} bar{'s' if gap != 1 else ''} x{n}" for gap, n in sorted(landed.items())
         )
-        lines.append(f"{len(applied)} cues landed after: {bars}")
+        lines.append(f"{len(fired)} cues landed after: {bars}")
+    # A boundary cue fires nothing; it re-plans from a section, and that section is its landing.
+    for event in applied:
+        if "fired_bar" not in event.detail:
+            lines.append(
+                f"{event.detail['cue']} at bar {event.detail['cue_bar']} re-planned from "
+                f"section {event.detail['section']}"
+            )
+    moved = log.of_kind("macro_changed")
+    if moved:
+        last = moved[-1].detail
+        lines.append(
+            f"knobs moved the plan {len(moved)} times; last: "
+            f"dyn {int(str(last['dyn_offset'])):+d}, "
+            f"tension {float(str(last['tension_offset'])):+.2f}"
+        )
     declined = log.of_kind("cue_declined")
     if declined:
         reasons = Counter(str(event.detail["reason"]) for event in declined)

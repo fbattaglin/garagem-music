@@ -930,3 +930,90 @@ Named in advance:
   so a knob sitting at the far right moves the song two steps at once.
 - **The knobs' size is a guess**: two steps of `dyn`, 0.3 of tension. The ear is what can
   say whether that is enough, or too much.
+
+### The gate: passed, 2026-09-13
+
+Fabiano ran `jam.py --controller minilab --seconds 180` three times, conducting each song with
+every pad and both knobs. The first run's song played to its end, and the script then failed
+while printing the summary. `render_cues` read `fired_bar` from every applied cue, and a
+boundary cue has none: it fires nothing, it re-plans from a section. The summary now names the
+section each boundary cue re-planned from, and the knobs' last offsets. The second and third
+runs printed it whole.
+
+| Run | Bar cues applied | Landed after | Boundary cues applied | Knob steps | Declined | Song |
+|---|---|---|---|---|---|---|
+| 1 | 6 | 1 bar ×6 | `next_bridge` ×3, `end` ×2 | 12 | 6 | 61 bars |
+| 2 | 12 | 1 bar ×12 | `end` ×1 | 14 | 3 | 68 bars |
+| 3 | 8 | 1 bar ×7, 2 bars ×1 | `end` ×1 | 10 | 4 | 49 bars |
+
+Every run: no `beat_lost`, no stale section, `section_measured` on every section.
+
+**What the log says was played:**
+
+- **"Next: bridge" and "end" re-planned where they should.** Each re-planned from the first
+  section that could still change, and every song finished on its final chord.
+  - In run 1, pads 6 and 8 were struck five times in six bars, and the last one struck won.
+  - A sixth "next: bridge", with the outro next, was declined as `no_section_left`.
+- **The knobs moved what was written, by as much as the table allows.**
+  - A verse turned busier went from about 300 notes to about 500.
+  - A chorus turned sparser went from about 520 to about 300.
+  - A chorus turned busier, or a verse turned sparser, barely changed: they already sit near
+    the end of the range the knob pushes them towards.
+- **Pad 5 overrode the knobs every time.** In all three runs it was struck over a section the
+  knobs had shaped, and the chorus it fires was written before the song began, so it does not
+  follow them.
+- **Pad 5 inside a chorus starts the chorus again from its first bar.** Struck during the
+  outro, it cancels the ending, and the song goes on to another chorus and another outro
+  (run 2). Neither was designed as a special case; both follow from "a jump beats a section
+  change".
+
+Asked §11's questions, he answered:
+
+> *"Eu acredito que ficou tudo dentro do esperado. Inclusive o pad 5 no refrão além do impacto
+> óbvio esperado."* — I believe it was all within what was expected. Including pad 5 in the
+> chorus, beyond the obvious expected impact.
+
+**The gate passes, and with it ADR-021's criterion of a session directed from the MiniLab,
+judged by ear.** Pad 5 restarting a chorus is kept as it is: it was heard, asked about, and
+accepted. The toms fill played in all three songs and was not singled out, either way.
+
+The verdict is on the deterministic floor. No model played in these sessions, so the
+criterion that a stale section never plays after a jump is still for Stage 6's paid session
+to measure.
+
+### What the gate found, not heard as a fault
+
+**Two late moments, both behind a two-second write.**
+
+- **Run 3: a fill landed two bars after the pad.** It was struck on the last beat of a bar
+  while the next chorus was being written. Cues are read between one track's write and the
+  next, and the track being written crossed the bar line.
+- **Run 2: a fill's return went a bar late, so the fill ran for two bars.** Returns are
+  settled once per bar, not between tracks, and that bar was spent writing a section.
+
+**Every two-second write replaces a clip.**
+
+- Across the three runs, every write whose slot held a clip of another length took
+  1,910–2,031 ms: an eight-bar section after a four-bar one, or the other way round.
+  `ensure_clip` deletes that clip and creates another.
+- Every write into a slot of the same length took 1,107–1,230 ms.
+- Replacing a clip costs about 0.8 s, which is close to half a bar at 132 BPM.
+
+**A knob turn costs the bar cues their preparation.**
+
+- Stop and fill variants are written one track per bar, and never in a bar that wrote a
+  section.
+- A turn that reaches the next section writes that section again, and that uses a bar.
+- In run 3, a turn at the end of the first verse left the chorus's stop without its keys
+  track until the chorus ended. Pad 1 was declined twice in that chorus as `unavailable`.
+
+The **known limitations** stand as named. Boundary cues and knobs wait for a section that can
+still change, and a strike on the bar line can be a bar late.
+
+**Two cheap remedies are left open, not applied:**
+
+- settle returns between tracks, as cues already are;
+- write a variant track every half bar instead of every bar.
+
+Both add work on the thread that carries Live's beat listener. Neither is worth doing before
+a person hears the fault they remove.

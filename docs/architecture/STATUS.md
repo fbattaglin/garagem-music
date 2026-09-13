@@ -48,7 +48,9 @@ phase. How a cue reaches the bar is [ADR-022](ADR-022-a-cue-costs-a-fire-never-a
       next-bar cue in a session's event log
 - [ ] After a jump cue, the section that follows is requested from the model with the
       re-planned briefing, and a stale section never plays (event log)
-- [ ] A session directed from the MiniLab, judged by ear, the verdict recorded verbatim
+- [x] A session directed from the MiniLab, judged by ear, the verdict recorded verbatim
+      — **met 2026-09-13**, three conducted songs over the deterministic floor
+      (`phase-4-findings.md` §11): *"Eu acredito que ficou tudo dentro do esperado."*
 
 Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md)):
 
@@ -87,7 +89,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **2011 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **2012 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -169,19 +171,27 @@ Done, with the suite at **2011 passed, 27 live-marked skipped**, `ruff` and `myp
   time. Fabiano: *"Achei tudo bem, talvez a virada não me parecia tão clara."* A blind
   audition of six fills put the run down the toms first and second; the fill cue becomes the
   toms.
-- **Stage 5 is built, and not yet heard** (`phase-4-findings.md` §11). Pad 6 puts a bridge,
-  and pad 8 the outro, at the first section that can still change; the density and tension
-  knobs move every section still to come around its plan, and the model is asked for the
-  moved briefings. Offline, the bridge and the end arrive where planned, the knobs clamp and
-  restore, and a whole conducted song replays byte for byte. **Gate pending:** a song steered
-  from the MiniLab alone, by ear.
+- **Stage 5: "next: bridge", "end" and the knobs — gate passed, 2026-09-13**
+  (`phase-4-findings.md` §11). Pad 6 puts a bridge, and pad 8 the outro, at the first section
+  that can still change; the density and tension knobs move every section still to come
+  around its plan, and the model is asked for the moved briefings. Over three conducted
+  songs, 25 of 26 bar cues landed one bar after the pad, every boundary cue re-planned from
+  the section it should, and no run lost a beat. Fabiano: *"Eu acredito que ficou tudo dentro
+  do esperado. Inclusive o pad 5 no refrão além do impacto óbvio esperado."* The gate found
+  two late moments, both behind the 0.8 s it costs to replace a clip of another length. It
+  also found that a knob turn delays the stops' preparation. Neither was heard as a fault,
+  and both are left open.
 
-Next, in order:
+Next, in order — Stage 6, closing the phase with the instrument in hand:
 
-1. **Stage 5's gate, by ear — and the toms fill with it.** `uv run python scripts/jam.py
-   --controller minilab --seconds 180`, steering the song from the MiniLab alone: pads 1–3
-   for bars, 5, 6 and 8 for its form, both knobs. This is also ADR-021's third criterion, a
-   session directed from the MiniLab, judged by ear.
+1. **One paid session with the model and the MiniLab.** An 8-minute `jam.py --generate
+   --controller minilab`, about US$ 0.10, capped by the `Governor`. It measures:
+   - continuous play and deadlines;
+   - cost against `config/budget.toml`;
+   - the two MiniLab criteria still open, cue latency and no stale section after a jump.
+2. **Chaos test:** Wi-Fi off mid-session while conducting; nothing audible, by ear and log.
+3. **Musical regression suite in CI** against cassettes, detecting model drift.
+4. **Blind A/B at close:** 8 of 12, same design as ADR-018.
 
 ## Phase 3 — closed with one waiver
 

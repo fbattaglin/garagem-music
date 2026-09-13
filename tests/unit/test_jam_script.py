@@ -622,6 +622,40 @@ def test_the_summary_says_how_many_bars_each_jump_took_to_land() -> None:
     assert "declined: before_the_downbeat x1" in text
 
 
+def test_the_summary_names_where_boundary_cues_and_knobs_reached() -> None:
+    from garagem.obs import EventLog
+
+    log = EventLog(None)
+    log.record("cue_received", 40.0, bar=10, drained_bar=10, cue="next_bridge", family="boundary")
+    log.record("cue_received", 44.0, bar=11, drained_bar=11, macro="density", family="macro")
+    log.record(
+        "cue_applied", 40.0, cue="next_bridge", cue_bar=10, section=3, names="bridge,chorus,outro"
+    )
+    log.record(
+        "cue_applied",
+        41.0,
+        cue="stop",
+        cue_bar=10,
+        fired_bar=11,
+        scene=4,
+        section=2,
+        tracks="drums",
+    )
+    log.record(
+        "macro_changed",
+        44.0,
+        density=0.9,
+        tension=0.5,
+        dyn_offset=2,
+        tension_offset=0.0,
+        from_section=4,
+    )
+    text = jam.render_cues(log)
+    assert "1 cues landed after: 1 bar x1" in text
+    assert "next_bridge at bar 10 re-planned from section 3" in text
+    assert "knobs moved the plan 1 times; last: dyn +2, tension +0.00" in text
+
+
 def test_bar_cue_variants_go_into_the_scenes_session_toml_names_for_them() -> None:
     spec = jam.load_session(jam.DEFAULT_SESSION)
     assert jam.variant_scenes(spec) == {"stop": {0: 4, 1: 5}, "fill": {0: 6, 1: 7}}
