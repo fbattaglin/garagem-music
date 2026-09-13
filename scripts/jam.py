@@ -41,9 +41,10 @@ acted on:** the chorus candidate, written into the `CHORUS` scene before the dow
 fired for the next bar and the rest of the song is re-planned from it. **Stop, fill and drums
 and bass are acted on too** (Stage 4): variants of each section are written ahead into the
 `STOP` and `FILL` scenes and fired per track for the next bar, and guitar and keys stop until
-the next section. "next bridge", "end" and the knobs are still only logged. The legend is
-printed before the downbeat, and after the last bar a count of what was heard and how many
-bars each cue took to land.
+the next section. **"Next bridge" and "end" re-plan the song from the next section that can
+still change, and the knobs move it** around its plan (Stage 5). The legend is printed
+before the downbeat, and after the last bar a count of what was heard, how many bars each
+cue took to land, and why any was declined.
 
 `--dry-run` prints the form and exits without opening a socket, which makes it the
 cheapest way to see what a seed produces. `--provider cassette:<path>` replays a recording
@@ -468,7 +469,7 @@ def main() -> int:
             sys.stderr.write(controls.legend())
             sys.stderr.write(
                 "chorus_now, stop, fill and drums_and_bass act on the next bar; next_bridge, "
-                "end and the knobs are logged only in this stage\n"
+                "end and the knobs act from the next section that can still change\n"
             )
         if provider is not None and model is not None:
             sys.stderr.write(f"generating with {model.id}\n")

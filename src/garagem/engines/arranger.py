@@ -27,7 +27,7 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from garagem.domain import MAX_DYN, PITCH_CLASSES, Chart, Chord, Feel, Quality, Section
+from garagem.domain import MAX_DYN, MIN_DYN, PITCH_CLASSES, Chart, Chord, Feel, Quality, Section
 from garagem.theory.errors import TheoryError
 from garagem.theory.scales import DEGREES, steps_of
 
@@ -103,6 +103,14 @@ MINOR_THIRD: Final = 3
 # tension. One step, because `dyn` indexes the groove table and two would skip a pattern.
 CLIMAX_DYN: Final = 1
 CLIMAX_TENSION: Final = 0.1
+
+# How far the MiniLab's knobs move the song from its plan (ADR-021, Stage 5). A knob is an
+# offset around the plan, centred: at the middle of its travel the song is as arranged, and
+# at either end every section is up to this much sparser or busier, tenser or calmer. An
+# absolute knob would set a verse and a chorus to the same `dyn` and flatten the very shape
+# the arrangement exists to give — so the shape is kept, and moved as a whole.
+MACRO_DYN_RANGE: Final = 2
+MACRO_TENSION_RANGE: Final = 0.3
 SECONDS_PER_MINUTE: Final = 60.0
 BEATS_PER_BAR: Final = 4.0
 
@@ -219,6 +227,28 @@ def jump_plan(
     budget = remaining + unplayed_seconds - candidate.total_seconds()
     tail = continue_from(form[playing], candidate.name, seed, budget)
     return (*form[: playing + 1], candidate, *_lift_last_chorus(tail))
+
+
+def density_offset(knob: float) -> int:
+    """A knob position, 0 to 1, as whole steps of `dyn` around the plan: 0.5 is no change."""
+    return round((knob - 0.5) * 2 * MACRO_DYN_RANGE)
+
+
+def tension_offset(knob: float) -> float:
+    """A knob position, 0 to 1, as tension around the plan, in steps of 0.05."""
+    return round(round((knob - 0.5) * 2 * MACRO_TENSION_RANGE / 0.05) * 0.05, 2)
+
+
+def shifted(section: Section, dyn: int, tension: float) -> Section:
+    """`section` moved by the knobs' offsets, kept inside what a `Section` may be."""
+    if dyn == 0 and tension == 0.0:
+        return section
+    return section.model_copy(
+        update={
+            "dyn": min(MAX_DYN, max(MIN_DYN, section.dyn + dyn)),
+            "tension": min(1.0, max(0.0, round(section.tension + tension, 2))),
+        }
+    )
 
 
 def _lift_last_chorus(form: Sequence[Section]) -> tuple[Section, ...]:

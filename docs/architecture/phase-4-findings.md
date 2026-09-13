@@ -863,3 +863,70 @@ Revealed:
 **Decision, Fabiano's: the fill cue becomes the run down the toms, without the crash** — his
 second choice, a place behind the first, and a one-constant change. The crash stays an idea
 with a cost attached; an audition between just those two options is how to settle it.
+
+## 11. Stage 5 is built: "next: bridge", "end", and the knobs
+
+The last of ADR-022's cues, end to end, offline. **The gate — Fabiano steering a whole song
+from the MiniLab alone, by ear — has not run.**
+
+### What each control does, in sound
+
+**Pad 6, "next: bridge", and pad 8, "end", take effect at a section boundary, by design.**
+Both re-plan from the first section that can still change. That is the next one, if it has
+not been fired and there are two bars left to write it again; otherwise the one after.
+
+- "Next: bridge" puts the song's own bridge there, at its ordinary size, and walks a new tail
+  after it about as long as the old one.
+- "End" puts the outro there, and the song finishes on its final chord.
+- Struck with a bridge already next, or with the outro playing, they are declined and say so.
+
+**Knob 1, density, and knob 2, tension, move the song around its plan rather than setting
+it.** At the middle of their travel the song is as arranged. At the ends every section still
+to come is up to two steps of `dyn` sparser or busier, and up to 0.3 calmer or tenser.
+- The choice was made so a chorus stays bigger than a verse however far the knob is turned.
+  An absolute knob would set both to the same size and flatten the shape the arrangement
+  exists to give.
+- The knobs are read at most once a bar and applied only when their step changes.
+- They reach the next section when it can still be rewritten, or the one after.
+- The plan before them is kept, so a knob turned back to the middle gives the song back.
+- A chorus jumped to after a turn keeps its own size, because it was written before the song
+  began; the tail after it is moved.
+
+**The model hears all of it.** Every re-plan and every knob step is published through the
+shared plan, so the producer asks for the moved briefing, and a score for the old one is
+refused as stale.
+
+### What is measured, offline
+
+- "Next: bridge" early in a verse rewrites the chorus after it as a bridge, and the bridge
+  is the scene fired. Late in the verse it changes the section after that instead.
+- "End" in a verse plays the outro next and finishes on it.
+- Density turned right puts `dyn` +2 on every section still to come, clamped at 5; left
+  clamps at 1. Tension moves by 0.3.
+- A turn inside one step re-plans nothing. A turn back to the middle restores the plan.
+- The section a turn reaches is written again, as moved.
+- After a turn, the model is asked for the moved briefing.
+- A three-minute song conducted with stop, fill, drums and bass, "chorus now" and "next:
+  bridge" plays to its end, every bar cue on the next bar, with no write in a scene a variant
+  is sounding from.
+- Seed plus cue and knob log replays byte for byte.
+
+Suite: **2011 passed, 27 live-marked skipped**; `ruff`, `mypy` and the timing properties
+clean.
+
+### What the ear is asked, written before it is asked
+
+1. **Does the bridge arrive where you asked for it, and the song end when you asked it to?**
+2. **Do the knobs make the band sparser, busier, calmer and tenser in a way you can hear?**
+3. **Across a whole song, does the MiniLab feel like conducting a band?** This is ADR-021's
+   criterion: a session directed from the MiniLab, judged by ear.
+
+Named in advance:
+
+- **Nothing changes the moment a boundary cue or a knob is touched.** They wait for the next
+  section that can change, often one section away. That is the design, and a person used
+  to the pads' next bar may hear it as the controller not listening.
+- **The first touch of a knob can jump.** The knob's position was unknown until it moved,
+  so a knob sitting at the far right moves the song two steps at once.
+- **The knobs' size is a guess**: two steps of `dyn`, 0.3 of tension. The ear is what can
+  say whether that is enough, or too much.

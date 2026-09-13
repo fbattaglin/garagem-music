@@ -21,7 +21,7 @@ from pathlib import Path
 
 from garagem.agents import Producer, structural, worth_asking
 from garagem.daw import FakeDawAdapter
-from garagem.domain import Cue, CueKind, Feel, Instrument, Section
+from garagem.domain import Cue, CueKind, Feel, Instrument, Macro, MacroKind, Section
 from garagem.dsl import brief, serialize_section
 from garagem.engines import SongBrief, arrange, endings_for, play_section, with_climax
 from garagem.llm import (
@@ -435,3 +435,36 @@ def test_a_stale_section_never_plays_across_a_jump() -> None:
     assert generated, "the model's sections never reached the buffer; this proves nothing"
     assert all(index < len(plan) for index in generated)
     assert scheduler.sections == plan.sections()
+
+
+def test_after_a_knob_turn_the_model_is_asked_for_the_moved_briefing() -> None:
+    """Stage 5: the knobs reach the model through the plan, at no schema cost."""
+    form = with_climax(arrange(BRIEF, SEED))
+    plan = FormPlan(form, endings_for(form))
+    daw = FakeDawAdapter(scenes=8)
+    clock = BarClock(daw)
+    clock.start()
+    buffer = ScoreBuffer()
+    log = EventLog(None)
+    queue = CueQueue(stamp=lambda: clock.beat)
+    provider = Answering(plan, SEED)
+    producer = Producer(provider, buffer, log, plan, model=MODEL, seed=SEED)
+    scheduler = Scheduler(daw, clock, buffer, TRACKS, log, seed=SEED, cues=queue, plan=plan)
+    scheduler.begin(form, endings=endings_for(form))
+    beat = 0
+    while not scheduler.finished and beat < 20_000:
+        index = producer._next_wanted()
+        if index is not None:
+            asyncio.run(producer.produce(index))
+        daw.push_beat(beat)
+        if beat == 25:
+            queue.offer(Macro(kind=MacroKind.DENSITY, value=1.0))
+        scheduler.tick()
+        beat += 1
+
+    (changed,) = log.of_kind("macro_changed")
+    moved = plan.at(int(str(changed.detail["from_section"])) + 2)
+    assert moved is not None
+    assert moved != form[int(str(changed.detail["from_section"])) + 2]
+    assert brief(moved) in provider.asked
+    assert scheduler.finished

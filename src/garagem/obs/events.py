@@ -73,6 +73,9 @@ KINDS: Final[tuple[str, ...]] = (
     # way a fired variant went back to the groove: its own legato fire, or a section change.
     "variant_written",
     "variant_returned",
+    # Phase 4, Stage 5. The knobs moved the song: the offsets now in force, and the first
+    # section they reach.
+    "macro_changed",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so

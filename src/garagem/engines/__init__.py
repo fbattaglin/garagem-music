@@ -7,8 +7,11 @@ from garagem.engines.arranger import (
     arrange,
     candidate_for,
     continue_from,
+    density_offset,
     diatonic,
     jump_plan,
+    shifted,
+    tension_offset,
     with_climax,
 )
 from garagem.engines.band import ENGINES, play_section
@@ -46,6 +49,7 @@ __all__ = [
     "coherence_of",
     "compose",
     "continue_from",
+    "density_offset",
     "diatonic",
     "endings_for",
     "fill_bars",
@@ -57,6 +61,8 @@ __all__ = [
     "play_section",
     "reference_attacks",
     "separate",
+    "shifted",
     "stop_bars",
+    "tension_offset",
     "with_climax",
 ]

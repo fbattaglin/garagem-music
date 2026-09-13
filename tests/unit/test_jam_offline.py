@@ -282,7 +282,13 @@ def test_a_whole_song_conducted_with_every_acting_cue_plays_to_its_end() -> None
 
     daw.write_notes = watched  # type: ignore[method-assign]
     form = with_climax(arrange(BRIEF, SEED))
-    cycle = (CueKind.STOP, CueKind.FILL, CueKind.DRUMS_AND_BASS, CueKind.CHORUS_NOW)
+    cycle = (
+        CueKind.STOP,
+        CueKind.FILL,
+        CueKind.DRUMS_AND_BASS,
+        CueKind.CHORUS_NOW,
+        CueKind.NEXT_BRIDGE,
+    )
     strikes = {beat: cycle[n % len(cycle)] for n, beat in enumerate(range(41, 700, 23))}
     scheduler.begin(form, endings=endings_for(form))
     beat = 0
@@ -295,10 +301,11 @@ def test_a_whole_song_conducted_with_every_acting_cue_plays_to_its_end() -> None
 
     assert scheduler.finished
     applied = {str(event.detail["cue"]) for event in log.of_kind("cue_applied")}
-    assert applied == {"stop", "fill", "drums_and_bass", "chorus_now"}
+    assert applied == {"stop", "fill", "drums_and_bass", "chorus_now", "next_bridge"}
     assert all(
         int(str(event.detail["fired_bar"])) - int(str(event.detail["cue_bar"])) == 1
         for event in log.of_kind("cue_applied")
+        if "fired_bar" in event.detail
     )
     assert all(scene != variant for scene, variant, _ in sounding)
     assert log.of_kind("beat_lost") == ()

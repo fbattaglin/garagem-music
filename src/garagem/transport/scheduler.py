@@ -55,6 +55,14 @@ bar or not at all, and it never lands on a section change: in the bar the next s
 fired, or the bar before a boundary, it is declined and logged. A variant is written only in a
 tick that wrote no section, and never into the scene a variant is sounding from.
 
+**Boundary cues and the knobs** are Stage 5. "Next: bridge" and "end" re-plan from the first
+section that can still change — the next one, if it has not been fired and there are
+`REWRITE_BARS` to write it again, otherwise the one after — so they are heard at a section
+boundary, by design. The knobs move every section from that point by an offset around the
+plan (`engines.arranger.shifted`): read at most once a bar, applied only when the offset
+changes, and published through the plan so the model is asked for the moved briefing. The
+plan before the offsets is kept, so a knob returned to the middle gives the song back.
+
 **Candidates never move the main scenes' alternation.** A jump plays the candidate from its
 own scene; while it plays, both main scenes are silent, and the next section is written into
 the first of them. A jump beats a section change fired in the same bar, because Live's last
@@ -75,17 +83,20 @@ from typing import Final
 
 from garagem.daw import ClipAddress, DawError, DawPort
 from garagem.daw.session import ensure_clip
-from garagem.domain import Cue, CueKind, Instrument, Section, SectionScore
+from garagem.domain import CueKind, Instrument, Macro, MacroKind, Section, SectionScore
 from garagem.engines import (
     Ending,
     candidate_for,
     coherence_of,
     compose,
+    density_offset,
     endings_for,
     jump_plan,
     play_section,
+    shifted,
+    tension_offset,
 )
-from garagem.engines.arranger import CHORUS
+from garagem.engines.arranger import BRIDGE, CHORUS, OUTRO
 from garagem.obs import EventLog
 from garagem.theory import validate
 from garagem.transport.bar_cues import FILL, STOP, BarCues
@@ -127,6 +138,11 @@ JUMPS: Final[dict[CueKind, str]] = {CueKind.CHORUS_NOW: CHORUS}
 # Which cue fires which variant (Stage 4). Drums-and-bass is handled apart: it is a stop of
 # two tracks, not a variant.
 BAR_VARIANTS: Final[dict[CueKind, str]] = {CueKind.STOP: STOP, CueKind.FILL: FILL}
+
+# How many bars a re-planned next section needs before its fire: one tick to be rewritten
+# (a section write is about a bar) and one of slack. Fewer, and the change waits a section.
+REWRITE_BARS: Final = 2
+BOUNDARY_SEED_STEP: Final = 1_000_000
 
 # Seeds for material that is not a section of the planned form, kept far from `seed + index`
 # so a candidate or a re-planned tail never shares a seed with a planned section by accident.
@@ -193,6 +209,13 @@ class Scheduler:
         # Bumped whenever the form is re-planned, so a write that straddled a jump knows
         # the section it wrote is no longer the next one.
         self._generation = 0
+        # Stage 5: the plan before the knobs moved it, the offsets in force, the knobs' last
+        # positions, and how many boundary cues have re-planned (for their seeds).
+        self._base: tuple[Section, ...] = ()
+        self._offsets: tuple[int, float] = (0, 0.0)
+        self._knobs: dict[MacroKind, float] = {}
+        self._knobs_moved = False
+        self._replans = 0
 
     # ---------------------------------------------------------------------------- state
 
@@ -309,6 +332,7 @@ class Scheduler:
         self._index = 0
         self._playing_scene = self._scenes[0]
         self._epoch = self._clock.epoch
+        self._base = self._sections
         if self._plan is not None:
             self._plan.replace(self._sections, self._endings)
 
@@ -356,6 +380,7 @@ class Scheduler:
             self._start_bar = bar
             self._buffer.advance(self._index)
 
+        self._apply_knobs(bar)
         prepared = self._prepared
         self._prepare_next()
         self._fire_if_due(bar)
@@ -479,7 +504,10 @@ class Scheduler:
                 **describe(received.control),
             )
             control = received.control
-            if not isinstance(control, Cue):
+            if isinstance(control, Macro):
+                # A position, not an event: read at most once a bar, at the next tick.
+                self._knobs[control.kind] = control.value
+                self._knobs_moved = True
                 continue
             if control.kind in JUMPS:
                 self._jump(received, control.kind, JUMPS[control.kind])
@@ -487,6 +515,110 @@ class Scheduler:
                 self._bar_cue(received, control.kind, BAR_VARIANTS[control.kind])
             elif control.kind is CueKind.DRUMS_AND_BASS:
                 self._drop(received)
+            elif control.kind in (CueKind.NEXT_BRIDGE, CueKind.END):
+                self._boundary(received, control.kind)
+
+    # ------------------------------------------------------------ boundary cues and knobs
+
+    def _boundary(self, received: Received, cue: CueKind) -> None:
+        """Re-plan from the first section that can still change: a bridge next, or the end."""
+        bar = self._clock.bar
+        at = self._first_changeable(bar)
+        declined = self._why_not_boundary(bar, at, cue)
+        if declined is not None:
+            self._decline(received, cue, declined)
+            return
+        self._replans += 1
+        seed = self._seed + BOUNDARY_SEED_STEP * self._replans
+        if cue is CueKind.END:
+            outro = candidate_for(self._base, OUTRO, seed)
+            base = (*self._base[:at], outro)
+        else:
+            bridge = candidate_for(self._base, BRIDGE, seed)
+            base = jump_plan(self._base, at - 1, bridge, seed)
+        self._replan(at, base)
+        self._log.record(
+            "cue_applied",
+            self._beats(),
+            cue=str(cue),
+            cue_bar=_bar_of(received.beat),
+            section=at,
+            names=",".join(section.name for section in self._sections[at:]),
+        )
+        self._log.record(
+            "form_replanned",
+            self._beats(),
+            from_section=at,
+            seed=seed,
+            sections=len(self._sections),
+            names=",".join(section.name for section in self._sections[at:]),
+        )
+
+    def _why_not_boundary(self, bar: int, at: int, cue: CueKind) -> str | None:
+        if self.finished:
+            return "song_over"
+        if bar == NO_BEAT or self._start_bar == NO_BEAT:
+            return "before_the_downbeat"
+        if at >= len(self._sections):
+            return "already_ending" if cue is CueKind.END else "no_section_left"
+        target = self._sections[at]
+        if cue is CueKind.END and target.name == OUTRO and at == len(self._sections) - 1:
+            return "already_ending"
+        if cue is CueKind.NEXT_BRIDGE and target.name == BRIDGE:
+            return "already_next"
+        return None
+
+    def _first_changeable(self, bar: int) -> int:
+        """The first section a re-plan may still change, and be heard changed."""
+        following = self._index + 1
+        if self._fired >= following or self._boundary_override is not None:
+            return following + 1
+        if bar != NO_BEAT and bar + REWRITE_BARS < self.boundary_bar() - self._fire_lead_bars:
+            return following
+        return following + 1
+
+    def _apply_knobs(self, bar: int) -> None:
+        """Move the unwritten song by the knobs' offsets, once a bar, only when they change."""
+        if not self._knobs_moved:
+            return
+        self._knobs_moved = False
+        offsets = (
+            density_offset(self._knobs.get(MacroKind.DENSITY, 0.5)),
+            tension_offset(self._knobs.get(MacroKind.TENSION, 0.5)),
+        )
+        if offsets == self._offsets:
+            return
+        self._offsets = offsets
+        at = self._first_changeable(bar)
+        self._log.record(
+            "macro_changed",
+            self._beats(),
+            density=round(self._knobs.get(MacroKind.DENSITY, 0.5), 3),
+            tension=round(self._knobs.get(MacroKind.TENSION, 0.5), 3),
+            dyn_offset=offsets[0],
+            tension_offset=offsets[1],
+            from_section=at,
+        )
+        if at < len(self._sections):
+            self._replan(at, self._base)
+
+    def _replan(self, at: int, base: tuple[Section, ...]) -> None:
+        """Sections from `at` become `base`'s, moved by the knobs, and everyone is told."""
+        self._base = base
+        dyn, tension = self._offsets
+        self._sections = (
+            *self._sections[:at],
+            *(shifted(section, dyn, tension) for section in base[at:]),
+        )
+        self._endings = None if self._endings is None else endings_for(self._sections)
+        self._generation += 1
+        self._buffer.discard_from(at)
+        self._bar_cues.section_replanned(at)
+        if at == self._index + 1:
+            # The next section is written but not fired, and there is time: write it again.
+            self._prepared = min(self._prepared, self._index)
+        if self._plan is not None:
+            self._plan.replace(self._sections, self._endings)
 
     def _bar_cue(self, received: Received, cue: CueKind, variant: str) -> None:
         """Fire a variant for the next bar, or decline it and say why."""
@@ -580,6 +712,14 @@ class Scheduler:
         cut_seconds = cut_bars * BEATS_PER_BAR * 60.0 / playing.bpm
         sections = jump_plan(
             self._sections, self._index, candidate.section, seed, unplayed_seconds=cut_seconds
+        )
+        # The tail a jump plans is at the plan's own size; the knobs move it, never the
+        # candidate, which was written before the song began.
+        self._base = (*self._base[:target], *sections[target:])
+        dyn, tension = self._offsets
+        sections = (
+            *sections[: target + 1],
+            *(shifted(section, dyn, tension) for section in sections[target + 1 :]),
         )
         self._sections = sections
         self._endings = None if self._endings is None else endings_for(sections)

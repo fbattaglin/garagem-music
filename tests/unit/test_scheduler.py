@@ -956,3 +956,131 @@ def test_the_fill_a_pad_fires_is_the_run_down_the_toms_the_audition_chose() -> N
     rig = BarRig().play()
     fill = rig.daw.read_notes(at(Instrument.DRUMS, VERSE_FILL))
     assert set(TOMS) <= {note.pitch for note in fill}
+
+
+# ---------------------------------------------------------- boundary cues and knobs (Stage 5)
+
+
+class KnobRig(BarRig):
+    """BarRig, with knob positions offered at beats as well as pad strikes."""
+
+    def play_with(
+        self, strikes: dict[int, CueKind] | None = None, turns: dict[int, Macro] | None = None
+    ) -> KnobRig:
+        strikes, turns = strikes or {}, turns or {}
+        self.scheduler.begin(LONG)
+        beat = 0
+        while not self.scheduler.finished and beat < 2000:
+            self.daw.push_beat(beat)
+            if beat in strikes:
+                self.queue.offer(Cue(kind=strikes[beat]))
+            if beat in turns:
+                self.queue.offer(turns[beat])
+            self.scheduler.tick()
+            beat += 1
+        return self
+
+    def fired_names(self) -> list[str]:
+        return [str(event.detail["name"]) for event in self.of_kind("scene_fired")]
+
+
+def test_next_bridge_early_in_a_section_changes_the_very_next_one() -> None:
+    """The chorus after the verse is written but not fired, and there is time to rewrite it."""
+    rig = KnobRig().play_with({21: CueKind.NEXT_BRIDGE})
+    (applied,) = rig.of_kind("cue_applied")
+    assert applied.detail["section"] == 2
+    assert rig.fired_names()[:3] == ["intro", "verse", "bridge"]
+    rewrites = [e for e in rig.of_kind("section_written") if e.detail["section"] == 2]
+    assert len(rewrites) == 2
+
+
+def test_next_bridge_too_late_to_rewrite_changes_the_section_after() -> None:
+    rig = KnobRig().play_with({41: CueKind.NEXT_BRIDGE})
+    (applied,) = rig.of_kind("cue_applied")
+    assert applied.detail["section"] == 3
+    assert rig.fired_names()[:4] == ["intro", "verse", "chorus", "bridge"]
+
+
+def test_end_finishes_the_song_after_the_next_section_on_the_final_chord() -> None:
+    rig = KnobRig().play_with({21: CueKind.END})
+    assert rig.fired_names() == ["intro", "verse", "outro"]
+    assert rig.scheduler.finished
+    assert rig.scheduler.sections[-1].name == "outro"
+
+
+def test_end_while_the_outro_plays_is_declined_as_already_ending() -> None:
+    rig = KnobRig().play_with({81: CueKind.END})
+    (declined,) = rig.of_kind("cue_declined")
+    assert declined.detail["reason"] == "already_ending"
+
+
+def test_next_bridge_when_a_bridge_is_already_next_is_declined() -> None:
+    rig = KnobRig().play_with({21: CueKind.NEXT_BRIDGE, 25: CueKind.NEXT_BRIDGE})
+    assert [e.detail["reason"] for e in rig.of_kind("cue_declined")] == ["already_next"]
+
+
+def test_the_density_knob_turned_right_makes_the_unwritten_song_busier() -> None:
+    rig = KnobRig().play_with(turns={21: Macro(kind=MacroKind.DENSITY, value=1.0)})
+    (changed,) = rig.of_kind("macro_changed")
+    assert (changed.detail["dyn_offset"], changed.detail["from_section"]) == (2, 2)
+    assert [section.dyn for section in rig.scheduler.sections] == [3, 3, 5, 5]
+
+
+def test_the_density_knob_never_takes_a_section_outside_its_dynamics() -> None:
+    rig = KnobRig().play_with(turns={21: Macro(kind=MacroKind.DENSITY, value=0.0)})
+    assert min(section.dyn for section in rig.scheduler.sections) == 1
+
+
+def test_the_tension_knob_moves_the_unwritten_songs_tension() -> None:
+    rig = KnobRig().play_with(turns={21: Macro(kind=MacroKind.TENSION, value=1.0)})
+    assert [section.tension for section in rig.scheduler.sections] == [0.4, 0.4, 0.7, 0.7]
+
+
+def test_a_knob_that_moves_within_one_step_re_plans_nothing() -> None:
+    turns = {
+        21: Macro(kind=MacroKind.DENSITY, value=0.9),
+        25: Macro(kind=MacroKind.DENSITY, value=0.95),
+    }
+    rig = KnobRig().play_with(turns=turns)
+    assert len(rig.of_kind("macro_changed")) == 1
+
+
+def test_a_knob_returned_to_the_middle_gives_the_song_its_plan_back() -> None:
+    turns = {
+        21: Macro(kind=MacroKind.DENSITY, value=1.0),
+        29: Macro(kind=MacroKind.DENSITY, value=0.5),
+    }
+    rig = KnobRig().play_with(turns=turns)
+    assert [section.dyn for section in rig.scheduler.sections] == [3, 3, 3, 3]
+
+
+def test_the_section_the_knob_reaches_is_written_as_moved() -> None:
+    """What plays is the moved briefing, not only what the plan says."""
+    rig = KnobRig().play_with(turns={21: Macro(kind=MacroKind.DENSITY, value=1.0)})
+    chorus_writes = [e for e in rig.of_kind("section_written") if e.detail["section"] == 2]
+    assert len(chorus_writes) == 2
+    assert rig.scheduler.sections[2].dyn == 5
+
+
+def test_a_jump_after_the_knob_moves_its_tail_and_not_its_candidate() -> None:
+    rig = KnobRig().play_with(
+        strikes={29: CueKind.CHORUS_NOW}, turns={21: Macro(kind=MacroKind.DENSITY, value=1.0)}
+    )
+    (applied,) = rig.of_kind("cue_applied")
+    target = int(str(applied.detail["section"]))
+    scheduler = rig.scheduler
+    assert scheduler.sections[target] == scheduler._candidates["chorus"].section
+    for moved, planned in zip(
+        scheduler.sections[target + 1 :], scheduler._base[target + 1 :], strict=True
+    ):
+        assert moved.dyn == min(5, planned.dyn + 2)
+
+
+def test_a_performance_with_boundary_cues_and_knobs_replays_byte_for_byte() -> None:
+    strikes = {21: CueKind.NEXT_BRIDGE, 61: CueKind.END}
+    turns = {33: Macro(kind=MacroKind.TENSION, value=0.8)}
+    first = KnobRig().play_with(strikes, turns)
+    second = KnobRig().play_with(strikes, turns)
+    assert [(e.kind, musical_detail(e)) for e in first.log] == [
+        (e.kind, musical_detail(e)) for e in second.log
+    ]

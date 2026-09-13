@@ -87,7 +87,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **1996 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **2011 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -169,12 +169,19 @@ Done, with the suite at **1996 passed, 27 live-marked skipped**, `ruff` and `myp
   time. Fabiano: *"Achei tudo bem, talvez a virada não me parecia tão clara."* A blind
   audition of six fills put the run down the toms first and second; the fill cue becomes the
   toms.
+- **Stage 5 is built, and not yet heard** (`phase-4-findings.md` §11). Pad 6 puts a bridge,
+  and pad 8 the outro, at the first section that can still change; the density and tension
+  knobs move every section still to come around its plan, and the model is asked for the
+  moved briefings. Offline, the bridge and the end arrive where planned, the knobs clamp and
+  restore, and a whole conducted song replays byte for byte. **Gate pending:** a song steered
+  from the MiniLab alone, by ear.
 
 Next, in order:
 
-1. **Hear the toms fill in a jam.** Pad 2 now runs down the toms; one jam with the MiniLab
-   says whether it is as clear in the song as it was in the audition.
-2. **Stage 5: boundary cues and knobs** (ADR-022), gated by ear and hand.
+1. **Stage 5's gate, by ear — and the toms fill with it.** `uv run python scripts/jam.py
+   --controller minilab --seconds 180`, steering the song from the MiniLab alone: pads 1–3
+   for bars, 5, 6 and 8 for its form, both knobs. This is also ADR-021's third criterion, a
+   session directed from the MiniLab, judged by ear.
 
 ## Phase 3 — closed with one waiver
 

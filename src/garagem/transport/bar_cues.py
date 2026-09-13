@@ -144,6 +144,11 @@ class BarCues:
         self._pending = None
         self._dropped.clear()
 
+    def section_replanned(self, index: int) -> None:
+        """Sections from `index` on were re-planned; nothing already sounding changed."""
+        for key in [key for key in self._written if key >= index]:
+            del self._written[key]
+
     def section_changed(self) -> None:
         """A new section started from its own scene fire: guitar and keys are back."""
         self._dropped.clear()
