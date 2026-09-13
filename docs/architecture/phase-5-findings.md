@@ -184,3 +184,52 @@ uv run python scripts/audition_shuffle.py
   150.
 - **This check sets the tempo per pair.** `ab_section.py` is not changed, because ADR-024 runs no
   further A/B.
+
+## 3. The shuffle check: straightened in 5 of 5, and the fix is applied
+
+Fabiano ran `scripts/audition_shuffle.py` in Terminal on 2026-09-13: five pairs in one sitting,
+under four minutes, none skipped. The votes are in `bench/audition-shuffle.jsonl`.
+
+| Pair | Take | Section | BPM | A was | Voted | Winner | Reason |
+|---|---|---|---|---|---|---|---|
+| 1 | regression: 25 | chorus | 96 | straightened | A | straightened | cleaner, less messy |
+| 2 | regression: 07 | chorus | 110 | as written | B | straightened | cleaner, less messy |
+| 3 | phase 3: 10 | bridge | 150 | as written | B | straightened | just sounds nicer |
+| 4 | phase 3: 24 | bridge | 132 | straightened | A | straightened | cleaner, less messy |
+| 5 | regression: 08 | verse | 132 | straightened | A | straightened | cleaner, less messy |
+
+**The take as written was preferred in 0 of 5, against a veto at 4. The fix is applied.**
+
+### What the votes say, and what they do not
+
+- **The straightened side won wherever it played.** It won the 3 pairs where it came first (A)
+  and the 2 where it came second (B). The lean towards the second side heard, which §2 arranged
+  to favour the take as written, did not decide any pair.
+- **The reason, 4 times of 5, was "cleaner, less messy".** In the A/B runs that same phrase went
+  to the floor 5 of 5 (`phase-4-findings.md` §15), and 4 of those 5 were shuffle pairs.
+- **The check was pre-registered as a veto, not as a test of the mechanism.** A coin gives 5 of 5
+  one time in 32, which is reported and decides nothing beyond the veto.
+- **What it is consistent with:** §16's reading that the model's shuffles were heard as messy
+  because the system swung them a second time.
+- **What it does not show:** that the A/B's shuffle losses would now go the other way. No
+  model-against-floor pair was played, and ADR-024 runs none.
+- **One pair was heard again before voting:** pair 1, side A. In the other four each side was
+  heard once.
+
+### Applied
+
+- **`realise` straightens by default.** Every model take gets it: the producer, the regression
+  replay, and every bake and playback to come.
+- **Only two callers ask for the take as written:** the audition's other side, and the
+  notation's own round trip (`tests/property/test_dsl_round_trip.py`). The round trip carries
+  the floor's loudest shuffle kick, which sits between the eighths on purpose (§2).
+- **The 8 shuffle golden files in `tests/regression/` were regenerated**, with the summary line
+  for each.
+  - **The drums keep the same number of hits.** Each hat moves onto the eighths without meeting
+    another.
+  - **The guitar loses notes where two strokes meet on one eighth.** Chorus 07 drops from 168 to
+    144, chorus 09 from 112 to 96, bridge 10 from 128 to 112, bridge 24 from 112 to 96, and
+    chorus 25 from 168 to 144.
+  - **Bass and keys counts are unchanged.**
+  - **Nothing else moved:** conformance, approval and `kit_collision` are identical, and no other
+    section's golden file changed.

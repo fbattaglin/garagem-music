@@ -133,7 +133,7 @@ def test_every_other_feel_comes_back_as_it_was(feel: Feel) -> None:
     dsl = PAIR_10.replace("feel=shuffle", f"feel={feel}")
     parsed = parsed_from(dsl, a_section(feel=feel))
     assert straightened(parsed) is parsed
-    assert realise(parsed, 7, straighten=True) == realise(parsed, 7)
+    assert realise(parsed, 7, straighten=True) == realise(parsed, 7, straighten=False)
 
 
 def test_straightening_twice_is_straightening_once() -> None:
@@ -141,11 +141,11 @@ def test_straightening_twice_is_straightening_once() -> None:
     assert straightened(once) == once
 
 
-def test_it_is_off_unless_asked_for() -> None:
-    """Off by default until the five-minute check decides (ADR-024)."""
+def test_it_is_on_unless_asked_not_to_be() -> None:
+    """On since the blind check preferred it in 5 of 5 pairs (`phase-5-findings.md` §3)."""
     parsed = parsed_from(PAIR_10, a_section())
-    assert realise(parsed, 7) != realise(parsed, 7, straighten=True)
-    assert realise(parsed, 7) == realise(parsed, 7, straighten=False)
+    assert realise(parsed, 7) == realise(parsed, 7, straighten=True)
+    assert realise(parsed, 7) != realise(parsed, 7, straighten=False)
 
 
 @pytest.mark.parametrize("dyn", [1, 2, 3, 4])
@@ -154,7 +154,7 @@ def test_the_floors_shuffle_is_a_fixed_point_up_to_flat_out(dyn: int, seed: int)
     """Up to dyn 4 the floor strikes only eighths under a shuffle: nothing to straighten."""
     section = a_section(dyn=dyn)
     parsed = parsed_from(serialize_section(play_section(section, seed)), section)
-    assert realise(parsed, seed, straighten=True) == realise(parsed, seed)
+    assert realise(parsed, seed, straighten=True) == realise(parsed, seed, straighten=False)
 
 
 def test_flat_out_is_the_one_floor_shuffle_that_would_move_and_only_its_kick() -> None:

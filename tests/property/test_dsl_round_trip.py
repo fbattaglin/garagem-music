@@ -13,6 +13,11 @@ pitch class for the three parts whose notation can carry them.
 If this fails, the parser is wrong and not the serializer: the serializer's output is
 compared byte for byte against committed files in `tests/golden/`, and the music it
 describes is what Fabiano listened to on 2026-08-30.
+
+**Read back as written, with `straighten=False`.** Straightening is composition applied to a
+model's take (`phase-5-findings.md` §3), not part of the notation. The floor's loudest shuffle
+kick sits between the eighths on purpose, and a round trip that straightened it would be
+testing the fix instead of the parser.
 """
 
 from __future__ import annotations
@@ -52,7 +57,7 @@ def test_the_round_trip_keeps_every_attack(section: Section, seed: int) -> None:
     """Where a note falls survives the notation, for every feel and every bar count."""
     original = play_section(section, seed)
     parsed = parse_section(as_stream(serialize_section(original)), section)
-    back = realise(parsed, seed)
+    back = realise(parsed, seed, straighten=False)
 
     for instrument in Instrument:
         before = tuple(n.start_beats for n in original.part(instrument).notes)
@@ -73,7 +78,7 @@ def test_the_round_trip_produces_no_violation(section: Section, seed: int) -> No
 def test_what_comes_back_is_playable(section: Section, seed: int) -> None:
     original = play_section(section, seed)
     parsed = parse_section(as_stream(serialize_section(original)), section)
-    back = realise(parsed, seed)
+    back = realise(parsed, seed, straighten=False)
     assert back.instruments() == original.instruments()
     assert validate(back) == ()
 
@@ -85,7 +90,7 @@ def test_pitch_classes_survive_wherever_the_notation_can_carry_them(
     """Drums, guitar and keys spell every note. The bass spells one degree per bar."""
     original = play_section(section, seed)
     parsed = parse_section(as_stream(serialize_section(original)), section)
-    back = realise(parsed, seed)
+    back = realise(parsed, seed, straighten=False)
 
     for instrument in FULLY_SPELLED:
         before = {n.pitch % 12 for n in original.part(instrument).notes}
@@ -98,7 +103,7 @@ def test_the_bass_comes_back_on_the_roots_it_declared(section: Section, seed: in
     """The one lossy part, stated rather than discovered: `deg=` is per bar."""
     original = play_section(section, seed)
     parsed = parse_section(as_stream(serialize_section(original)), section)
-    back = realise(parsed, seed)
+    back = realise(parsed, seed, straighten=False)
 
     before = {n.pitch % 12 for n in original.part(Instrument.BASS).notes}
     after = {n.pitch % 12 for n in back.part(Instrument.BASS).notes}

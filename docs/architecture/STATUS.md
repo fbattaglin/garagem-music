@@ -29,10 +29,14 @@ ADR-000 §7, amended by [ADR-021](ADR-021-the-minilab-joins-phase-4.md),
   its evidence from sessions he plays, and asks for one five-minute test.
 
 - [ ] **When the model is worth calling: decided and applied** (ADR-024)
-      - The decision is written down. **Met when ADR-024 is committed.**
+      - The decision is written down. — **met 2026-09-13**, ADR-024 committed before
+        anything was measured.
       - The shuffle double swing (`phase-4-findings.md` §16) has its five-minute blind check,
         pre-registered in `phase-5-findings.md` before listening, and its consequence applied.
         The fix is applied unless the as-written side is preferred in 4 or more of 5.
+        — **met 2026-09-13** (`phase-5-findings.md` §3): the take as written was preferred in
+        0 of 5, "cleaner, less messy" in 4. Straightening is on for every model take, and the 8
+        shuffle regression goldens were regenerated.
       - The setlist the Wi-Fi-off session plays was curated with Fabiano's KEEP and VETO, from
         sessions he played.
       - KEEP and VETO counts per author are reported at the gate, from the logs. They decide
@@ -60,32 +64,30 @@ ADR-000 §7, amended by [ADR-021](ADR-021-the-minilab-joins-phase-4.md),
 **Stage 0 is done: the plan is written.** ADR-024, these criteria and `phase-5-findings.md` §1,
 agreed before anything was measured, baked or heard.
 
-**Stage 1 is built, and waits for five minutes of listening.** Suite at **2141 passed, 27
-skipped** (all live-marked); `ruff` and `mypy` clean.
+**Stage 1 is done.** Suite at **2141 passed, 27 skipped** (all live-marked); `ruff` and `mypy`
+clean.
 - **The live event log keeps the model's DSL.** Every `section_parsed`, and every refusal after
   a parse (stale, too late, irreparable, nothing playable), carries the text the model wrote.
-- **The shuffle fix exists and is off.** Under a shuffle, `dsl/realise.py` can move the model's
-  attacks between the eighths onto them (`straightened`). The floor never passes through it.
-- **The check is pre-registered** in `phase-5-findings.md` §2. Five pairs are chosen by a rule
-  from the 19 recorded takes, leaving out the three Fabiano heard in the A/B, and each plays at
-  its own tempo. The fix is applied unless the take as written is preferred in 4 or more of 5.
-  Run `uv run python scripts/audition_shuffle.py` in Terminal: about five minutes, no model
-  call.
-- **Writing it found two things, neither acted on.** The floor's loudest shuffle pushes its kick
-  with the figure the model puts on its hat. And every A/B pair played at the Set's 132 BPM,
+- **Model shuffles are straightened.** Under a shuffle, `dsl/realise.py` moves the model's
+  attacks between the eighths onto them (`straightened`), by default. The floor never passes
+  through it.
+- **Fabiano's blind check preferred the straightened side in 5 of 5 pairs** (`phase-5-findings.md`
+  §3), against a veto pre-registered at 4 of 5 for the take as written. Four of the five reasons
+  were "cleaner, less messy".
+- **Two things found on the way, neither acted on** (§2). The floor's loudest shuffle pushes its
+  kick with the figure the model put on its hat. And every A/B pair played at the Set's 132 BPM,
   whatever its briefing's tempo.
 
 Next, in order:
 
-1. **Fabiano runs the shuffle check, and its consequence is applied.**
-2. **Bake and baked playback, Setlist Mode's core.**
+1. **Bake and baked playback, Setlist Mode's core.**
    - `scripts/bake_setlist.py` generates songs online once, with the live deadlines and no retry.
    - `jam.py --setlist` plays them from disk. A section the bake does not hold plays the floor.
    - The offline rehearsal predicts how much of a session the setlist will serve.
-3. **KEEP and VETO on pads 4 and 7, and curation from the logs.**
-4. **Voice through `garagem-mcp`.** A spike of the voice path first, and the `mcp` dependency is
+2. **KEEP and VETO on pads 4 and 7, and curation from the logs.**
+3. **Voice through `garagem-mcp`.** A spike of the voice path first, and the `mcp` dependency is
    asked for before it is added.
-5. **The two ten-minute sessions, then the gate.**
+4. **The two ten-minute sessions, then the gate.**
 
 About five minutes of dedicated listening in the whole phase, and under US$0.50 of model calls.
 

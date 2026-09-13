@@ -12,10 +12,10 @@ violations none
 04-verse-straight16-132: conformant, 4 parts; DRM=145 BAS=32 GTR=96 KEY=48; kit_collision=1.000
 05-chorus-straight16-96: conformant, 4 parts; DRM=181 BAS=72 GTR=192 KEY=96; kit_collision=0.970
 06-chorus-straight16-150: conformant, 4 parts; DRM=158 BAS=64 GTR=192 KEY=48; kit_collision=0.750
-07-chorus-shuffle-110: conformant, 4 parts; DRM=95 BAS=40 GTR=168 KEY=48; kit_collision=0.791
+07-chorus-shuffle-110: conformant, 4 parts; DRM=95 BAS=40 GTR=144 KEY=48; kit_collision=0.791
 08-verse-shuffle-132: conformant, 4 parts; DRM=91 BAS=32 GTR=144 KEY=48; kit_collision=0.800
-09-chorus-shuffle-96: conformant, 4 parts; DRM=95 BAS=32 GTR=112 KEY=48; kit_collision=0.791
-10-bridge-shuffle-150: conformant, 4 parts; DRM=93 BAS=40 GTR=128 KEY=32; kit_collision=0.780
+09-chorus-shuffle-96: conformant, 4 parts; DRM=95 BAS=32 GTR=96 KEY=48; kit_collision=0.791
+10-bridge-shuffle-150: conformant, 4 parts; DRM=93 BAS=40 GTR=112 KEY=32; kit_collision=0.780
 11-verse-halftime-110: conformant, 4 parts; DRM=90 BAS=16 GTR=48 KEY=48; kit_collision=0.731
 12-chorus-halftime-132: conformant, 4 parts; DRM=166 BAS=48 GTR=128 KEY=48; kit_collision=0.795
 13-chorus-halftime-96: conformant, 4 parts; DRM=174 BAS=48 GTR=160 KEY=48; kit_collision=0.827
@@ -29,8 +29,8 @@ violations none
 21-chorus-straight16-96: conformant, 4 parts; DRM=181 BAS=72 GTR=288 KEY=96; kit_collision=0.970
 22-verse-straight16-150: conformant, 4 parts; DRM=153 BAS=32 GTR=128 KEY=48; kit_collision=1.000
 23-bridge-shuffle-110: conformant, 4 parts; DRM=93 BAS=32 GTR=144 KEY=32; kit_collision=0.780
-24-bridge-shuffle-132: conformant, 4 parts; DRM=93 BAS=32 GTR=112 KEY=32; kit_collision=0.780
-25-chorus-shuffle-96: conformant, 4 parts; DRM=95 BAS=48 GTR=168 KEY=32; kit_collision=0.791
+24-bridge-shuffle-132: conformant, 4 parts; DRM=93 BAS=32 GTR=96 KEY=32; kit_collision=0.780
+25-chorus-shuffle-96: conformant, 4 parts; DRM=95 BAS=48 GTR=144 KEY=32; kit_collision=0.791
 26-verse-shuffle-150: conformant, 4 parts; DRM=91 BAS=32 GTR=144 KEY=32; kit_collision=0.800
 27-chorus-halftime-110: conformant, 4 parts; DRM=102 BAS=32 GTR=160 KEY=48; kit_collision=0.750
 28-chorus-halftime-132: conformant, 4 parts; DRM=102 BAS=32 GTR=128 KEY=48; kit_collision=0.750

@@ -47,7 +47,8 @@ against a real Set and nowhere else (`phase-2-findings.md` §1).
 **Under a shuffle, the swing is ours as well** (`straightened`, ADR-024). `beats_of` swings a
 shuffle's eighths for everyone, and the prompt never told the model so: it writes attacks
 between the eighths as well, and the system then swings those a second time
-(`phase-4-findings.md` §16). Off by default until the ear has had its five minutes.
+(`phase-4-findings.md` §16). On by default since the blind check preferred it in 5 of 5
+pairs (`phase-5-findings.md` §3).
 """
 
 from __future__ import annotations
@@ -113,11 +114,13 @@ CRASH_HEAD: Final[Grid] = parse_grid("x...............")
 KEYS_FLOOR: Final = RANGES[Instrument.BASS][1] + 1
 
 
-def realise(parsed: ParsedSection, seed: int, *, straighten: bool = False) -> SectionScore:
+def realise(parsed: ParsedSection, seed: int, *, straighten: bool = True) -> SectionScore:
     """Everything that arrived, as a playable score. Seeded, pure, and total.
 
     `straighten` moves a shuffle's in-between attacks onto the eighths first
-    (`straightened`). Every other feel is untouched by it.
+    (`straightened`), and every other feel is untouched by it. On by default, because every
+    model take should get it; `False` is for reading a take exactly as written, which only the
+    notation's own round trip and the audition's other side need.
 
     Takes a seed rather than a `Random` for the same reason `engines.band.play_section`
     does: a `SectionScore` must be able to name what produced it (invariant 7), and a
