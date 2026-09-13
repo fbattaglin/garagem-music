@@ -480,7 +480,13 @@ class Scheduler:
         target = self._index + 1
         self._jumps += 1
         seed = self._seed + JUMP_SEED_STEP * self._jumps
-        sections = jump_plan(self._sections, self._index, candidate.section, seed)
+        # The bars of the interrupted section the jump cuts give their time back to the song.
+        playing = self._sections[self._index]
+        cut_bars = max(0, self.boundary_bar() - (bar + 1))
+        cut_seconds = cut_bars * BEATS_PER_BAR * 60.0 / playing.bpm
+        sections = jump_plan(
+            self._sections, self._index, candidate.section, seed, unplayed_seconds=cut_seconds
+        )
         self._sections = sections
         self._endings = None if self._endings is None else endings_for(sections)
         self._generation += 1

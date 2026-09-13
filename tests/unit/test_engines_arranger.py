@@ -250,8 +250,43 @@ def test_a_jump_reshapes_the_song_rather_than_lengthening_it() -> None:
     plan = jump_plan(form, 1, candidate, 5)
     planned = sum(section.total_seconds() for section in form)
     jumped = sum(section.total_seconds() for section in plan)
-    # The walk stops after it passes the time left, so it can overshoot by a section.
-    assert abs(jumped - planned) <= max(section.total_seconds() for section in form) + 1e-6
+    half_a_section = SHAPES[CHORUS].bars * 4 * 60 / form[0].bpm / 2
+    assert abs(jumped - planned) <= half_a_section + 1e-6
+
+
+@pytest.mark.parametrize("seed", range(6))
+def test_ten_jumps_leave_the_song_about_as_long_as_it_was(seed: int) -> None:
+    """Stage 3's gate: ten jumps took a 102-second song to 216 (`phase-4-findings.md` §9)."""
+    form = a_form(seed)
+    planned = sum(section.total_seconds() for section in form)
+    candidate = candidate_for(form, CHORUS, seed)
+    plan = form
+    playing = 1
+    for jump in range(10):
+        if playing >= len(plan) - 1:
+            break
+        plan = jump_plan(plan, playing, candidate, seed * 100 + jump)
+        playing += 2
+    jumped = sum(section.total_seconds() for section in plan)
+    one_section = SHAPES[CHORUS].bars * 4 * 60 / form[0].bpm
+    assert abs(jumped - planned) <= one_section + 1e-6
+
+
+def test_the_bars_a_jump_cuts_give_their_time_back_to_the_song() -> None:
+    form = a_form()
+    candidate = candidate_for(form, CHORUS, 1)
+    plain = jump_plan(form, 1, candidate, 5)
+    cut = jump_plan(form, 1, candidate, 5, unplayed_seconds=60.0)
+    assert sum(s.total_seconds() for s in cut) > sum(s.total_seconds() for s in plain)
+
+
+def test_a_continuation_counts_its_own_outro() -> None:
+    reference = a_form()[1]
+    tail = continue_from(reference, CHORUS, 3, 60.0)
+    assert (
+        abs(sum(s.total_seconds() for s in tail) - 60.0)
+        <= SHAPES[CHORUS].bars * 4 * 60 / reference.bpm / 2 + 1e-6
+    )
 
 
 def test_the_climax_moves_to_the_new_tail_and_never_onto_the_candidate() -> None:

@@ -663,3 +663,48 @@ Named in advance:
   heard, because the chorus replaces its last bars. A band cued mid-verse does the same, but
   whether it feels abrupt is the ear's to say.
 - **The jumped-to chorus is always the deterministic one**, never the model's (ADR-022).
+
+### The gate: passed, 2026-09-12
+
+Fabiano ran `jam.py --controller minilab --seconds 120` and struck pad 5 ten times: mid-verse,
+mid-bridge, during the chorus itself, and twice in the bar the scheduler had already fired
+the next section.
+
+- **All ten jumps landed one bar after the pad**, `fired_bar − cue_bar = 1` ×10, read from
+  the log.
+- **Both same-bar jumps replaced the scheduled section**, as ADR-022 says they should.
+- **No write landed in a sounding scene.** Each of the 18 writes was checked against the
+  scene the log's fires and jumps put on the speakers at that beat.
+- The song played to its end with no `beat_lost`; the slowest write took 2033 ms.
+
+Asked the three questions written down above, he answered:
+
+1. Did the chorus arrive when expected? — *"Dentro do esperado."* Within what was expected.
+2. Did the song go somewhere sensible afterwards? — *"Tudo correu bem."* It all went well.
+3. Did the cut sound natural or abrupt? — *"Perceptível, mais natural."* Noticeable, but
+   rather natural.
+
+The first two are a pass. The third names the cost ADR-022 predicted — a jump cuts the
+interrupted section's last bars, fill and all — and says it lands on the natural side.
+
+### A defect the gate found: jumps lengthened the song
+
+**The song asked for 102 seconds and played 216.** `jump_plan` was meant to reshape, not
+lengthen, and did neither exactly, for two reasons:
+
+- **Two outros.** The tail's budget still counted the outro it replaced, and then the tail
+  added a new one.
+- **Overshoot.** The walk ran until it *passed* its budget, like `arrange`, which must reach
+  a minimum. A jump should aim at a length instead.
+
+Each jump added about eleven seconds. Fixed:
+
+- The tail counts its own outro.
+- A section is added only if it brings the tail closer to its budget than stopping would.
+- The bars a jump cuts from the interrupted section give their time back.
+
+Replaying this gate's cue beats offline now gives **133 s against the planned 102**. Only
+seven of the ten cues land before that shorter song ends, and all seven still land after
+one bar. The remainder is section granularity: a tail can only be built from 8-bar
+sections, so each jump can miss its budget by up to half of one. A test holds ten jumps to
+within one section of the planned length.

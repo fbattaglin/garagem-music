@@ -164,40 +164,60 @@ def candidate_for(form: Sequence[Section], kind: str, seed: int) -> Section:
 
 
 def continue_from(reference: Section, kind: str, seed: int, seconds: float) -> tuple[Section, ...]:
-    """What follows a section of `kind`: sections for about `seconds`, then the outro.
+    """What follows a section of `kind`: sections lasting as close to `seconds` as the walk
+    allows, *including* the outro that ends them.
 
     The same weighted walk as `arrange`, started from a kind instead of from the intro, in the
-    reference section's key, scale, tempo and feel. No time left is still an ending: the
-    outro alone.
+    reference section's key, scale, tempo and feel. Unlike `arrange`, which must reach its
+    minimum, this aims at a length: a section is added only if it brings the tail closer to
+    `seconds` than stopping would. No time left is still an ending — the outro alone.
     """
     brief = _brief_like(reference)
     charts = _charts_for(reference.scale)
     rng = Random(seed)
+    budget = seconds - _seconds(brief, OUTRO)
     kinds: list[str] = []
     elapsed = 0.0
     last = kind
-    while elapsed < seconds and last in TRANSITIONS:
+    while last in TRANSITIONS:
         options, weights = zip(*TRANSITIONS[last], strict=True)
-        last = rng.choices(options, weights=weights, k=1)[0]
-        kinds.append(last)
-        elapsed += _seconds(brief, last)
+        following = rng.choices(options, weights=weights, k=1)[0]
+        length = _seconds(brief, following)
+        if abs(budget - (elapsed + length)) >= abs(budget - elapsed):
+            break
+        kinds.append(following)
+        elapsed += length
+        last = following
     kinds.append(OUTRO)
     return tuple(_section(brief, name, charts, rng) for name in kinds)
 
 
 def jump_plan(
-    form: Sequence[Section], playing: int, candidate: Section, seed: int
+    form: Sequence[Section],
+    playing: int,
+    candidate: Section,
+    seed: int,
+    *,
+    unplayed_seconds: float = 0.0,
 ) -> tuple[Section, ...]:
     """The form after a jump from section `playing` to `candidate`.
 
-    What has played stays, the candidate comes next, and a new tail follows it. The tail
-    fills what the planned sections after `playing` would have lasted, less the candidate,
-    so a jump reshapes the song rather than lengthening it. The climax moves to the tail's
-    last chorus — never onto the candidate, which was written before the song began and
-    cannot be lifted after.
+    What has played stays, the candidate comes next, and a new tail follows it. **A jump
+    reshapes the song rather than lengthening it:** the tail, outro included, fills what the
+    planned sections after `playing` would have lasted, plus `unplayed_seconds` — the part of
+    the interrupted section the jump cut — less the candidate.
+
+    Stage 3's gate is why that sentence has a clause for the outro. Before it, the tail's
+    budget still counted the old outro and then added a new one, and the walk ran past its
+    budget by up to a section: ten jumps turned a 102-second song into 216 seconds
+    (`phase-4-findings.md` §9).
+
+    The climax moves to the tail's last chorus — never onto the candidate, which was written
+    before the song began and cannot be lifted after.
     """
     remaining = sum(section.total_seconds() for section in form[playing + 1 :])
-    tail = continue_from(form[playing], candidate.name, seed, remaining - candidate.total_seconds())
+    budget = remaining + unplayed_seconds - candidate.total_seconds()
+    tail = continue_from(form[playing], candidate.name, seed, budget)
     return (*form[: playing + 1], candidate, *_lift_last_chorus(tail))
 
 

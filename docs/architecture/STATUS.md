@@ -87,7 +87,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **1895 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **1903 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -153,19 +153,22 @@ Done, with the suite at **1895 passed, 27 live-marked skipped**, `ruff` and `myp
   diagnosed; the loop is now in `session.toml`, and a run that ends early says whether the
   transport stopped or the position went back. Cues are read a bar after they arrive — the
   latency Stage 3 must remove.
-- **Stage 3 is built, and not yet heard** (`phase-4-findings.md` §9). The song's chorus is
-  written into scene 2 before the downbeat; pad 5 fires it for the next bar — read inside
-  the bar it arrives in, even mid-write — and the rest of the song is re-planned behind it,
-  with the model asked for what follows the chorus and stale sections refused twice. Offline,
-  `fired_bar − cue_bar = 1` holds, no write lands in a playing scene, and a performance with
-  jumps replays byte for byte. **Gate pending:** the band follows Fabiano to the chorus.
+- **Stage 3: the band follows the MiniLab to the chorus — gate passed, 2026-09-12**
+  (`phase-4-findings.md` §9). The song's chorus is written into scene 2 before the downbeat;
+  pad 5 fires it for the next bar, read inside the bar it arrives in, and the rest of the
+  song is re-planned behind it, with the model asked for what follows and stale sections
+  refused twice. In the real Set, ten jumps all landed one bar after the pad and no write hit
+  a sounding scene. Fabiano: *"Dentro do esperado"*, *"Tudo correu bem"*, the cut
+  *"perceptível, mais natural"*. The gate also found jumps lengthening the song, 102 s to
+  216 s; the re-plan now aims at the length it replaces.
 
 Next, in order:
 
-1. **Stage 3's gate, by ear.** `uv run python scripts/jam.py --controller minilab
-   --seconds 120`, striking pad 5 (chorus now) at different points of the song. The printed
-   summary must say every jump landed after 1 bar; the ear says whether the band followed.
-2. **Stages 4–5: bar cues and knobs** (ADR-022), each gated by ear and hand.
+1. **Stage 4: bar cues** (ADR-022). STOP and FILL as legato variants of the playing section,
+   written a section ahead into scenes 4–7, fired per track and returned from after one bar;
+   DRUMS+BASS as a quantised stop of guitar and keys until the next section. Gate, by ear:
+   stop, fill and drop each feel on time.
+2. **Stage 5: boundary cues and knobs** (ADR-022), gated by ear and hand.
 
 ## Phase 3 — closed with one waiver
 
