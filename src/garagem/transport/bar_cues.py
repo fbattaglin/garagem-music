@@ -39,16 +39,26 @@ from typing import Final
 from garagem.daw import ClipAddress, DawError, DawPort
 from garagem.daw.session import ensure_clip
 from garagem.domain import Instrument, SectionScore
-from garagem.engines import fill_bars, stop_bars
+from garagem.engines import FillStyle, fill_bars, stop_bars
 from garagem.obs import EventLog
 from garagem.transport.render import render_part
 
 STOP: Final = "stop"
 FILL: Final = "fill"
 
+# The fill a person gets from pad 2. Stage 4's gate heard the snare fill as "não tão clara";
+# a blind audition of six fills ranked the run down the toms first and second, and Fabiano
+# chose it without the crash on the return (`phase-4-findings.md` §10).
+FILL_CUE_STYLE: Final = FillStyle.TOMS
+
+
+def _fill_cue(score: SectionScore) -> SectionScore:
+    return fill_bars(score, FILL_CUE_STYLE)
+
+
 VARIANTS: Final[dict[str, Callable[[SectionScore], SectionScore]]] = {
     STOP: stop_bars,
-    FILL: fill_bars,
+    FILL: _fill_cue,
 }
 
 # Which tracks each variant changes — and therefore fires, and returns.

@@ -947,3 +947,12 @@ def test_a_performance_with_bar_cues_replays_byte_for_byte() -> None:
     assert [(e.kind, musical_detail(e)) for e in first.log] == [
         (e.kind, musical_detail(e)) for e in second.log
     ]
+
+
+def test_the_fill_a_pad_fires_is_the_run_down_the_toms_the_audition_chose() -> None:
+    """phase-4-findings.md §10: ranked first and second of six, blind."""
+    from garagem.theory.percussion import TOMS
+
+    rig = BarRig().play()
+    fill = rig.daw.read_notes(at(Instrument.DRUMS, VERSE_FILL))
+    assert set(TOMS) <= {note.pitch for note in fill}

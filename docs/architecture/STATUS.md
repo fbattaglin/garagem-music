@@ -87,7 +87,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **1995 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **1996 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.

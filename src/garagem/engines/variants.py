@@ -33,6 +33,9 @@ the stop and the drop and heard the fill as *"não tão clara"* (`phase-4-findin
 Both leave the kick only on the downbeat, so the fill has the bar to itself. `land_bars` is
 the third idea — a crash on the bar the groove returns in — and it is a variant of its own,
 because the fill's bar cannot hold the next bar's downbeat.
+
+The audition chose `TOMS` (§10): the fill cue uses it, and `fill_bars` keeps `SNARE` as its
+default because that is still what the section's own ending approval covered.
 """
 
 from __future__ import annotations
