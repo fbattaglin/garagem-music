@@ -1233,8 +1233,8 @@ warning."* The answer it gave was a musical regression suite in CI, against cass
 
 **The reading proposed:** the criterion is met when a recording of the model runs in CI and
 fails on the three things drift would change. Recording again is a deliberate, paid, manual
-act, as recording has always been in this project. **Fabiano has not accepted this reading
-yet.**
+act, as recording has always been in this project. **Accepted by Fabiano on 2026-09-13**,
+before the set was recorded.
 
 ### What was built
 
@@ -1422,3 +1422,59 @@ Asked whether anything was audible when the network went and came back:
 
 **The chaos test is met, by log and by ear.** P2 held in the real Set: twice the network went
 mid-song, the floor played what the model could not, and nothing was heard.
+
+## 15. The closing blind A/B, pre-registered
+
+ADR-018 carried Phase 3's blind A/B into this phase: *"same design, same threshold: 8 of 12.
+Blind, balanced across sections and feels, pre-registered."* Phase 3's run was 5 of 12 (§16
+of `phase-3-findings.md`). This section is written and committed before a single pair is
+generated. Fabiano accepted each choice below on 2026-09-13.
+
+### The design, unchanged
+
+`scripts/ab_section.py`, as it ran in Phase 3:
+
+- **12 pairs.** Each pair is one briefing played twice: once by the model (`claude-sonnet-5`,
+  the producer's request) and once by the floor with the same seed.
+- **Order.** Both sides are written into Live and played in an order drawn from the seed, and
+  the order is not shown.
+- **Voting.** Fabiano votes for the side he prefers, and the log records which side was which
+  only at the vote.
+- **Pairs not counted.** A pair whose two sides are identical is refused, and so is a pair
+  where the model returned nothing usable.
+- **Balance.** The plan is six choruses, three verses and three bridges. Every feel appears
+  three times, halftime included, and every tempo three times.
+
+### The choices, made before listening
+
+1. **A new seed: 2026.** Phase 3 used 7.
+   - The briefings keep their keys, feels and tempos, which are the design.
+   - Their chord charts differ in 7 of 12 pairs, and the floor's music in all 12.
+   - Fabiano does not vote again on sections he has already heard.
+2. **No Phase 4 endings.** Both sides play the section as generated, as in Phase 3.
+   - An ending would be the same on both sides (ADR-020), so it cannot favour either.
+   - Leaving it out keeps the result comparable with 5 of 12.
+3. **A separate log: `bench/ab-phase4.jsonl`.** Phase 3's votes stay where they are.
+
+### What is counted
+
+- **The criterion:** the model preferred in **at least 8 of 12** judged pairs.
+- **Refused pairs.** A refused pair is not a vote. If fewer than 12 are judged, the criterion
+  is not met, and more pairs are not added to reach 12.
+- **The chorus line is not a criterion.** The script still prints "chorus pairs, model in ≥ 4
+  of 6" as pre-registered. That hypothesis was pre-registered for Phase 3's §13 mechanism, and
+  §16 there refuted it. The count will be reported, and it decides nothing.
+- **A miss does not lower the threshold.** If the model is preferred in fewer than 8, Phase 4
+  does not close clean. What that means for the model's place in the system is decided
+  afterwards and written down, as ADR-018 requires of a waiver. A "no" is the answer ADR-018
+  itself calls valuable: it would say the floor is good enough.
+
+### The command
+
+Live open and stopped, about 20 minutes, about $0.05:
+
+```
+uv run python scripts/ab_section.py --pairs 12 --seed 2026 --log bench/ab-phase4.jsonl
+```
+
+`--resume` continues a run that was stopped. The tally prints only at the end.

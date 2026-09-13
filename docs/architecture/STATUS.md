@@ -224,8 +224,8 @@ Next, in order — Stage 6, closing the phase with the instrument in hand:
   - **Musical regression suite.** `scripts/record_regression.py` records Phase 3's closing
     population of 29 sections; `tests/regression/` judges the recording in CI. It fails on a
     moved prompt, on conformance or approval under Phase 3's targets, and on a golden diff.
-    Drift is caught when someone records again, never continuously: CI holds no key. That
-    reading of the criterion is Fabiano's to accept. The recording costs about $0.10.
+    Drift is caught when someone records again, never continuously: CI holds no key.
+    Fabiano accepted that reading on 2026-09-13. The recording costs about $0.10.
   - **Chaos test.** Preparing it found that a dead network killed the producer's thread: the
     breaker's refusal was not caught, so the model would never have come back. Fixed and
     tested. The report now reads the chaos criterion from the log.
@@ -233,9 +233,11 @@ Next, in order — Stage 6, closing the phase with the instrument in hand:
     song. The floor played the four sections the model could not, and no beat was lost.
     Fabiano: *"Tudo me pareceu ótimo. Não ouvi nenhuma interrupção."*
 
-1. **Musical regression suite:** accept §13's reading, then record the set (`--yes`, about
-   $0.10) and commit it with its golden files.
-2. **Blind A/B at close:** 8 of 12, same design as ADR-018.
+1. **Musical regression suite:** record the set (`record_regression.py --yes`, about $0.10),
+   generate its golden files, and commit them together (§13).
+2. **Blind A/B at close:** 8 of 12, same design as ADR-018, pre-registered in §15: a new seed
+   (2026), no endings, and its own log. `ab_section.py --pairs 12 --seed 2026 --log
+   bench/ab-phase4.jsonl`.
 
 ## Phase 3 — closed with one waiver
 
