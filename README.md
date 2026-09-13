@@ -252,8 +252,8 @@ evidence, or when a criterion is explicitly waived in an ADR with its threshold 
 | 1 | The bridge to Ableton Live | Closed · 2026-08-30 |
 | 2 | Clock, buffer and deterministic engine | Closed · 2026-08-30 |
 | 3 | First structural generation, one call per section | Closed · 2026-09-01 · one waiver ([ADR-018](docs/architecture/ADR-018-the-ab-waiver.md)) |
-| 4 | The full band and the tactical layer, conducted from the MiniLab | Every criterion met but the blind A/B, waived by [ADR-023](docs/architecture/ADR-023-the-second-ab-waiver.md); awaiting its gate |
-| 5 | When the model is worth calling; Setlist Mode for offline shows; voice control | Next |
+| 4 | The full band and the tactical layer, conducted from the MiniLab | Closed · 2026-09-13 · one waiver ([ADR-023](docs/architecture/ADR-023-the-second-ab-waiver.md)) |
+| 5 | When the model is worth calling; Setlist Mode for offline shows; voice control | **Current** |
 | 6 | Timbre, mixing and an offline asset bakery | Planned |
 
 **One finding shapes what comes next.** In the last three blind listening tests, 36 pairs in

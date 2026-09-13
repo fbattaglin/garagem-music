@@ -3,6 +3,8 @@
 Status: **accepted** · Date: 2026-09-13 · Written for the Phase 4 → Phase 5 gate.
 Waives, a second time, the clause ADR-018 carried into Phase 4. Depends on ADR-018 and
 ADR-019; amends ADR-000 §7's Phase 5.
+**Phase 4 closed at its gate on 2026-09-13**, every other criterion confirmed from committed
+evidence.
 
 ## Context
 

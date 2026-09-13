@@ -1,8 +1,61 @@
 # Roadmap status
 
-**Current phase: 4 — The full Band and the tactical layer**
+**Current phase: 5 — Human in the loop and Setlist Mode**, opening with when the model is
+worth calling ([ADR-023](ADR-023-the-second-ab-waiver.md))
 
-## Phase 4 exit criteria
+## Phase 5 exit criteria
+
+ADR-000 §7, amended by [ADR-021](ADR-021-the-minilab-joins-phase-4.md) and
+[ADR-023](ADR-023-the-second-ab-waiver.md):
+
+> **Exit criterion:** a 10-minute session driven only by the MiniLab and by voice; and a
+> 10-minute session **with the Wi-Fi off** using a pre-baked setlist.
+
+- **ADR-021** moved the MiniLab reading and its first two macros, tension and density, into
+  Phase 4. This phase keeps Setlist Mode, the voice/MCP control plane, KEEP/VETO curation and
+  the other six macros.
+- **ADR-023** puts a question ahead of all of it. Three blind A/B runs came out at parity, 18 of
+  36, so this phase first asks **when the model is worth calling at all**. Setlist Mode's
+  offline case already assumes the answer.
+
+- [ ] When the model is worth calling. **Criteria not yet written:** they are agreed with
+      Fabiano before anything is measured (ADR-023).
+- [ ] A 10-minute session driven only by the MiniLab and by voice
+- [ ] A 10-minute session with the Wi-Fi off, played from a pre-baked setlist
+
+### Where the phase actually is
+
+Not started. Next, in order:
+
+1. **Write the phase's plan with Fabiano, before any measurement.**
+   - What "worth calling" is measured by, and its thresholds.
+   - Whether a section-level A/B still gates anything.
+   - Where Setlist Mode and voice fit after the routing answer.
+2. **A blind shuffle audition, free and offline** (`phase-4-findings.md` §16).
+   - The model's 11 recorded shuffle sections: 3 from the A/B and 8 from the regression set.
+   - Each played as written and with the second swing taken out.
+   - Its threshold fixed before anything is heard. No model call.
+3. **A blind song-level pair.**
+   - The same three-minute song, played by the floor alone and by the floor and the model
+     together. That is where "less boring" would show, if it is there.
+   - Designed and pre-registered before any listening. Only the model side costs money.
+
+## Phase 4 — closed with one waiver
+
+Closed on 2026-09-13. Nine criteria are met with evidence.
+- **The blind A/B was not met, and Fabiano waived it**
+  ([ADR-023](ADR-023-the-second-ab-waiver.md)). Its threshold is intact.
+- **The debt that the metrics reproduce the ear** was answered rather than met
+  ([ADR-019](ADR-019-the-ear-is-the-instrument.md)).
+- **Both of the project's waivers fall on the same criterion.**
+
+Re-verified at the gate on 2026-09-13:
+- `uv run pytest -q` → **2093 passed, 27 live-marked skipped**.
+- `ruff check .` and `ruff format --check .` clean, and `mypy` clean over 179 source files.
+- CI green on GitHub, run 34775147569.
+- **The session criteria were re-read from the committed `bench/jam.jsonl`:** events
+  1839–3084 for the eight-minute session and 3085–3306 for the chaos test. Every number
+  recorded on the day was reproduced.
 
 ADR-000 §7, amended by [ADR-017](ADR-017-composition-over-generation.md),
 `phase-3-findings.md` §14, [ADR-019](ADR-019-the-ear-is-the-instrument.md) and
@@ -103,7 +156,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
       phase has no validated measure of mess. Stage 2 is no longer held by this line — it
       proceeds judged by ear, the way Phase 2's floor was judged. The offline corpus that
       made both runs free is spent: one unheard pair remains of 107 sections.
-- [ ] **Blind A/B re-run at this phase's close — same design, same threshold: 8 of 12.**
+- [~] **Blind A/B re-run at this phase's close — same design, same threshold: 8 of 12.**
       Blind, balanced across sections and feels, pre-registered. The Phase 3 waiver moved
       the gate; it did not lower the bar.
       — **NOT MET 2026-09-13** (`phase-4-findings.md` §15): the model was preferred in
@@ -117,7 +170,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **2092 passed, 27 skipped** (all live-marked), `ruff` and `mypy` clean:
+Done, with the suite at **2093 passed, 27 skipped** (all live-marked), `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -229,7 +282,7 @@ Done, with the suite at **2092 passed, 27 skipped** (all live-marked), `ruff` an
     - The model wrote 12 of the 36 sections that played.
     - Fabiano: *"Soou bem dentro do esperado."*
 
-Next, in order — Stage 6, closing the phase with the instrument in hand:
+Stage 6, closing the phase with the instrument in hand:
 
 - **Prepared while Fabiano was away** (`phase-4-findings.md` §13, §14). The chaos test has
   since run and passed, and so has the regression suite.
@@ -248,11 +301,8 @@ Next, in order — Stage 6, closing the phase with the instrument in hand:
     unrepaired, for $0.103. The golden files were read before they were kept.
   - **Blind A/B at close: not met, 2026-09-13.** 6 of 12, pre-registered in §15, and waived
     by Fabiano (ADR-023).
-
-1. **The gate: `/phase-gate`,** run by Fabiano. Every criterion but the A/B needs its
-   evidence confirmed, and the A/B stands waived, before Phase 4 is marked closed.
-2. **Phase 5's plan opens with when the model is worth calling** (ADR-023). Its first leads
-   are the shuffle double swing (§16) and a blind song-level pair.
+  - **The gate, 2026-09-13.** Every criterion but the A/B was confirmed from the committed
+    evidence, and Fabiano confirmed closing with the waiver.
 
 ## Phase 3 — closed with one waiver
 
@@ -614,8 +664,7 @@ section deadline — 16 calls, total time p50 4.29 s and max 4.52 s, a margin of
 
 ## Following phases
 
-4. The full Band and the tactical layer
-5. Human in the loop (MiniLab 3) and Setlist Mode
 6. Timbre, mixing and the asset bakery
+7. Extensions: a local symbolic engine, a listening loop, microtiming, jazz
 
 Details and criteria for each phase: `ADR-000-baseline.md`, section 7.
