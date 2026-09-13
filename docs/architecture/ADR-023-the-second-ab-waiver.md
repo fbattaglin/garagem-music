@@ -4,7 +4,8 @@ Status: **accepted** · Date: 2026-09-13 · Written for the Phase 4 → Phase 5 
 Waives, a second time, the clause ADR-018 carried into Phase 4. Depends on ADR-018 and
 ADR-019; amends ADR-000 §7's Phase 5.
 **Phase 4 closed at its gate on 2026-09-13**, every other criterion confirmed from committed
-evidence.
+evidence. **Its question is answered by [ADR-024](ADR-024-the-model-writes-fabiano-chooses.md)**,
+which also settles that no section-level A/B gates Phase 5.
 
 ## Context
 

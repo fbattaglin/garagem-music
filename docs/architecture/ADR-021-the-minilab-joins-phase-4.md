@@ -2,7 +2,8 @@
 
 Status: **accepted** · Date: 2026-09-12 · Decided by Fabiano, written for Stage 1 of the
 MiniLab plan. Amends ADR-000 §7's Phases 4 and 5. Depends on ADR-017 and ADR-020; its
-mechanism is ADR-022.
+mechanism is ADR-022. **§3's six macros are deferred out of Phase 5 by
+[ADR-024](ADR-024-the-model-writes-fabiano-chooses.md)** on 2026-09-13.
 
 ## Context
 

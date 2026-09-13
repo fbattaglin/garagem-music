@@ -1,44 +1,82 @@
 # Roadmap status
 
-**Current phase: 5 — Human in the loop and Setlist Mode**, opening with when the model is
-worth calling ([ADR-023](ADR-023-the-second-ab-waiver.md))
+**Current phase: 5 — Human in the loop and Setlist Mode.** The model writes, Fabiano chooses
+([ADR-024](ADR-024-the-model-writes-fabiano-chooses.md))
 
 ## Phase 5 exit criteria
 
-ADR-000 §7, amended by [ADR-021](ADR-021-the-minilab-joins-phase-4.md) and
-[ADR-023](ADR-023-the-second-ab-waiver.md):
+ADR-000 §7, amended by [ADR-021](ADR-021-the-minilab-joins-phase-4.md),
+[ADR-023](ADR-023-the-second-ab-waiver.md) and
+[ADR-024](ADR-024-the-model-writes-fabiano-chooses.md):
 
 > **Exit criterion:** a 10-minute session driven only by the MiniLab and by voice; and a
 > 10-minute session **with the Wi-Fi off** using a pre-baked setlist.
 
 - **ADR-021** moved the MiniLab reading and its first two macros, tension and density, into
-  Phase 4. This phase keeps Setlist Mode, the voice/MCP control plane, KEEP/VETO curation and
-  the other six macros.
-- **ADR-023** puts a question ahead of all of it. Three blind A/B runs came out at parity, 18 of
-  36, so this phase first asks **when the model is worth calling at all**. Setlist Mode's
-  offline case already assumes the answer.
+  Phase 4.
+- **ADR-023** put a question ahead of the rest: **when is the model worth calling at all?**
+  Three blind A/B runs came out at parity, 18 of 36.
+- **ADR-024 answers it, agreed with Fabiano on 2026-09-13 before anything was measured.**
+  - **The floor stays the live default.** The model's material reaches the stage through baked
+    setlists, and Fabiano curates them with KEEP and VETO while he plays, blind to who wrote
+    each section.
+  - **No further model-against-floor A/B**, at section or song level. The A/B's record below
+    stands, with its threshold unmoved.
+  - **The six remaining macros are deferred** out of this phase.
+  - **The Wi-Fi-off criterion is sharpened**, because the floor alone already met it
+    (`phase-5-findings.md` §1).
+- **Listening is kept short.** Fabiano's listening time is the scarce resource, so the phase takes
+  its evidence from sessions he plays, and asks for one five-minute test.
 
-- [ ] When the model is worth calling. **Criteria not yet written:** they are agreed with
-      Fabiano before anything is measured (ADR-023).
-- [ ] A 10-minute session driven only by the MiniLab and by voice
-- [ ] A 10-minute session with the Wi-Fi off, played from a pre-baked setlist
+- [ ] **When the model is worth calling: decided and applied** (ADR-024)
+      - The decision is written down. **Met when ADR-024 is committed.**
+      - The shuffle double swing (`phase-4-findings.md` §16) has its five-minute blind check,
+        pre-registered in `phase-5-findings.md` before listening, and its consequence applied.
+        The fix is applied unless the as-written side is preferred in 4 or more of 5.
+      - The setlist the Wi-Fi-off session plays was curated with Fabiano's KEEP and VETO, from
+        sessions he played.
+      - KEEP and VETO counts per author are reported at the gate, from the logs. They decide
+        nothing further (ADR-019).
+- [ ] **A 10-minute session driven only by the MiniLab and by voice**
+      - *Log:* at least 600 s continuous, 0 beats lost, and every pad bar cue landing one bar
+        after the pad.
+      - *Log:* at least 5 voice commands applied, each logged from its tool call to
+        `cue_received`, with the latency reported.
+      - *Log:* voice drives boundary cues, the two macros and KEEP/VETO. Bar cues stay on the
+        pads.
+      - *Self-reported:* no keyboard or mouse during the session.
+      - *By ear:* the verdict recorded verbatim.
+- [ ] **A 10-minute session with the Wi-Fi off, played from the curated setlist**
+      - *Log:* at least 600 s, 0 beats lost, and no network provider constructed. The network
+        check reads zero calls.
+      - *Log:* the share of sections played from the setlist's takes is at least a number fixed
+        with Fabiano before the session, from an offline rehearsal. The floor alone cannot meet
+        this line.
+      - *Log:* conducted from the MiniLab.
+      - *By ear:* the verdict recorded verbatim.
 
 ### Where the phase actually is
 
-Not started. Next, in order:
+**Stage 0 is done: the plan is written.** ADR-024, these criteria and `phase-5-findings.md` §1,
+agreed before anything was measured, baked or heard. Suite at **2093 passed, 27 skipped** (all
+live-marked). Next, in order:
 
-1. **Write the phase's plan with Fabiano, before any measurement.**
-   - What "worth calling" is measured by, and its thresholds.
-   - Whether a section-level A/B still gates anything.
-   - Where Setlist Mode and voice fit after the routing answer.
-2. **A blind shuffle audition, free and offline** (`phase-4-findings.md` §16).
-   - The model's 11 recorded shuffle sections: 3 from the A/B and 8 from the regression set.
-   - Each played as written and with the second swing taken out.
-   - Its threshold fixed before anything is heard. No model call.
-3. **A blind song-level pair.**
-   - The same three-minute song, played by the floor alone and by the floor and the model
-     together. That is where "less boring" would show, if it is there.
-   - Designed and pre-registered before any listening. Only the model side costs money.
+1. **Material survives, and the shuffle fix.**
+   - The live event log keeps the model's DSL, so any take can be replayed and curated.
+   - Under a shuffle, `dsl/realise.py` moves the model's attacks off the eighths onto them. Every
+     floor section is a fixed point.
+   - The five-minute blind check: five pairs from the 19 recorded model shuffle sections,
+     chosen, listed and pre-registered before listening. No model call.
+2. **Bake and baked playback, Setlist Mode's core.**
+   - `scripts/bake_setlist.py` generates songs online once, with the live deadlines and no retry.
+   - `jam.py --setlist` plays them from disk. A section the bake does not hold plays the floor.
+   - The offline rehearsal predicts how much of a session the setlist will serve.
+3. **KEEP and VETO on pads 4 and 7, and curation from the logs.**
+4. **Voice through `garagem-mcp`.** A spike of the voice path first, and the `mcp` dependency is
+   asked for before it is added.
+5. **The two ten-minute sessions, then the gate.**
+
+About five minutes of dedicated listening in the whole phase, and under US$0.50 of model calls.
 
 ## Phase 4 — closed with one waiver
 

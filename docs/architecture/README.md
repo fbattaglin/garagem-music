@@ -23,7 +23,9 @@
     pre-written candidates and legato variants, fired, never written at cue time.
   - `ADR-023-the-second-ab-waiver.md` — the Phase 4 blind A/B, waived at parity with its
     threshold intact; when the model is worth calling opens Phase 5.
-- `phase-0-findings.md` … `phase-4-findings.md` — what the measurements and the
+  - `ADR-024-the-model-writes-fabiano-chooses.md` — the floor plays live; the model's takes
+    reach the stage through setlists curated with KEEP/VETO.
+- `phase-0-findings.md` … `phase-5-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 
 ADR format: context, decision, rejected alternatives, consequences.

@@ -259,9 +259,11 @@ evidence, or when a criterion is explicitly waived in an ADR with its threshold 
 **One finding shapes what comes next.** In the last three blind listening tests, 36 pairs in
 all, sections written by the model and by the deterministic floor were preferred equally, 18 to
 18. The
-floor is an instrument in its own right, not a fallback. Phase 5 therefore starts by asking
-where the model earns its latency, cost and failure modes. The current phase and its evidence
-are tracked in [`docs/architecture/STATUS.md`](docs/architecture/STATUS.md).
+floor is an instrument in its own right, not a fallback. So in Phase 5 the floor plays live,
+and the model writes songs ahead of time that the listener curates while playing, keeping or
+vetoing each section without knowing who wrote it
+([ADR-024](docs/architecture/ADR-024-the-model-writes-fabiano-chooses.md)). The current phase
+and its evidence are tracked in [`docs/architecture/STATUS.md`](docs/architecture/STATUS.md).
 
 ## Documentation
 
@@ -269,7 +271,7 @@ are tracked in [`docs/architecture/STATUS.md`](docs/architecture/STATUS.md).
   principles and roadmap
 - [`docs/architecture/README.md`](docs/architecture/README.md): an index of every
   Architecture Decision Record
-- `phase-0-findings.md` … `phase-4-findings.md`: what the measurements and integrations
+- `phase-0-findings.md` … `phase-5-findings.md`: what the measurements and integrations
   actually showed, as opposed to what the baseline assumed
 - [`CLAUDE.md`](CLAUDE.md): working conventions for AI-assisted development in this
   repository
