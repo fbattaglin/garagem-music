@@ -93,6 +93,41 @@ def test_advancing_never_goes_backwards() -> None:
     assert buffer.floor == 5
 
 
+def test_a_section_already_in_live_is_not_wanted() -> None:
+    """The scheduler writes the next section in the first bar of the one playing; a model
+    still asked for it would be playing to nobody (`phase-4-findings.md` §12)."""
+    buffer = ScoreBuffer()
+    buffer.written(0)
+    buffer.written(1)
+    assert buffer.wanted() == (2,)
+
+
+def test_a_score_for_a_section_already_in_live_is_refused() -> None:
+    buffer = ScoreBuffer()
+    buffer.written(1)
+    assert not buffer.offer(1, a_score(7))
+    assert buffer.refused == 1
+    assert buffer.offer(2, a_score(8))
+
+
+def test_what_is_written_never_goes_backwards() -> None:
+    """A knob that re-plans the next section rewrites it from the floor at the next tick,
+    sooner than any model could answer, so a re-plan does not make it wanted again."""
+    buffer = ScoreBuffer()
+    buffer.written(2)
+    buffer.written(1)
+    buffer.discard_from(1)
+    assert buffer.wanted() == ()
+
+
+def test_a_rewind_wants_again_everything_after_the_section_playing() -> None:
+    buffer = ScoreBuffer()
+    buffer.advance(1)
+    buffer.written(2)
+    buffer.clear()
+    assert buffer.wanted() == (2, 3)
+
+
 def test_clearing_throws_everything_away() -> None:
     """What a rewind means: those bars are not coming."""
     buffer = ScoreBuffer()

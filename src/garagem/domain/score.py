@@ -109,6 +109,11 @@ class Section(BaseModel):
         """How long the section lasts. The one place tempo becomes wall time."""
         return self.total_beats() * 60.0 / self.bpm
 
+    def label(self) -> str:
+        """What tells one song's briefings apart in an event log: a jump renames or resizes
+        a section, a knob moves its `dyn` or `tension`, and nothing else changes mid-song."""
+        return f"{self.name} {self.bars} bars dyn={self.dyn} tension={self.tension:.2f}"
+
 
 class SectionScore(BaseModel):
     """A briefing plus the notes that realise it, and the seed that produced them."""

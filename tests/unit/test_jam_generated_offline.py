@@ -468,3 +468,52 @@ def test_after_a_knob_turn_the_model_is_asked_for_the_moved_briefing() -> None:
     assert moved != form[int(str(changed.detail["from_section"])) + 2]
     assert brief(moved) in provider.asked
     assert scheduler.finished
+
+
+def test_a_conducted_session_never_asks_the_model_for_a_section_already_in_live() -> None:
+    """Rehearsing Stage 6 offline found a third to a half of a conducted session's calls
+    spent on sections the scheduler had already written (`phase-4-findings.md` §12)."""
+    form = with_climax(arrange(BRIEF, SEED))
+    plan = FormPlan(form, endings_for(form))
+    daw = FakeDawAdapter(scenes=8)
+    clock = BarClock(daw)
+    clock.start()
+    buffer = ScoreBuffer()
+    log = EventLog(None)
+    queue = CueQueue(stamp=lambda: clock.beat)
+    producer = Producer(Answering(plan, SEED), buffer, log, plan, model=MODEL, seed=SEED)
+    scheduler = Scheduler(
+        daw, clock, buffer, TRACKS, log, seed=SEED, cues=queue, candidates={"chorus": 2}, plan=plan
+    )
+    conducting: dict[int, Cue | Macro] = {
+        25: Macro(kind=MacroKind.DENSITY, value=1.0),
+        61: Macro(kind=MacroKind.TENSION, value=0.0),
+        97: Cue(kind=CueKind.CHORUS_NOW),
+        133: Macro(kind=MacroKind.DENSITY, value=0.5),
+        169: Cue(kind=CueKind.CHORUS_NOW),
+    }
+    scheduler.begin(form, endings=endings_for(form))
+    beat = 0
+    while not scheduler.finished and beat < 20_000:
+        index = producer._next_wanted()
+        if index is not None:
+            asyncio.run(producer.produce(index))
+        daw.push_beat(beat)
+        if beat in conducting:
+            queue.offer(conducting[beat])
+        scheduler.tick()
+        beat += 1
+
+    in_live = -1
+    asked = 0
+    for event in log:
+        section = int(str(event.detail.get("section", -1)))
+        if event.kind == "section_written" or (
+            event.kind == "cue_applied" and event.detail.get("cue") == "chorus_now"
+        ):
+            in_live = max(in_live, section)
+        elif event.kind == "section_requested":
+            asked += 1
+            assert section > in_live, f"asked for section {section} with {in_live} in Live"
+    assert asked and log.of_kind("macro_changed") and log.of_kind("form_replanned")
+    assert scheduler.finished

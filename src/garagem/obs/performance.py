@@ -1,0 +1,308 @@
+"""Phase 4's exit criteria, read back from one performance's event log. Pure.
+
+Stage 6's paid session is judged by what its log says, and a judgement made by reading
+a thousand lines by eye is a judgement nobody can repeat. Each criterion is a function of
+the events alone — the spend included, which `scripts/jam.py` records as `session_ended`
+— so the verdict printed after the last bar is the one any later reading of
+`bench/jam.jsonl` gets.
+
+**Evidence, not only a tick.** Every check carries the numbers it was decided on, because
+a criterion that is missed by one cue struck on the bar line and one missed by a broken
+scheduler print the same `not met`, and only the evidence tells them apart
+(`phase-4-findings.md` §10).
+
+**A check that nothing tested is not met.** A session with no jump in it says nothing
+about what happens after a jump, and reporting that as met would close a criterion on an
+absence.
+"""
+
+from __future__ import annotations
+
+from collections import Counter
+from collections.abc import Sequence
+from decimal import Decimal
+from typing import Final
+
+from pydantic import BaseModel
+
+from garagem.obs.events import FROZEN, Event
+
+BEATS_PER_BAR: Final = 4
+EIGHT_MINUTES_S: Final = 480.0
+# A scheduler fallback that means a section boundary went by without its section.
+UNHANDLED: Final = frozenset({"not_written", "repeated_too_long"})
+
+
+class Check(BaseModel):
+    """One criterion, whether this performance met it, and what that was decided on."""
+
+    model_config = FROZEN
+
+    criterion: str
+    met: bool
+    evidence: str
+
+
+def performance_checks(
+    events: Sequence[Event], *, minimum_seconds: float = EIGHT_MINUTES_S
+) -> tuple[Check, ...]:
+    """Every criterion this log can speak to. Cost and staleness need a model in the run;
+    cue latency needs a controller. The others are always checked."""
+    ended = _last(events, "session_ended")
+    checks = [
+        _continuous(events, ended, minimum_seconds),
+        _deadlines(events),
+        _measured(events),
+    ]
+    if ended is not None and "spent_usd" in ended.detail:
+        checks.append(_cost(ended))
+    if any(event.kind == "cue_received" for event in events):
+        checks.append(_next_bar(events))
+    if ended is not None and "spent_usd" in ended.detail:
+        checks.append(_never_stale(events))
+    return tuple(checks)
+
+
+def model_share(events: Sequence[Event]) -> tuple[int, int]:
+    """How many of the sections that played the model wrote, out of how many played.
+
+    What played is the last write of a section before its scene was fired; who wrote it is
+    the source the scheduler named just before that write. A jump fired for the bar a
+    section was already launching on takes that section's place (ADR-022).
+    """
+    source: dict[int, str] = {}
+    written: dict[int, str] = {}
+    played: list[tuple[int, str]] = []
+    for event in events:
+        section = _int(event.detail.get("section"))
+        if event.kind == "section_generated" and event.detail.get("source") == "buffer":
+            source[section] = "model"
+        elif event.kind == "fallback" and event.detail.get("reason") == "not_in_buffer":
+            source[section] = "floor"
+        elif event.kind == "section_written":
+            written[section] = source.pop(section, "floor")
+        elif event.kind == "scene_fired":
+            launch = int(event.at_beats // BEATS_PER_BAR) + _int(event.detail.get("slack_bars", 0))
+            played.append((launch, written.get(section, "floor")))
+        elif event.kind == "cue_applied" and event.detail.get("cue") == "chorus_now":
+            launch = _int(event.detail.get("fired_bar"))
+            if played and played[-1][0] == launch:
+                played.pop()
+            # The candidate a jump fires was written by the floor before the song began.
+            played.append((launch, "floor"))
+    return sum(1 for _, who in played if who == "model"), len(played)
+
+
+def render_checks(checks: Sequence[Check], share: tuple[int, int] | None = None) -> str:
+    lines = ["Phase 4, read from this performance's log:"]
+    lines.extend(
+        f"  [{'met' if check.met else 'NOT met'}] {check.criterion} — {check.evidence}"
+        for check in checks
+    )
+    if share is not None and share[1]:
+        lines.append(f"  the model wrote {share[0]} of the {share[1]} sections that played")
+    return "\n".join(lines) + "\n"
+
+
+# ------------------------------------------------------------------------------ criteria
+
+
+def _continuous(events: Sequence[Event], ended: Event | None, minimum_seconds: float) -> Check:
+    fires = [event for event in events if event.kind == "scene_fired"]
+    lost = [event for event in events if event.kind == "beat_lost"]
+    criterion = f"{minimum_seconds / 60:g} minutes of continuous session"
+    if ended is None or not fires:
+        return Check(criterion=criterion, met=False, evidence="the log has no ending to read")
+    bpm = float(str(ended.detail["bpm"]))
+    seconds = (ended.at_beats - fires[0].at_beats) * 60.0 / bpm
+    finished = bool(ended.detail["finished"])
+    evidence = (
+        f"{seconds:.0f} s, {len(fires) - 1} section changes, "
+        f"{'played to its end' if finished else 'stopped early'}, "
+        f"{len(lost)} beat{'s' if len(lost) != 1 else ''} lost"
+    )
+    met = finished and not lost and seconds >= minimum_seconds
+    return Check(criterion=criterion, met=met, evidence=evidence)
+
+
+def _deadlines(events: Sequence[Event]) -> Check:
+    asked = sum(1 for event in events if event.kind == "section_requested")
+    delivered = sum(1 for event in events if event.kind == "section_parsed")
+    missed = sum(1 for event in events if event.kind == "deadline_missed")
+    reasons = Counter(
+        str(event.detail.get("reason")) for event in events if event.kind == "fallback"
+    )
+    unhandled = sum(count for reason, count in reasons.items() if reason in UNHANDLED)
+    failed_writes = sum(
+        1 for event in events if event.kind == "beat_lost" and "error" in event.detail
+    )
+    floor = reasons.get("not_in_buffer", 0)
+    evidence = (
+        f"{asked} asked, {delivered} delivered, {missed} over deadline; "
+        f"{floor} writes by the floor, each with its seed"
+    )
+    if unhandled or failed_writes:
+        evidence += f"; {unhandled} boundaries without a section, {failed_writes} failed writes"
+    return Check(
+        criterion="no deadline overrun left unhandled",
+        met=not unhandled and not failed_writes,
+        evidence=evidence,
+    )
+
+
+def _measured(events: Sequence[Event]) -> Check:
+    written = Counter(_section_and_seed(e) for e in events if e.kind == "section_written")
+    measured = Counter(_section_and_seed(e) for e in events if e.kind == "section_measured")
+    unmeasured = sum((written - measured).values())
+    total = sum(written.values())
+    return Check(
+        criterion="coherence metrics on every section",
+        met=total > 0 and unmeasured == 0,
+        evidence=f"{total - unmeasured} of {total} section writes measured",
+    )
+
+
+def _cost(ended: Event) -> Check:
+    spent = Decimal(str(ended.detail["spent_usd"]))
+    estimated = Decimal(str(ended.detail["estimated_usd"]))
+    target = Decimal(str(ended.detail["target_usd"]))
+    cap = Decimal(str(ended.detail["cap_usd"]))
+    evidence = (
+        f"${spent:.4f} spent (${estimated:.4f} of it estimated from cancelled streams) "
+        f"against a ${target:.2f} target, capped at ${cap:.2f}"
+    )
+    if ended.detail.get("killed"):
+        evidence += "; the governor's kill switch engaged"
+    return Check(
+        criterion="cost inside the declared budget", met=spent <= target, evidence=evidence
+    )
+
+
+def _next_bar(events: Sequence[Event]) -> Check:
+    criterion = "a MiniLab cue takes effect on the next bar"
+    fired = [e for e in events if e.kind == "cue_applied" and "fired_bar" in e.detail]
+    if not fired:
+        return Check(criterion=criterion, met=False, evidence="no next-bar cue was applied")
+    late = [e for e in fired if _int(e.detail["fired_bar"]) - _int(e.detail["cue_bar"]) != 1]
+    evidence = f"{len(fired) - len(late)} of {len(fired)} landed one bar after the pad"
+    if late:
+        evidence += "; late: " + ", ".join(_where_struck(events, event) for event in late)
+    return Check(criterion=criterion, met=not late, evidence=evidence)
+
+
+def _never_stale(events: Sequence[Event]) -> Check:
+    """After every jump the model is asked about the new song, and nothing stale is written."""
+    criterion = "after a jump the model is asked again, and a stale section never plays"
+    jumps = 0
+    unasked: list[int] = []
+    for position, event in enumerate(events):
+        if event.kind != "form_replanned" or not _follows_a_jump(events, position):
+            continue
+        jumps += 1
+        jumped_to = _int(event.detail["from_section"])
+        names = str(event.detail.get("names", "")).split(",")
+        if not _retargeted(events[position + 1 :], jumped_to, names):
+            unasked.append(jumped_to)
+
+    stale = _stale_writes(events)
+    refused = sum(1 for e in events if e.kind == "fallback" and e.detail.get("reason") == "stale")
+    if not jumps:
+        return Check(criterion=criterion, met=False, evidence="no jump was struck")
+    evidence = (
+        f"{jumps} jump{'s' if jumps != 1 else ''}, the model asked after "
+        f"{jumps - len(unasked)}; {refused} stale scores refused, {stale} written"
+    )
+    if unasked:
+        evidence += "; not asked about the new song after the jump to section " + ", ".join(
+            str(i) for i in unasked
+        )
+    return Check(criterion=criterion, met=not unasked and not stale, evidence=evidence)
+
+
+# ------------------------------------------------------------------------------- helpers
+
+
+def _follows_a_jump(events: Sequence[Event], position: int) -> bool:
+    """The re-plan was a jump's. The producer's thread logs too, so its lines may sit between
+    the scheduler's `cue_applied` and the `form_replanned` it wrote next."""
+    replanned = events[position]
+    for event in reversed(events[:position]):
+        if event.kind in ("form_replanned", "macro_changed"):
+            return False
+        if event.kind == "cue_applied":
+            return event.detail.get("cue") == "chorus_now" and _int(
+                event.detail.get("section")
+            ) == _int(replanned.detail.get("from_section"))
+    return False
+
+
+def _retargeted(after: Sequence[Event], jumped_to: int, names: Sequence[str]) -> bool:
+    """The producer's next question after the jump is about the re-planned song.
+
+    Not necessarily the section straight after the chorus: the scheduler writes that one
+    from the floor a bar or two into the chorus, and a producer still finishing a call
+    begun before the jump rightly never asks for it. What matters is that the next section
+    it does ask about carries the new plan's name, or that the plan moved again first.
+    """
+    for event in after:
+        section = _int(event.detail.get("section"))
+        if event.kind in ("form_replanned", "macro_changed"):
+            return True
+        if section <= jumped_to:
+            continue
+        if event.kind == "fallback" and event.detail.get("reason") == "no_time":
+            return True
+        if event.kind == "section_requested":
+            asked = str(event.detail.get("briefing", "")).split(" ")[0]
+            wanted = names[section - jumped_to] if section - jumped_to < len(names) else ""
+            return asked == wanted
+    # Nothing asked before the log ends: fine if nothing after the chorus was written either.
+    return not any(
+        event.kind == "section_written" and _int(event.detail.get("section")) > jumped_to + 1
+        for event in after
+    )
+
+
+def _stale_writes(events: Sequence[Event]) -> int:
+    """Writes of a model's score whose briefing is not the one the model delivered."""
+    delivered: dict[int, str] = {}
+    from_buffer: set[int] = set()
+    stale = 0
+    for event in events:
+        section = _int(event.detail.get("section"))
+        if event.kind == "section_parsed":
+            delivered[section] = str(event.detail.get("briefing"))
+        elif event.kind == "section_generated" and event.detail.get("source") == "buffer":
+            from_buffer.add(section)
+        elif event.kind == "section_written" and section in from_buffer:
+            from_buffer.discard(section)
+            if delivered.get(section) != event.detail.get("briefing"):
+                stale += 1
+    return stale
+
+
+def _where_struck(events: Sequence[Event], applied: Event) -> str:
+    cue = applied.detail["cue"]
+    cue_bar = _int(applied.detail["cue_bar"])
+    gap = _int(applied.detail["fired_bar"]) - cue_bar
+    struck = [
+        event
+        for event in events
+        if event.kind == "cue_received"
+        and event.detail.get("cue") == cue
+        and _int(event.detail.get("bar")) == cue_bar
+    ]
+    beat = f" beat {int(struck[-1].at_beats) % BEATS_PER_BAR + 1} of" if struck else ""
+    return f"{cue} struck on{beat} bar {cue_bar}, {gap} bars"
+
+
+def _section_and_seed(event: Event) -> tuple[int, int]:
+    return _int(event.detail.get("section")), _int(event.detail.get("seed"))
+
+
+def _int(value: object) -> int:
+    return int(str(value)) if value is not None else -1
+
+
+def _last(events: Sequence[Event], kind: str) -> Event | None:
+    return next((event for event in reversed(events) if event.kind == kind), None)

@@ -44,6 +44,11 @@ class GuardedProvider:
     def name(self) -> str:
         return f"guarded:{self._inner.name}"
 
+    @property
+    def governor(self) -> Governor:
+        """What the session has spent is read here, after the last call has settled."""
+        return self._governor
+
     async def warm(self) -> None:
         """Forwarded ungoverned: warming costs no tokens, so there is nothing to reserve.
 

@@ -24,7 +24,6 @@ from garagem.engines import SongBrief
 from garagem.transport import ScoreBuffer
 
 ROOT = Path(__file__).resolve().parents[2]
-LOG = ROOT / "bench" / "test-jam.jsonl"
 
 
 def _load_jam() -> ModuleType:
@@ -228,7 +227,9 @@ def test_a_live_that_is_not_answering_is_reported_without_a_traceback(
 
 
 def test_the_transport_is_stopped_even_when_the_run_fails(
-    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     """Leaving Live playing a loop nobody is driving is not a tidy end."""
 
@@ -236,7 +237,7 @@ def test_the_transport_is_stopped_even_when_the_run_fails(
         raise RuntimeError("something went wrong mid-performance")
 
     monkeypatch.setattr(jam.Scheduler, "run", explode)
-    with_argv(monkeypatch, "--seconds", "10", "--log", str(LOG))
+    with_argv(monkeypatch, "--seconds", "10", "--log", str(tmp_path / "jam.jsonl"))
 
     with pytest.raises(RuntimeError, match="mid-performance"):
         jam.main()
@@ -249,7 +250,9 @@ def test_the_transport_is_stopped_even_when_the_run_fails(
 
 
 def test_without_the_flag_no_provider_is_ever_constructed(
-    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     """Phase 2's behaviour, byte for byte. That is what makes the two comparable."""
 
@@ -258,7 +261,7 @@ def test_without_the_flag_no_provider_is_ever_constructed(
 
     monkeypatch.setattr(jam, "build_provider", refuse)
     monkeypatch.setattr(jam.Scheduler, "run", finished)
-    with_argv(monkeypatch, "--seconds", "10", "--log", str(LOG))
+    with_argv(monkeypatch, "--seconds", "10", "--log", str(tmp_path / "jam.jsonl"))
 
     assert jam.main() == 0
 
@@ -293,7 +296,9 @@ def test_a_dry_run_with_generate_still_opens_nothing(
 
 
 def test_the_producer_is_started_and_stopped_in_the_finally(
-    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     """A thread left running past the performance would keep spending money."""
     started: list[str] = []
@@ -311,14 +316,70 @@ def test_the_producer_is_started_and_stopped_in_the_finally(
     # This test is about start/stop. The wait for a first section has its own test, and
     # leaving it in would spend the whole deadline waiting for a producer that is a stub.
     monkeypatch.setattr(jam, "prime", lambda buffer, first: 0.0)
-    with_argv(monkeypatch, "--seconds", "10", "--generate", "--log", str(LOG))
+    with_argv(monkeypatch, "--seconds", "10", "--generate", "--log", str(tmp_path / "jam.jsonl"))
 
     assert jam.main() == 0
     assert started == ["start", "stop"]
 
 
+def test_a_generated_run_logs_what_it_spent_and_reads_the_criteria_back(
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    """Stage 6 is judged against `target_usd`; the spend goes into the log, not only the tty."""
+    from decimal import Decimal
+
+    from garagem.llm import (
+        BreakerPolicy,
+        CircuitBreaker,
+        FakeProvider,
+        FakeResponse,
+        Governor,
+        GuardedProvider,
+        load_budget,
+        load_catalog,
+        prices_of,
+    )
+    from garagem.obs import load_events
+
+    catalog = load_catalog(ROOT / "config" / "models.toml")
+    budget = load_budget(ROOT / "config" / "budget.toml")
+    guarded = GuardedProvider(
+        FakeProvider([FakeResponse(text="never asked")]),
+        governor=Governor(budget.fuse(prices_of(catalog))),
+        breaker=CircuitBreaker(BreakerPolicy()),
+    )
+
+    class Idle(jam.Producer):  # type: ignore[misc, name-defined]
+        def start(self) -> None:
+            pass
+
+        def stop(self) -> None:
+            pass
+
+    monkeypatch.setattr(jam, "Producer", Idle)
+    monkeypatch.setattr(jam, "build_provider", lambda spec, catalog, budget: guarded)
+    monkeypatch.setattr(jam.Scheduler, "run", finished)
+    monkeypatch.setattr(jam, "prime", lambda buffer, first: 0.0)
+    log = tmp_path / "jam.jsonl"
+    with_argv(monkeypatch, "--seconds", "10", "--generate", "--log", str(log))
+
+    assert jam.main() == 0
+    (ended,) = [event for event in load_events(log) if event.kind == "session_ended"]
+    assert ended.detail["finished"] is True
+    assert Decimal(str(ended.detail["spent_usd"])) == 0
+    assert Decimal(str(ended.detail["target_usd"])) == budget.target_usd
+    printed = capsys.readouterr().err
+    assert "Phase 4, read from this performance's log:" in printed
+    assert "cost inside the declared budget" in printed
+
+
 def test_the_producer_is_stopped_even_when_the_run_fails(
-    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     stopped: list[str] = []
 
@@ -336,7 +397,7 @@ def test_the_producer_is_stopped_even_when_the_run_fails(
     monkeypatch.setattr(jam, "build_provider", lambda spec, catalog, budget: object())
     monkeypatch.setattr(jam, "prime", lambda buffer, first: 0.0)
     monkeypatch.setattr(jam.Scheduler, "run", explode)
-    with_argv(monkeypatch, "--seconds", "10", "--generate", "--log", str(LOG))
+    with_argv(monkeypatch, "--seconds", "10", "--generate", "--log", str(tmp_path / "jam.jsonl"))
 
     with pytest.raises(RuntimeError, match="mid-performance"):
         jam.main()
@@ -541,22 +602,29 @@ def test_without_the_controller_a_live_control_surface_is_not_checked(
 
 
 def test_an_unreadable_live_log_is_a_warning_not_a_refusal(
-    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
 ) -> None:
     monkeypatch.setattr(jam, "find_live_log", lambda: None)
     monkeypatch.setattr(jam, "build_controller", lambda spec: FakeController())
     monkeypatch.setattr(jam.Scheduler, "run", finished)
-    with_argv(monkeypatch, "--seconds", "10", "--controller", "minilab", "--log", str(LOG))
+    log = str(tmp_path / "jam.jsonl")
+    with_argv(monkeypatch, "--seconds", "10", "--controller", "minilab", "--log", log)
     assert jam.main() == 0
     assert "could not find Live's Log.txt" in capsys.readouterr().err
 
 
 def test_a_performance_stopped_from_outside_is_a_failure_with_the_bar_it_stopped_at(
-    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
 ) -> None:
     """Exit 0 means the form was played to the end, which a stopped transport did not."""
     monkeypatch.setattr(jam.Scheduler, "run", lambda self, form, seed=None, endings=None: None)
-    with_argv(monkeypatch, "--seconds", "10", "--log", str(LOG))
+    with_argv(monkeypatch, "--seconds", "10", "--log", str(tmp_path / "jam.jsonl"))
     assert jam.main() == 1
     printed = capsys.readouterr().err
     assert "the performance stopped at bar" in printed
@@ -564,13 +632,16 @@ def test_a_performance_stopped_from_outside_is_a_failure_with_the_bar_it_stopped
 
 
 def test_a_looping_song_position_is_reported_as_the_loop_not_as_a_stop(
-    live: FakeDawAdapter, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
 ) -> None:
     def looped(self: object, form: object, seed: object = None, endings: object = None) -> None:
         self.stopped_because = "position_went_back"  # type: ignore[attr-defined]
 
     monkeypatch.setattr(jam.Scheduler, "run", looped)
-    with_argv(monkeypatch, "--seconds", "10", "--log", str(LOG))
+    with_argv(monkeypatch, "--seconds", "10", "--log", str(tmp_path / "jam.jsonl"))
     assert jam.main() == 1
     printed = capsys.readouterr().err
     assert "went back before the next bar" in printed

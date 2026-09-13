@@ -729,6 +729,7 @@ class Scheduler:
         self._prepared = target
         self._fired = target
         self._buffer.discard_from(target)
+        self._buffer.written(target)
         self._bar_cues.forget_from(target)
         self._bar_cues.section_written(target, candidate, scene)
         if self._plan is not None:
@@ -837,10 +838,13 @@ class Scheduler:
             section=index,
             scene=scene,
             seed=score.seed,
+            # The score's own briefing, not the plan's: what a stale section would betray.
+            briefing=score.section.label(),
             notes=sum(len(part.notes) for part in score.parts),
             ms=ms,
             **({} if ending is None else {"ending": str(ending)}),
         )
+        self._buffer.written(index)
         self._measure(score, index)
         self._bar_cues.section_written(index, score, scene)
 

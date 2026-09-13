@@ -23,6 +23,7 @@ from garagem.obs.latency import (
     render_report,
     summarise,
 )
+from garagem.obs.performance import Check, model_share, performance_checks, render_checks
 from garagem.obs.sections import (
     APPROVAL_TARGET,
     CONFORMANCE_TARGET,
@@ -43,6 +44,7 @@ __all__ = [
     "REQUIRED_BUCKETS",
     "SECTION_DEADLINE_S",
     "Aggregate",
+    "Check",
     "Event",
     "EventLog",
     "MalformedEventError",
@@ -56,8 +58,11 @@ __all__ = [
     "load_events",
     "load_samples",
     "load_shots",
+    "model_share",
     "percentile",
+    "performance_checks",
     "rate_of",
+    "render_checks",
     "render_report",
     "summarise",
 ]

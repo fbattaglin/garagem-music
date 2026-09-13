@@ -46,6 +46,11 @@ still change, and the knobs move it** around its plan (Stage 5). The legend is p
 before the downbeat, and after the last bar a count of what was heard, how many bars each
 cue took to land, and why any was declined.
 
+**With `--generate`, the run ends by reading Phase 4's exit criteria back from its own log**
+(Stage 6): continuous play, deadlines, metrics, cost against `config/budget.toml`, cue
+latency and staleness, each with the numbers it was decided on. The spend is written into
+the log as `session_ended`, so the same verdict can be read again later.
+
 `--dry-run` prints the form and exits without opening a socket, which makes it the
 cheapest way to see what a seed produces. `--provider cassette:<path>` replays a recording
 instead of calling out, so the whole generated path can be exercised against a real Live
@@ -105,7 +110,7 @@ from garagem.llm import (
     load_catalog,
     prices_of,
 )
-from garagem.obs import EventLog
+from garagem.obs import EventLog, model_share, performance_checks, render_checks
 from garagem.transport import (
     BAR_TIMEOUT_S,
     BarClock,
@@ -177,6 +182,24 @@ def build_provider(
         governor=Governor(budget.fuse(prices_of(catalog))),
         breaker=CircuitBreaker(BreakerPolicy()),
     )
+
+
+def spend_of(provider: LLMProvider | None, budget: SessionBudget | None) -> dict[str, str | bool]:
+    """What the governor settled, beside what the budget declared. Empty without a model.
+
+    Written into the log rather than only printed: the cost criterion is judged against
+    `target_usd`, and a verdict that lives in a terminal's scrollback cannot be read again.
+    """
+    if not isinstance(provider, GuardedProvider) or budget is None:
+        return {}
+    spent = provider.governor.snapshot()
+    return {
+        "spent_usd": str(spent.spent_usd),
+        "estimated_usd": str(spent.estimated_usd),
+        "target_usd": str(budget.target_usd),
+        "cap_usd": str(budget.session_usd),
+        "killed": spent.killed,
+    }
 
 
 def build_controller(spec: ControllerSpec) -> ControllerPort:
@@ -432,6 +455,7 @@ def main() -> int:
     # Before anything opens a socket to Live: a missing key should not cost a Set check.
     provider: LLMProvider | None = None
     model: ModelSpec | None = None
+    budget: SessionBudget | None = None
     if args.generate:
         catalog = load_catalog(args.catalog)
         budget = load_budget(args.budget)
@@ -453,6 +477,7 @@ def main() -> int:
     clock = BarClock(daw)
     buffer = ScoreBuffer()
     producer: Producer | None = None
+    scheduler: Scheduler | None = None
     controller = build_controller(controls) if controls is not None else None
     # One form, shared: a jump re-plans it on the scheduler's thread, and the producer
     # must ask the model for what replaced it (ADR-022).
@@ -533,6 +558,14 @@ def main() -> int:
             producer.stop()
         if controller is not None:
             controller.stop()
+        if scheduler is not None:
+            log.record(
+                "session_ended",
+                float(max(clock.beat, 0)),
+                finished=scheduler.finished,
+                bpm=spec.tempo_bpm,
+                **spend_of(provider, budget),
+            )
         for step, action in (
             ("stop listening", clock.stop),
             ("stop the transport", daw.stop_playing),
@@ -545,6 +578,8 @@ def main() -> int:
         daw.close()
         if controller is not None:
             sys.stderr.write(render_cues(log))
+        if scheduler is not None and args.generate:
+            sys.stderr.write(render_checks(performance_checks(log.events), model_share(log.events)))
         sys.stderr.write(f"{len(log)} events -> {args.log}\n")
 
 

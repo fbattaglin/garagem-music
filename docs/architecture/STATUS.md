@@ -89,7 +89,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **2012 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **2040 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -182,13 +182,28 @@ Done, with the suite at **2012 passed, 27 live-marked skipped**, `ruff` and `myp
   also found that a knob turn delays the stops' preparation. Neither was heard as a fault,
   and both are left open.
 
+- **Stage 6 is rehearsed, and not yet paid for** (`phase-4-findings.md` §12).
+  - `scripts/rehearse_session.py` plays the 8-minute session offline: a fake Live, a perfect
+    model and the Stage 5 gate's conducting.
+  - It found a third to a half of a conducted session's calls asking for sections already
+    written into Live. The buffer now refuses them, and nothing audible changed.
+  - `jam.py --generate` now reads every criterion back from its own log, spend included.
+  - The predictions are written down: $0.105 with nobody at the MiniLab, $0.15 with pads,
+    $0.25 with the knobs swept as at the gate.
+  - The declared $0.10 target was below even the unconducted session. Fabiano raised it to
+    **$0.30 before the session**, and the $1.00 cap stays.
+  - Conducted, the model plays under half the song. That is by design (ADR-022), and written
+    down for whoever listens.
+
 Next, in order — Stage 6, closing the phase with the instrument in hand:
 
 1. **One paid session with the model and the MiniLab.** An 8-minute `jam.py --generate
-   --controller minilab`, about US$ 0.10, capped by the `Governor`. It measures:
+   --controller minilab`, capped by the `Governor` at $1.00. It measures:
    - continuous play and deadlines;
    - cost against `config/budget.toml`;
    - the two MiniLab criteria still open, cue latency and no stale section after a jump.
+
+   Predictions and how each criterion is read are in §12, written before it runs.
 2. **Chaos test:** Wi-Fi off mid-session while conducting; nothing audible, by ear and log.
 3. **Musical regression suite in CI** against cassettes, detecting model drift.
 4. **Blind A/B at close:** 8 of 12, same design as ADR-018.

@@ -196,6 +196,7 @@ class Producer:
             section=index,
             model=self._model.id,
             deadline_s=round(request.deadline_s, 2),
+            briefing=section.label(),
         )
 
         try:
@@ -296,6 +297,7 @@ class Producer:
             section=index,
             model=self._model.id,
             seed=seed,
+            briefing=section.label(),
             source="model",
             parts=",".join(from_model),
             input_tokens=usage.input_tokens,

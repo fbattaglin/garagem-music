@@ -31,6 +31,8 @@ written to a file is in English.
   control. Read-only: opens inputs, never an output.
 - `uv run python scripts/spike_cues.py` — asks the real Set how clip launches, legato and
   track stops behave (ADR-022). Changes the Set and puts it back; refuses if it is playing.
+- `uv run python scripts/rehearse_session.py` — plays an 8-minute generated, conducted session
+  offline and predicts its cost and the model's share. No network, no Live, no money.
 
 Run `ruff` and `mypy` before any commit.
 

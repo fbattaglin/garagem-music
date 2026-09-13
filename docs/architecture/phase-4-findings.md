@@ -1017,3 +1017,138 @@ still change, and a strike on the bar line can be a bar late.
 
 Both add work on the thread that carries Live's beat listener. Neither is worth doing before
 a person hears the fault they remove.
+
+## 12. Stage 6, rehearsed before it is paid for
+
+Stage 6 opens with the phase's one paid session: an 8-minute `jam.py --generate --controller
+minilab`. Before any money was spent, it was rehearsed offline with
+`scripts/rehearse_session.py`.
+
+- **Real:** the scheduler, the producer, the buffer, the shared plan, the governor and the
+  prices.
+- **Fake:** Live, where a write costs nothing, and the model. The model is a perfect one that
+  answers eight beats after it is asked (Phase 3's p50 of 3–4 s) and bills the usage
+  `bench_sections.py` measured, 300 tokens in and 228 out.
+- **Replayed:** the pads and knobs of the three Stage 5 gate songs, one after another until
+  the song ends, with `end` left out.
+
+### What the rehearsal found
+
+**A conducted session spent a third to a half of its calls on music nobody could hear.**
+
+- The producer asked for any section in the buffer's window that had no score, starting from
+  the section playing.
+- The scheduler writes the next section in the first bar of the one playing. After a jump or
+  a knob turn, the floor writes that section at once, and the model was then asked for it
+  anyway.
+- The rehearsal counted those shots: 18 of 57 calls with pads only, and 53 of 99 with the
+  gate's pads and knobs together.
+
+**Fixed, with nothing audible changed.**
+
+- `ScoreBuffer.written` records the last section the scheduler put into Live. The buffer
+  neither wants nor accepts music for that section or any before it.
+- The scheduler marks every section it writes, and the candidate a jump fires.
+- A section a knob re-plans stays marked. The floor writes it again at the next tick, sooner
+  than any model could answer.
+
+| Conducting (`--conduct`) | Calls before → after | Spend before → after | Model wrote, before → after |
+|---|---|---|---|
+| `none` | 33 → 33 | $0.105 → $0.105 | 31 → 32 of 35 |
+| `pads` | 57 → 48 | $0.181 → $0.153 | 20 → 21 of 46 |
+| `knobs` | 77 → 62 | $0.245 → $0.197 | 8 → 13 of 35 |
+| `all`, as the gate played | 99 → 79 | $0.315 → $0.251 | 4 → 8 of 46 |
+
+"Model wrote" counts the sections that actually played: the last write of each section before
+its scene fired, with a jump's chorus counted as the floor's.
+
+**The $0.10 target cannot be reached by an 8-minute session, conducted or not.**
+
+- Eight minutes at 132 BPM is 35 sections, and 33 of them are long enough to ask about. At the
+  measured $0.0035 a section, that is $0.105–0.115 with nobody touching the MiniLab.
+- ADR-000 §4.4 estimated $0.08 for a three-minute song, which is about $0.21 for eight
+  minutes.
+- `target_usd = 0.10` was written in Stage 0, before anyone counted an 8-minute form's
+  sections.
+
+**Conducted, the model plays under half of the song, and with the knobs swept, a sixth.**
+
+- A jump fires the floor's chorus. The floor also writes the section after it, within two
+  bars.
+- Each knob step rewrites the next section from the floor.
+- This is ADR-022 working as designed: the model never serves a cue, only the sections after
+  one. It is not a criterion. It is written down so that whoever listens to the paid session
+  knows how much of what they hear is the model.
+- The rehearsal leaves one saving unmade: calls still in flight when a re-plan makes their
+  briefing stale run to the end and are billed.
+
+### How the log is read, written before the session
+
+`scripts/jam.py --generate` now ends by printing each criterion with the numbers it was
+decided on (`obs/performance.py`). It also writes the governor's spend into the log as
+`session_ended`, so the verdict can be read again from `bench/jam.jsonl`. Every
+`section_requested`, `section_parsed` and `section_written` now carries its briefing, so
+staleness is checked from the log, independently of the scheduler's guard.
+
+- **8 minutes of continuous session:**
+  - the song played to its end;
+  - no `beat_lost`;
+  - at least 480 s from the downbeat to the end.
+- **No deadline overrun left unhandled:**
+  - no boundary passed without its section (`not_written`, `repeated_too_long`);
+  - no write failed.
+  - Overruns are counted and reported.
+- **Metrics:** every `section_written` has a `section_measured` with the same section and
+  seed.
+- **Cost:** the spend, measured plus estimated, is at or under `target_usd`. The $1.00 cap is
+  the fuse, not the criterion.
+- **Next bar:** every cue that fires has `fired_bar − cue_bar = 1`.
+  - Counted strictly. A late cue is reported with the beat it was struck on, and is not
+    excused afterwards.
+  - The real Live can still make one late, as happened once in Stage 4 and once in Stage 5.
+- **No stale section, and the model asked again after a jump:**
+  - no model score was written under a briefing other than the one it was delivered for;
+  - after each jump, the next section the producer asks about carries the re-planned song's
+    name.
+  - That is read as the first section after the jump that the model can still serve. The
+    section straight after the chorus is written by the floor within two bars, faster than
+    any model answers. Asking for it is the waste this section removed.
+  - A session with no jump does not meet this criterion.
+- **`kit_collision` is not tested.** Its inverted sign was not pre-registered, so this session
+  cannot test it (ADR-019 §3).
+
+### Predictions, written before the session
+
+From `scripts/rehearse_session.py`, after the fix:
+
+| `--conduct` | `--latency-beats` | Calls | Spend | Model wrote |
+|---|---|---|---|---|
+| `none` | 8 | 33 | $0.105 | 32 of 35 |
+| `pads` | 8 | 48 | $0.153 | 21 of 46 |
+| `knobs` | 8 | 62 | $0.197 | 13 of 35 |
+| `all` | 8 | 79 | $0.251 | 8 of 46 |
+| `pads` | 13 | 45 | $0.143 | 18 of 46 |
+| `all` | 13 | 64 | $0.204 | 7 of 46 |
+
+### The target, settled before the session
+
+Asked before any money was spent, Fabiano raised `target_usd` from $0.10 to **$0.30** on
+2026-09-13. The $1.00 cap is unchanged.
+
+- The new target covers conducting as freely as the Stage 5 gate did, with room for what the
+  rehearsal cannot model (below).
+- The two alternatives were declined:
+  - keeping $0.10 and deciding about a waiver after the session;
+  - cancelling calls that a re-plan makes stale before paying. That saves up to about $0.05 and
+    still does not reach $0.10.
+- The criterion's text is unchanged. What changed is the declared number it points at, and it
+  changed before anything was measured against it.
+
+The real session adds four things the rehearsal does not model:
+
+- the model's real token counts;
+- streams cancelled at their deadline;
+- deadline misses, of which there were none here;
+- two-second writes into the real Live.
+
+Suite: **2040 passed, 27 live-marked skipped**; `ruff` and `mypy` clean.

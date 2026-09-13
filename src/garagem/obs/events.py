@@ -76,6 +76,9 @@ KINDS: Final[tuple[str, ...]] = (
     # Phase 4, Stage 5. The knobs moved the song: the offsets now in force, and the first
     # section they reach.
     "macro_changed",
+    # Phase 4, Stage 6. How the performance ended and what it spent, so the exit criteria
+    # can be read back from the log alone (`obs/performance.py`).
+    "session_ended",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so

@@ -39,6 +39,10 @@ class ScoreBuffer:
         self._lock = threading.Lock()
         self._scores: dict[int, SectionScore] = {}
         self._floor = 0
+        # The last section the scheduler has written into Live. Music generated for it, or
+        # for anything before it, can never be heard: the scheduler writes the next section
+        # in the first bar of the one playing, and does not write it again.
+        self._written = -1
         # Observables. `refused` rising means a generator is working on music nobody will
         # ever hear, which is a scheduling bug rather than a musical one.
         self.refused = 0
@@ -50,7 +54,7 @@ class ScoreBuffer:
         was needed, and the deterministic floor has already played it.
         """
         with self._lock:
-            if index < self._floor or index > self._floor + self._window:
+            if index < self._floor or index <= self._written or index > self._floor + self._window:
                 self.refused += 1
                 return False
             self._scores[index] = score
@@ -68,6 +72,16 @@ class ScoreBuffer:
             for stale in [key for key in self._scores if key < self._floor]:
                 del self._scores[stale]
 
+    def written(self, index: int) -> None:
+        """Section `index` is in Live. A model still asked for it would be playing to nobody.
+
+        Found by rehearsing Stage 6's session offline: conducted from the MiniLab, a third
+        to a half of the calls asked for a section the floor had already written, because
+        `wanted` began at the section playing (`phase-4-findings.md` §12).
+        """
+        with self._lock:
+            self._written = max(self._written, index)
+
     def discard_from(self, index: int) -> None:
         """Drop everything generated for `index` and after. What a re-planned form means."""
         with self._lock:
@@ -78,6 +92,8 @@ class ScoreBuffer:
         """Throw everything away. What a rewind means: those bars are not coming."""
         with self._lock:
             self._scores.clear()
+            # Only the section playing is still in Live; everything after it is written again.
+            self._written = min(self._written, self._floor)
 
     def pending(self) -> tuple[int, ...]:
         """Which indices are actually ready, ascending."""
@@ -87,9 +103,10 @@ class ScoreBuffer:
     def wanted(self) -> tuple[int, ...]:
         """Indices inside the window with nothing in them yet — what to generate next."""
         with self._lock:
+            first = max(self._floor, self._written + 1)
             return tuple(
                 index
-                for index in range(self._floor, self._floor + self._window + 1)
+                for index in range(first, self._floor + self._window + 1)
                 if index not in self._scores
             )
 
