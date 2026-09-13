@@ -1152,3 +1152,65 @@ The real session adds four things the rehearsal does not model:
 - two-second writes into the real Live.
 
 Suite: **2040 passed, 27 live-marked skipped**; `ruff` and `mypy` clean.
+
+### The session: every criterion it could measure, met, 2026-09-13
+
+Fabiano ran `jam.py --generate --controller minilab --seconds 480` with `claude-sonnet-5`
+generating. He conducted with every pad except "end", and turned both knobs. The report it
+printed, read from its own log:
+
+| Criterion | Result |
+|---|---|
+| 8 minutes of continuous session | 489 s, 31 section changes, played to its end, 0 beats lost |
+| No deadline overrun left unhandled | 67 asked, 51 delivered, 0 over deadline; 28 floor writes, each with its seed |
+| Coherence metrics on every section | 54 of 54 section writes measured |
+| Cost inside the declared budget | $0.238, none of it estimated, against the $0.30 target; the $1.00 cap never engaged |
+| A MiniLab cue takes effect on the next bar | 34 of 34 landed one bar after the pad |
+| After a jump, the model is asked again, and nothing stale plays | 5 jumps, asked after 5; 13 stale scores refused, 0 written |
+
+**What was played:**
+
+- **Controls received:** 619, of which 573 were knob positions.
+- **Bar cues applied:**
+  - `fill` ×17
+  - `drums_and_bass` ×7
+  - `stop` ×5
+  - `chorus_now` ×5
+- **Other pads and knobs:**
+  - `next_bridge` re-planned the song 4 times.
+  - The knobs moved the plan 31 times.
+- **Declined:** 8 cues, for the stated reasons.
+  - `section_change` ×5
+  - `unavailable` ×2
+  - `already_next` ×1
+
+**Against the predictions written before it:**
+
+- The rehearsal of this style of conducting (`--conduct all`) predicted 79 calls and $0.251.
+  The session made 67 calls and spent $0.238.
+- Each delivered section averaged 295 tokens in and 235 out, where the rehearsal assumed 300
+  and 228.
+- No stream was cancelled, so none of the spend is estimated.
+- **The model wrote 12 of the 36 sections that played.** The rehearsal predicted 8 of 46 for
+  the gate's heavier conducting, and a sixth to a half across the styles it tried. The rest
+  were the floor, as §12 warned: a jump's chorus, the section after each jump, and each
+  section a knob step rewrote.
+
+**Not criteria, and not heard as faults:**
+
+- A fill's return went a bar late once, in the outro, so that fill lasted two bars.
+- Two section writes crossed 1.8 s, the clip replacements of §11. Neither cost a cue its
+  bar.
+
+Asked how it sounded, with the model's sections mixed among the floor's, he answered:
+
+> *"Soou bem dentro do esperado."* — It sounded well within what was expected.
+
+**Six of Phase 4's criteria are met by this session:** continuity, deadlines, metrics, cost, the
+next-bar cue, and no stale section after a jump. Three remain:
+
+- the chaos test;
+- the musical regression suite in CI;
+- the blind A/B at close.
+
+The verdict is on the whole session. No section, and neither author, was singled out.

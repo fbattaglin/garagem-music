@@ -17,11 +17,17 @@ deterministically on the next bar while the model refines the next section, beca
 > metrics within range; cost per session within the declared budget; a chaos test (kill the
 > network mid-session) with no audible interruption.
 
-- [ ] 8 minutes of continuous session with section changes throughout (machine, event log)
-- [ ] No deadline overrun left unhandled — every one declines or falls back, logged with
+- [x] 8 minutes of continuous session with section changes throughout (machine, event log)
+      — **met 2026-09-13** (`phase-4-findings.md` §12): 489 s, 31 section changes, played to
+      its end, no beat lost, conducted from the MiniLab with the model generating.
+- [x] No deadline overrun left unhandled — every one declines or falls back, logged with
       its reason and its seed. ADR-000 §9 still rates the tail High, and Phase 3's clean
       round (0 of 29 over) did not retire it.
-- [ ] Coherence metrics on every section in the event log — bass/kick alignment, harmonic
+      — **met 2026-09-13**: 67 sections asked, 51 delivered, none over its deadline. Every
+      section the model did not have was played by the floor with its seed, and no boundary
+      passed without its section. The tail is still not retired: this session never reached
+      it.
+- [x] Coherence metrics on every section in the event log — bass/kick alignment, harmonic
       conformance, register spread, density against the target `tension` — **and no
       metric used as a target until one has passed a pre-registered preference gate**
 
@@ -36,7 +42,11 @@ deterministically on the next bar while the model refines the next section, beca
       five metrics of exactly what was written, ending included, with its seed — whether
       the model or the floor wrote it. Ticked when the 8-minute session's log shows one per
       section.
-- [ ] Cost per session inside the declared budget, hard-capped by the `Governor`
+
+      — **met 2026-09-13**: 54 of 54 section writes measured, and no metric steered anything.
+- [x] Cost per session inside the declared budget, hard-capped by the `Governor`
+      — **met 2026-09-13**: $0.238 against a target of $0.30, which Fabiano raised from $0.10
+      before the session (§12). The $1.00 cap never engaged.
 - [ ] Chaos test: the network dies mid-session and nothing is audible (P2, by ear as well
       as by log)
 - [ ] Musical regression suite in CI against cassettes, detecting model drift
@@ -44,10 +54,13 @@ deterministically on the next bar while the model refines the next section, beca
 Added by [ADR-021](ADR-021-the-minilab-joins-phase-4.md), when the MiniLab moved into this
 phase. How a cue reaches the bar is [ADR-022](ADR-022-a-cue-costs-a-fire-never-a-write.md).
 
-- [ ] A MiniLab cue takes effect on the next bar — `fired_bar − cue_bar = 1` for every
-      next-bar cue in a session's event log
-- [ ] After a jump cue, the section that follows is requested from the model with the
-      re-planned briefing, and a stale section never plays (event log)
+- [x] A MiniLab cue takes effect on the next bar — `fired_bar − cue_bar = 1` for every
+      next-bar cue in a session's event log — **met 2026-09-13**: 34 of 34 in the paid session
+- [x] After a jump cue, the section that follows is requested from the model with the
+      re-planned briefing, and a stale section never plays (event log) — **met 2026-09-13**:
+      after each of 5 jumps the model was asked about the re-planned song. 13 stale scores
+      were refused and none was written. "The section that follows" is read as the first one
+      the model can still serve (§12).
 - [x] A session directed from the MiniLab, judged by ear, the verdict recorded verbatim
       — **met 2026-09-13**, three conducted songs over the deterministic floor
       (`phase-4-findings.md` §11): *"Eu acredito que ficou tudo dentro do esperado."*
@@ -182,7 +195,8 @@ Done, with the suite at **2040 passed, 27 live-marked skipped**, `ruff` and `myp
   also found that a knob turn delays the stops' preparation. Neither was heard as a fault,
   and both are left open.
 
-- **Stage 6 is rehearsed, and not yet paid for** (`phase-4-findings.md` §12).
+- **Stage 6's paid session: every criterion it could measure, met, 2026-09-13**
+  (`phase-4-findings.md` §12).
   - `scripts/rehearse_session.py` plays the 8-minute session offline: a fake Live, a perfect
     model and the Stage 5 gate's conducting.
   - It found a third to a half of a conducted session's calls asking for sections already
@@ -194,19 +208,17 @@ Done, with the suite at **2040 passed, 27 live-marked skipped**, `ruff` and `myp
     **$0.30 before the session**, and the $1.00 cap stays.
   - Conducted, the model plays under half the song. That is by design (ADR-022), and written
     down for whoever listens.
+  - **The session:** eight minutes with the model generating and Fabiano conducting.
+    - Six criteria met: 489 s continuous, no deadline overrun, 54 of 54 writes measured,
+      $0.238, 34 of 34 cues on the next bar, and nothing stale played after 5 jumps.
+    - The model wrote 12 of the 36 sections that played.
+    - Fabiano: *"Soou bem dentro do esperado."*
 
 Next, in order — Stage 6, closing the phase with the instrument in hand:
 
-1. **One paid session with the model and the MiniLab.** An 8-minute `jam.py --generate
-   --controller minilab`, capped by the `Governor` at $1.00. It measures:
-   - continuous play and deadlines;
-   - cost against `config/budget.toml`;
-   - the two MiniLab criteria still open, cue latency and no stale section after a jump.
-
-   Predictions and how each criterion is read are in §12, written before it runs.
-2. **Chaos test:** Wi-Fi off mid-session while conducting; nothing audible, by ear and log.
-3. **Musical regression suite in CI** against cassettes, detecting model drift.
-4. **Blind A/B at close:** 8 of 12, same design as ADR-018.
+1. **Chaos test:** Wi-Fi off mid-session while conducting; nothing audible, by ear and log.
+2. **Musical regression suite in CI** against cassettes, detecting model drift.
+3. **Blind A/B at close:** 8 of 12, same design as ADR-018.
 
 ## Phase 3 — closed with one waiver
 
