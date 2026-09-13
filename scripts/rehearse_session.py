@@ -3,6 +3,8 @@
     uv run python scripts/rehearse_session.py                       # 8 minutes, conducted
     uv run python scripts/rehearse_session.py --conduct none        # nobody at the MiniLab
     uv run python scripts/rehearse_session.py --conduct pads --latency-beats 13
+    uv run python scripts/rehearse_session.py --seconds 180 --network-lost-at-s 60 \
+        --network-back-at-s 120                                     # the chaos test
 
 Stage 6 closes Phase 4 with one paid session, judged against criteria written down before
 it runs. Rehearsing it first is what found that a conducted session spent a third to a half
@@ -54,6 +56,7 @@ from garagem.llm import (
     FakeResponse,
     Governor,
     GuardedProvider,
+    ProviderUnavailableError,
     Request,
     StopReason,
     StreamEvent,
@@ -136,21 +139,33 @@ def _kept(control: Control, style: str) -> bool:
 
 
 class PerfectModel:
-    """Answers any briefing in the current plan, `latency_beats` after it was asked."""
+    """Answers any briefing in the current plan, `latency_beats` after it was asked.
+
+    Unreachable while `offline(beat)` says so: every call fails before a byte arrives, as a
+    call into a machine with no network does.
+    """
 
     name = "perfect"
 
     def __init__(
-        self, plan: FormPlan, seed: int, now: Callable[[], int], latency_beats: int
+        self,
+        plan: FormPlan,
+        seed: int,
+        now: Callable[[], int],
+        latency_beats: int,
+        offline: Callable[[int], bool] = lambda beat: False,
     ) -> None:
         self._plan = plan
         self._seed = seed
         self._now = now
         self._latency = latency_beats
+        self._offline = offline
         self.calls = 0
 
     async def stream(self, request: Request) -> AsyncIterator[StreamEvent]:
         self.calls += 1
+        if self._offline(self._now()):
+            raise ProviderUnavailableError("ConnectError: the network is gone")
         content = request.messages[0].content
         # Captured when asked: a model answers the briefing it was sent, however stale.
         section = next(s for s in self._plan.sections() if brief(s) == content)
@@ -171,9 +186,18 @@ class PerfectModel:
 
 
 def rehearse(
-    seconds: float, seed: int, strikes: Strikes, *, latency_beats: int = LATENCY_BEATS
+    seconds: float,
+    seed: int,
+    strikes: Strikes,
+    *,
+    latency_beats: int = LATENCY_BEATS,
+    offline: tuple[float, float] | None = None,
 ) -> tuple[EventLog, int]:
-    """One performance, a beat at a time. Returns its log and how many calls it made."""
+    """One performance, a beat at a time. Returns its log and how many calls it made.
+
+    `offline` is when the network is gone, in seconds from the downbeat: the chaos test.
+    The breaker keeps musical time too, so it recovers on the rehearsal's clock.
+    """
     catalog = load_catalog(CATALOG)
     budget = load_budget(BUDGET)
     song = SongBrief(key=4, scale="minor", bpm=BPM, feel=Feel.STRAIGHT8, minimum_seconds=seconds)
@@ -186,9 +210,17 @@ def rehearse(
     log = EventLog(None)
     queue = CueQueue(stamp=lambda: clock.beat)
     beat = 0
-    model = PerfectModel(plan, seed, lambda: beat, latency_beats)
+    lost, back = offline if offline is not None else (float("inf"), float("inf"))
+    model = PerfectModel(
+        plan,
+        seed,
+        lambda: beat,
+        latency_beats,
+        offline=lambda at: lost <= at * 60 / BPM < back,
+    )
     governor = Governor(budget.fuse(prices_of(catalog)))
-    provider = GuardedProvider(model, governor=governor, breaker=CircuitBreaker(BreakerPolicy()))
+    breaker = CircuitBreaker(BreakerPolicy(), clock=lambda: beat * 60 / BPM)
+    provider = GuardedProvider(model, governor=governor, breaker=breaker)
     producer = Producer(provider, buffer, log, plan, model=structural(catalog), seed=seed)
     scheduler = Scheduler(
         daw,
@@ -246,6 +278,12 @@ def main() -> int:
     parser.add_argument("--latency-beats", type=int, default=LATENCY_BEATS)
     parser.add_argument("--log", type=Path, default=DEFAULT_LOG, help="where the conducting is")
     parser.add_argument("--runs", type=int, default=3, help="how many conducted runs to replay")
+    parser.add_argument(
+        "--network-lost-at-s", type=float, help="the chaos test: when the network goes"
+    )
+    parser.add_argument(
+        "--network-back-at-s", type=float, default=float("inf"), help="and when it returns"
+    )
     args = parser.parse_args()
 
     runs = conducted_runs(load_events(args.log), args.runs) if args.conduct != "none" else []
@@ -254,7 +292,12 @@ def main() -> int:
         return 1
     until = int(args.seconds * BPM / 60) * 2
     strikes = conducting(runs, args.conduct, until)
-    log, calls = rehearse(args.seconds, args.seed, strikes, latency_beats=args.latency_beats)
+    offline = (
+        None if args.network_lost_at_s is None else (args.network_lost_at_s, args.network_back_at_s)
+    )
+    log, calls = rehearse(
+        args.seconds, args.seed, strikes, latency_beats=args.latency_beats, offline=offline
+    )
 
     arrived = sum(len(controls) for controls in strikes.values())
     sys.stderr.write(

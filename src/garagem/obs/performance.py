@@ -31,6 +31,8 @@ BEATS_PER_BAR: Final = 4
 EIGHT_MINUTES_S: Final = 480.0
 # A scheduler fallback that means a section boundary went by without its section.
 UNHANDLED: Final = frozenset({"not_written", "repeated_too_long"})
+# A call the network lost, or one the breaker refused because the network had been lost.
+NETWORK: Final = frozenset({"ProviderUnavailableError", "CircuitOpenError"})
 
 
 class Check(BaseModel):
@@ -60,6 +62,8 @@ def performance_checks(
         checks.append(_next_bar(events))
     if ended is not None and "spent_usd" in ended.detail:
         checks.append(_never_stale(events))
+    if any(_lost_to_the_network(event) for event in events):
+        checks.append(_network(events, ended))
     return tuple(checks)
 
 
@@ -137,15 +141,18 @@ def _deadlines(events: Sequence[Event]) -> Check:
         1 for event in events if event.kind == "beat_lost" and "error" in event.detail
     )
     floor = reasons.get("not_in_buffer", 0)
+    unanswered = _unanswered(events)
     evidence = (
         f"{asked} asked, {delivered} delivered, {missed} over deadline; "
         f"{floor} writes by the floor, each with its seed"
     )
     if unhandled or failed_writes:
         evidence += f"; {unhandled} boundaries without a section, {failed_writes} failed writes"
+    if unanswered:
+        evidence += f"; {unanswered} requests never answered, declined or failed"
     return Check(
         criterion="no deadline overrun left unhandled",
-        met=not unhandled and not failed_writes,
+        met=not unhandled and not failed_writes and not unanswered,
         evidence=evidence,
     )
 
@@ -219,7 +226,91 @@ def _never_stale(events: Sequence[Event]) -> Check:
     return Check(criterion=criterion, met=not unasked and not stale, evidence=evidence)
 
 
+def _network(events: Sequence[Event], ended: Event | None) -> Check:
+    """The chaos test, as the log can see it: the network went, and the song did not stop.
+
+    Whether anything was *heard* is the ear's half of the criterion, and not this one's.
+    """
+    criterion = "the network died mid-session and the music played on"
+    first = next(i for i, event in enumerate(events) if _lost_to_the_network(event))
+    after = events[first:]
+    lost = [event for event in events if _lost_to_the_network(event)]
+    refused = sum(1 for event in lost if event.detail.get("reason") == "CircuitOpenError")
+    beats_lost = sum(1 for event in after if event.kind == "beat_lost")
+    unhandled = sum(
+        1 for event in after if event.kind == "fallback" and event.detail.get("reason") in UNHANDLED
+    )
+    finished = ended is not None and bool(ended.detail.get("finished"))
+    outages = "; ".join(
+        f"lost at bar {_bar_near(events, went)}, "
+        + (
+            f"back at bar {_bar_near(events, returned)}"
+            if returned is not None
+            else "not back by the end"
+        )
+        for went, returned in _outages(events)
+    )
+    evidence = (
+        f"{outages}. {len(lost) - refused} calls failed, {refused} refused by the open "
+        f"breaker; after the first loss {beats_lost} beats lost, "
+        f"{unhandled} boundaries without a section, "
+        f"{'played to its end' if finished else 'stopped early'}"
+    )
+    met = finished and not beats_lost and not unhandled and not _unanswered(events)
+    return Check(criterion=criterion, met=met, evidence=evidence)
+
+
 # ------------------------------------------------------------------------------- helpers
+
+
+def _lost_to_the_network(event: Event) -> bool:
+    return event.kind == "fallback" and event.detail.get("reason") in NETWORK
+
+
+def _outages(events: Sequence[Event]) -> list[tuple[int, int | None]]:
+    """Where each stretch without the network began, and where the model next delivered.
+
+    A network that drops twice is two outages, and reporting only the last would say the
+    model never came back when it had, for a minute in between.
+    """
+    outages: list[tuple[int, int | None]] = []
+    down = False
+    for position, event in enumerate(events):
+        if _lost_to_the_network(event) and not down:
+            outages.append((position, None))
+            down = True
+        elif event.kind == "section_parsed" and down:
+            outages[-1] = (outages[-1][0], position)
+            down = False
+    return outages
+
+
+def _unanswered(events: Sequence[Event]) -> int:
+    """Requests with no outcome before the producer asked again. A dead producer shows here.
+
+    The producer asks one section at a time, so every `section_requested` is followed by
+    its outcome before the next: delivered, over deadline, or a fallback with the model's
+    name on it. The last request may still be in flight when the session ends.
+    """
+    pending = False
+    unanswered = 0
+    for event in events:
+        if event.kind == "section_requested":
+            unanswered += pending
+            pending = True
+        elif event.kind in ("section_parsed", "deadline_missed") or (
+            event.kind == "fallback" and "model" in event.detail
+        ):
+            pending = False
+    return unanswered
+
+
+def _bar_near(events: Sequence[Event], position: int) -> int:
+    """The bar the scheduler last stamped before `position`. The producer stamps beat 0."""
+    for event in reversed(events[: position + 1]):
+        if event.at_beats > 0:
+            return int(event.at_beats // BEATS_PER_BAR)
+    return 0
 
 
 def _follows_a_jump(events: Sequence[Event], position: int) -> bool:

@@ -47,8 +47,11 @@ deterministically on the next bar while the model refines the next section, beca
 - [x] Cost per session inside the declared budget, hard-capped by the `Governor`
       — **met 2026-09-13**: $0.238 against a target of $0.30, which Fabiano raised from $0.10
       before the session (§12). The $1.00 cap never engaged.
-- [ ] Chaos test: the network dies mid-session and nothing is audible (P2, by ear as well
-      as by log)
+- [x] Chaos test: the network dies mid-session and nothing is audible (P2, by ear as well
+      as by log) — **met 2026-09-13** (`phase-4-findings.md` §14). The Wi-Fi went twice in a
+      three-minute conducted song: 4 calls lost, the floor played those sections, 0 beats
+      lost, and the model came back between the two losses. Fabiano: *"Não ouvi nenhuma
+      interrupção."*
 - [ ] Musical regression suite in CI against cassettes, detecting model drift
 
 Added by [ADR-021](ADR-021-the-minilab-joins-phase-4.md), when the MiniLab moved into this
@@ -102,7 +105,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **2040 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **2057 passed, 28 skipped** (27 live-marked, and the regression suite until it is recorded), `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -216,9 +219,23 @@ Done, with the suite at **2040 passed, 27 live-marked skipped**, `ruff` and `myp
 
 Next, in order — Stage 6, closing the phase with the instrument in hand:
 
-1. **Chaos test:** Wi-Fi off mid-session while conducting; nothing audible, by ear and log.
-2. **Musical regression suite in CI** against cassettes, detecting model drift.
-3. **Blind A/B at close:** 8 of 12, same design as ADR-018.
+- **Prepared while Fabiano was away** (`phase-4-findings.md` §13, §14). The chaos test has
+  since run and passed; the regression suite is not recorded or accepted.
+  - **Musical regression suite.** `scripts/record_regression.py` records Phase 3's closing
+    population of 29 sections; `tests/regression/` judges the recording in CI. It fails on a
+    moved prompt, on conformance or approval under Phase 3's targets, and on a golden diff.
+    Drift is caught when someone records again, never continuously: CI holds no key. That
+    reading of the criterion is Fabiano's to accept. The recording costs about $0.10.
+  - **Chaos test.** Preparing it found that a dead network killed the producer's thread: the
+    breaker's refusal was not caught, so the model would never have come back. Fixed and
+    tested. The report now reads the chaos criterion from the log.
+  - **Chaos test: met, 2026-09-13.** The Wi-Fi went twice during a three-minute conducted
+    song. The floor played the four sections the model could not, and no beat was lost.
+    Fabiano: *"Tudo me pareceu ótimo. Não ouvi nenhuma interrupção."*
+
+1. **Musical regression suite:** accept §13's reading, then record the set (`--yes`, about
+   $0.10) and commit it with its golden files.
+2. **Blind A/B at close:** 8 of 12, same design as ADR-018.
 
 ## Phase 3 — closed with one waiver
 

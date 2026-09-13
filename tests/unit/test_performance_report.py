@@ -229,3 +229,78 @@ def test_the_report_prints_every_check_and_the_share() -> None:
     text = render_checks((Check(criterion="x", met=False, evidence="y"),), (3, 4))
     assert "  [NOT met] x — y" in text
     assert "the model wrote 3 of the 4 sections that played" in text
+
+
+# ------------------------------------------------------------------------------ the chaos
+
+
+def test_a_request_with_no_outcome_is_a_producer_that_stopped_answering() -> None:
+    """What an uncaught `CircuitOpenError` left behind: requests, and nothing after them."""
+    log = [
+        e("section_requested", section=3, model="m"),
+        e("fallback", section=3, model="m", reason="ProviderUnavailableError"),
+        e("section_requested", section=4, model="m"),
+        e("section_requested", section=5, model="m"),
+        e("section_requested", section=6, model="m"),
+        ended(),
+    ]
+    found = check(performance_checks(log), "no deadline")
+    assert not found.met
+    assert "2 requests never answered, declined or failed" in found.evidence
+
+
+def test_without_a_network_failure_there_is_no_chaos_to_report() -> None:
+    log = [e("scene_fired", 0.0, section=0), ended(spend=SPEND)]
+    assert not any(c.criterion.startswith("the network") for c in performance_checks(log))
+
+
+def network_lost_at_bar_20(*after: Event) -> list[Event]:
+    return [
+        e("scene_fired", 0.0, section=0),
+        e("section_written", 80.0, section=5, seed=12),
+        e("section_requested", section=7, model="m"),
+        e("fallback", section=7, model="m", reason="ProviderUnavailableError"),
+        e("section_requested", section=8, model="m"),
+        e("fallback", section=8, model="m", reason="CircuitOpenError"),
+        *after,
+    ]
+
+
+def test_the_music_playing_on_through_a_dead_network_is_met_and_says_when() -> None:
+    log = network_lost_at_bar_20(
+        e("section_written", 200.0, section=12, seed=19),
+        e("section_requested", section=13, model="m"),
+        e("section_parsed", section=13, model="m"),
+        ended(spend=SPEND),
+    )
+    found = check(performance_checks(log), "the network died")
+    assert found.met
+    assert found.evidence == (
+        "lost at bar 20, back at bar 50. 1 calls failed, 1 refused by the open breaker; after "
+        "the first loss 0 beats lost, 0 boundaries without a section, played to its end"
+    )
+
+
+def test_a_network_that_drops_twice_is_two_outages() -> None:
+    """The chaos run of 2026-09-13: back at bar 55, lost again at bar 77."""
+    log = network_lost_at_bar_20(
+        e("section_written", 200.0, section=12, seed=19),
+        e("section_requested", section=13, model="m"),
+        e("section_parsed", section=13, model="m"),
+        e("section_written", 300.0, section=14, seed=21),
+        e("section_requested", section=15, model="m"),
+        e("fallback", section=15, model="m", reason="ProviderUnavailableError"),
+        ended(spend=SPEND),
+    )
+    found = check(performance_checks(log), "the network died")
+    assert found.met
+    assert found.evidence.startswith("lost at bar 20, back at bar 50; lost at bar 75, not back")
+
+
+def test_a_boundary_without_its_section_after_the_network_went_is_not_met() -> None:
+    log = network_lost_at_bar_20(
+        e("fallback", 120.0, section=9, reason="not_written"), ended(spend=SPEND)
+    )
+    found = check(performance_checks(log), "the network died")
+    assert not found.met
+    assert found.evidence.startswith("lost at bar 20, not back by the end.")

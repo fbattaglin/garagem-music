@@ -71,3 +71,17 @@ def test_a_short_conducted_rehearsal_plays_to_its_end_and_says_what_it_spent() -
     assert calls > 0
     assert float(str(ended.detail["spent_usd"])) > 0
     assert log.of_kind("cue_applied") and log.of_kind("macro_changed")
+
+
+def test_a_rehearsal_can_lose_the_network_and_play_on() -> None:
+    """The chaos test offline: the network gone from 30 s to 60 s of a 90-second song."""
+    log, _ = rehearsal.rehearse(90.0, 7, {}, offline=(30.0, 60.0))
+    lost = [
+        event
+        for event in log.of_kind("fallback")
+        if event.detail.get("reason") in ("ProviderUnavailableError", "CircuitOpenError")
+    ]
+    (ended,) = log.of_kind("session_ended")
+    assert lost
+    assert ended.detail["finished"] is True
+    assert not log.of_kind("beat_lost")

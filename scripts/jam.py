@@ -579,7 +579,8 @@ def main() -> int:
         if controller is not None:
             sys.stderr.write(render_cues(log))
         if scheduler is not None and args.generate:
-            sys.stderr.write(render_checks(performance_checks(log.events), model_share(log.events)))
+            checks = performance_checks(log.events, minimum_seconds=args.seconds)
+            sys.stderr.write(render_checks(checks, model_share(log.events)))
         sys.stderr.write(f"{len(log)} events -> {args.log}\n")
 
 

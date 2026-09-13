@@ -32,7 +32,11 @@ written to a file is in English.
 - `uv run python scripts/spike_cues.py` — asks the real Set how clip launches, legato and
   track stops behave (ADR-022). Changes the Set and puts it back; refuses if it is playing.
 - `uv run python scripts/rehearse_session.py` — plays an 8-minute generated, conducted session
-  offline and predicts its cost and the model's share. No network, no Live, no money.
+  offline and predicts its cost and the model's share; `--network-lost-at-s` rehearses the
+  chaos test. No network, no Live, no money.
+- `uv run python scripts/record_regression.py` — records the musical regression set that
+  `tests/regression/` judges in CI. Estimates and stops unless `--yes`; spends real money.
+  `--replay` reports on the recording for free.
 
 Run `ruff` and `mypy` before any commit.
 

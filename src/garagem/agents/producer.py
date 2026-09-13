@@ -50,7 +50,16 @@ from garagem.domain import Instrument, Part, Section, SectionScore
 from garagem.dsl import ParsedSection, SectionStream, realise
 from garagem.dsl.errors import DslError
 from garagem.engines import play_section
-from garagem.llm import LLMProvider, ModelSpec, ProviderError, Request, Usage, Warmable
+from garagem.llm import (
+    BudgetError,
+    CircuitOpenError,
+    LLMProvider,
+    ModelSpec,
+    ProviderError,
+    Request,
+    Usage,
+    Warmable,
+)
 from garagem.obs import EventLog
 from garagem.theory import repair, validate
 from garagem.transport import FormPlan, ScoreBuffer
@@ -214,7 +223,13 @@ class Producer:
                 deadline_s=round(request.deadline_s, 2),
             )
             return False
-        except (ProviderError, DslError) as error:
+        except (ProviderError, DslError, CircuitOpenError, BudgetError) as error:
+            # `CircuitOpenError` and `BudgetError` are refusals before anything went out: the
+            # breaker has seen the network fail, or the governor's cap is reached. Neither is
+            # a `ProviderError`, and while this caught only that, the third call into a dead
+            # network opened the breaker and the fourth killed the producer's thread. The
+            # music played on, but the model never came back when the network did
+            # (`phase-4-findings.md` §14).
             self._log.record(
                 "fallback",
                 0.0,
@@ -256,7 +271,9 @@ class Producer:
 
         score = realise(parsed, seed)
         if not score.parts:
-            self._log.record("fallback", 0.0, section=index, reason="nothing_parsed")
+            self._log.record(
+                "fallback", 0.0, section=index, model=self._model.id, reason="nothing_parsed"
+            )
             return False
 
         from_model = sorted(str(instrument) for instrument in score.instruments())
@@ -275,6 +292,7 @@ class Producer:
                 "fallback",
                 0.0,
                 section=index,
+                model=self._model.id,
                 reason="irreparable",
                 rules=",".join(sorted({violation.rule for violation in left})),
             )

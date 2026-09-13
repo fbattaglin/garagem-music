@@ -1214,3 +1214,211 @@ next-bar cue, and no stale section after a jump. Three remain:
 - the blind A/B at close.
 
 The verdict is on the whole session. No section, and neither author, was singled out.
+
+## 13. The musical regression suite: built, not yet recorded, and a reading for Fabiano to accept
+
+Built while Fabiano was away, 2026-09-13. Nothing was spent; the recording is his to run.
+
+### What the criterion can and cannot mean
+
+ADR-000 named the risk: *"Provider degrades or changes the model: behaviour changes without
+warning."* The answer it gave was a musical regression suite in CI, against cassettes.
+
+- **CI holds no key and may not spend** (`.github/workflows/ci.yml`), so it can never ask the
+  model anything.
+- A suite against cassettes therefore judges a **recording**. It can catch drift at the moment
+  someone records again, and not continuously.
+- Watching the model continuously would need a key and money in CI. The CI design refuses
+  both, and this section does not propose changing that.
+
+**The reading proposed:** the criterion is met when a recording of the model runs in CI and
+fails on the three things drift would change. Recording again is a deliberate, paid, manual
+act, as recording has always been in this project. **Fabiano has not accepted this reading
+yet.**
+
+### What was built
+
+- **`scripts/record_regression.py`** records the set, or replays it (`--replay`, free).
+  - **The set** is Phase 3's closing population, `bench_sections.briefings(30, 7)`: 29
+    eight-bar sections across four tempos and every feel. It is the population the
+    conformance and approval criteria were met on, so the two can be compared.
+  - **Recording** makes one cassette a section with the request the producer sends, into
+    `cassettes/regression/`. `set.json` beside them names each briefing, its seed and any call
+    that failed. A failure is a sample: it is not recorded again, and it counts against the
+    rates.
+  - **Replaying** puts each cassette through the path Phase 3 was judged on: the incremental
+    parse, the realise, the validator and the repairer. The rates come from `obs/sections.py`.
+- **`tests/regression/`** runs in the default suite, so on every push. It fails when:
+  - a cassette no longer matches the request the producer sends (the prompt moved);
+  - conformance falls under 95%, or approval under 80%, over every briefing asked (Phase 3's
+    targets);
+  - what the system makes of a recording changes. Each section's realised score is a golden
+    file (notation and a digest of every note), and so is the set's summary.
+- **Until the set is recorded the module skips**, and says why, rather than passing.
+- **`tests/unit/test_record_regression.py`** shows each of those failures on recordings made
+  from a fake model.
+
+### What the rates are expected to look like
+
+The 29 responses Phase 3 kept (`bench/sections-positions.jsonl`, the same draw) were put
+through the replay path locally, as a check of the code only. They are not committed and are
+not the recording.
+
+| Measure | Value |
+|---|---|
+| Conformant | 28 of 29 |
+| Approved | 28 of 29 |
+| Usable | 28 of 29 |
+| Failed | 1, a deadline |
+| Violations | none |
+
+That is 0.966, over both targets. The bar has room for one lost call in 29. Two lost calls
+fail it, whatever their cause, as they would have failed Phase 3.
+
+### To finish it
+
+```
+uv run python scripts/record_regression.py            # the estimate; spends nothing
+uv run python scripts/record_regression.py --yes      # 29 calls, about $0.10
+GARAGEM_UPDATE_GOLDEN=1 uv run pytest tests/regression -q
+uv run pytest tests/regression -q
+```
+
+Then commit the cassettes, `set.json` and the golden files together. **To check for drift
+later,** record again with `--yes` and run `tests/regression/`:
+
+- a target missed is drift past the bar the phase closed on;
+- a golden diff is what the model now plays differently;
+- the commit message says which.
+
+## 14. The chaos test, prepared, and the defect preparing it found
+
+### A dead network killed the producer
+
+Reading what the producer would do with no network turned up a defect.
+
+- `Producer.produce` promises never to raise. It caught `ProviderError`, `DslError` and the
+  deadline.
+- **`CircuitOpenError` is not a `ProviderError`, and neither is `BudgetError`.**
+  - Three calls into a dead network open the breaker (`BreakerPolicy.failure_threshold`).
+  - The fourth call was refused with `CircuitOpenError`. That exception went through `produce`
+    and ended the producer's thread with a traceback in the terminal.
+- **What it would have sounded like:** nothing, because the floor plays every section the
+  buffer lacks, and P2 held. The damage was elsewhere:
+  - the model never came back when the network did;
+  - the log recorded requests with no outcome.
+- The same was true of a governor refusing a call at its cap.
+
+**Fixed.** Both refusals are now fallbacks with their reason, like any other failed call.
+Tests:
+
+- a dead network gives three `ProviderUnavailableError` fallbacks, then `CircuitOpenError`
+  ones, and no exception;
+- when the network returns and the breaker's recovery time has passed, the next section is
+  delivered;
+- a kill switch is a fallback.
+
+### How the log is read
+
+- **No deadline overrun left unhandled** now also fails on a request with no outcome before
+  the producer's next one. The producer asks one section at a time, so every request has an
+  outcome. A dead producer shows up as requests with nothing after them. The paid session in
+  §12 still reads met: all 67 requests have an outcome.
+- **"The network died mid-session and the music played on"** appears whenever the log has a
+  call lost to the network (`ProviderUnavailableError`, `CircuitOpenError`). It is met when,
+  after the first loss:
+  - no beat was lost;
+  - no boundary passed without its section;
+  - every request has an outcome;
+  - the song played to its end.
+  - The evidence names the bar the network went and the bar the model came back, if it did.
+- **The ear is the other half.** The criterion says nothing audible, by ear as well as by log.
+- `jam.py --generate` now judges continuity against `--seconds`, so a three-minute chaos run
+  is not reported against eight minutes.
+
+### Rehearsed, and written down before it runs
+
+`scripts/rehearse_session.py --network-lost-at-s` and `--network-back-at-s` take the network
+away from the perfect model on the rehearsal's clock. The breaker keeps the same clock.
+
+- The conducting replayed is the last three conducted runs in `bench/jam.jsonl`, which since
+  §12 includes the paid session. Replaying §12's own conducting needs the log as it was at
+  commit `aad6f69`.
+
+| `--seconds` | `--conduct` | Network | Calls failed / refused | Model back at | Model wrote | Report |
+|---|---|---|---|---|---|---|
+| 180 | `none` | off 60–120 s | 4 / 0 | bar 69 | 7 of 14 | met |
+| 180 | `all` | off 60–120 s | 6 / 14 | bar 75 | 1 of 18 | met |
+| 180 | `all` | off from 60 s | 9 / 19 | never | 1 of 18 | met |
+| 480 | `pads` | off 120–240 s | 7 / 3 | bar 134 | 18 of 39 | met |
+
+**Conducted hard, the model barely plays** (§12), so a chaos test conducted that way has little
+of the model to lose. What the ear needs to judge is the handover from the model to the floor,
+and back again.
+
+### The run proposed
+
+Live open and stopped, the MiniLab connected:
+
+```
+uv run python scripts/jam.py --generate --controller minilab --seconds 180
+```
+
+- Turn the Wi-Fi off at about one minute, and back on at about two.
+- Conduct lightly: a pad now and then, and the knobs left alone.
+- Listen for a gap, a stall or a section that fails to arrive.
+
+The real network may fail differently from the rehearsal:
+
+- A call already streaming when the Wi-Fi goes can hang until its deadline, and is logged as
+  a deadline missed rather than a network loss.
+- Calls made after that fail at once.
+- Either way the floor plays the section.
+
+About $0.05.
+
+### The run: met, by log and by ear, 2026-09-13
+
+Fabiano ran `jam.py --generate --controller minilab --seconds 180` with `claude-sonnet-5`
+generating. He turned the Wi-Fi off during the song and conducted lightly: 8 bar cues, one
+jump, one "next: bridge", and two knob steps.
+
+**What the log says happened to the network:**
+
+| Around | What happened |
+|---|---|
+| 0:53 | The network went. Sections 6, 7 and 8 failed to reach the model (`ConnectError: nodename nor servname provided`), and the floor played all three. |
+| 1:40 | The model was back and delivered sections 9, 10 and 11. |
+| 2:20 | The network went again, and the floor played section 12. |
+
+- Whether the second loss was the Wi-Fi being switched off again or the connection wavering
+  as it came back was not established.
+- **Every lost call failed at once, not at its deadline.** None of them was a hung stream.
+- **The breaker never opened.** The producer asks about one section every ~15 s, so the
+  failures were never three in a row inside its window.
+- Section 11 was delivered but played by the floor, because a knob step re-planned it (§12).
+
+**The report printed, after the change below:**
+
+| Criterion | Result |
+|---|---|
+| 3 minutes of continuous session | 190 s, 13 section changes, played to its end, 0 beats lost |
+| No deadline overrun left unhandled | 12 asked, 8 delivered, 0 over deadline; every request has an outcome |
+| Coherence metrics | 15 of 15 section writes measured |
+| Cost | $0.0319 |
+| Next-bar cues | 8 of 8 |
+| After a jump | asked again; nothing stale |
+| The network died and the music played on | lost at bar 29, back at bar 55; lost at bar 77, not back by the end. 4 calls failed, 0 refused by the breaker; after the first loss 0 beats lost, 0 boundaries without a section, played to its end |
+
+The model wrote 7 of the 14 sections that played.
+
+**The report first said the model never came back.** It looked only at the last loss.
+`_outages` now reports each stretch without the network, and where the model next delivered.
+
+Asked whether anything was audible when the network went and came back:
+
+> *"Tudo me pareceu ótimo. Não ouvi nenhuma interrupção."* — It all seemed great to me. I
+> heard no interruption.
+
+**The chaos test is met, by log and by ear.** P2 held in the real Set: twice the network went
+mid-song, the floor played what the model could not, and nothing was heard.

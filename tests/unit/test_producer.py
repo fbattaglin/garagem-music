@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 
 import pytest
@@ -23,16 +23,22 @@ from garagem.domain import Feel, Instrument, Section
 from garagem.dsl import serialize_section
 from garagem.engines import play_section
 from garagem.llm import (
+    BreakerPolicy,
     CassetteProvider,
+    CircuitBreaker,
     FakeProvider,
     FakeResponse,
+    Governor,
+    GuardedProvider,
     LLMProvider,
     ProviderUnavailableError,
     Request,
     StopReason,
     StreamEvent,
     Usage,
+    load_budget,
     load_catalog,
+    prices_of,
 )
 from garagem.obs import EventLog
 from garagem.theory import parse_chart, validate
@@ -269,6 +275,65 @@ def test_a_provider_that_raises_logs_a_fallback_and_leaves_the_buffer_empty() ->
     assert not rig.produce(0)
     assert rig.buffer.take(0) is None
     assert rig.of_kind("fallback")[0]["reason"] == "ProviderUnavailableError"
+
+
+class Down:
+    """A network that is gone: every call fails before a byte arrives."""
+
+    name = "down"
+
+    def __init__(self) -> None:
+        self.up = False
+
+    async def stream(self, request: Request) -> AsyncIterator[StreamEvent]:
+        if not self.up:
+            raise ProviderUnavailableError("ConnectError: nodename nor servname provided")
+        response = responding(dsl_for(FORM[0]))
+        async for event in response.stream(request):
+            yield event
+
+
+def guarded(inner: LLMProvider, clock: Callable[[], float]) -> GuardedProvider:
+    catalog = load_catalog(ROOT / "config" / "models.toml")
+    budget = load_budget(ROOT / "config" / "budget.toml")
+    return GuardedProvider(
+        inner,
+        governor=Governor(budget.fuse(prices_of(catalog))),
+        breaker=CircuitBreaker(BreakerPolicy(), clock=clock),
+    )
+
+
+def test_a_breaker_opened_by_a_dead_network_is_a_fallback_not_a_dead_thread() -> None:
+    """Three failed calls open the breaker; the fourth is refused, and says so."""
+    sections = tuple(a_section(name=f"verse{n}") for n in range(5))
+    rig = Rig(guarded(Down(), clock=lambda: 0.0), sections=sections)
+    for index in range(5):
+        assert not rig.produce(index)
+    reasons = [event["reason"] for event in rig.of_kind("fallback")]
+    assert reasons == ["ProviderUnavailableError"] * 3 + ["CircuitOpenError"] * 2
+    assert len(rig.of_kind("section_requested")) == 5
+
+
+def test_when_the_network_returns_the_model_is_asked_again() -> None:
+    now = [0.0]
+    down = Down()
+    sections = (*(a_section(name=f"verse{n}") for n in range(4)), FORM[0])
+    rig = Rig(guarded(down, clock=lambda: now[0]), sections=sections)
+    for index in range(4):
+        rig.produce(index)
+    down.up = True
+    now[0] = BreakerPolicy().recovery_s + 1.0
+    rig.buffer.advance(4)
+    assert rig.produce(4)
+    assert [event["section"] for event in rig.of_kind("section_parsed")] == [4]
+
+
+def test_a_governor_that_refuses_is_a_fallback_not_a_dead_thread() -> None:
+    provider = guarded(responding(dsl_for(FORM[0])), clock=lambda: 0.0)
+    provider.governor.kill("a test pulled the switch")
+    rig = Rig(provider)
+    assert not rig.produce(0)
+    assert rig.of_kind("fallback")[0]["reason"] == "KillSwitchEngagedError"
 
 
 def test_a_stream_cut_midway_keeps_what_arrived() -> None:
