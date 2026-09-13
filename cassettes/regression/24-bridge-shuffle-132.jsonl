@@ -1,0 +1,43 @@
+{"cassette":1,"provider":"anthropic","model":"claude-sonnet-5","fingerprint":"00be4eace45bdae9","note":"24-bridge-shuffle-132"}
+{"type":"tool_use_start","id":"toolu_0158jDy4sN17vhEBGtjBitit","name":"write_section"}
+{"type":"tool_input_delta","fragment":""}
+{"type":"tool_input_delta","fragment":"{\"dsl\":"}
+{"type":"tool_input_delta","fragment":" \"SEC b"}
+{"type":"tool_input_delta","fragment":"ridge b"}
+{"type":"tool_input_delta","fragment":"ars=8 k"}
+{"type":"tool_input_delta","fragment":"ey=Fm f"}
+{"type":"tool_input_delta","fragment":"eel=shu"}
+{"type":"tool_input_delta","fragment":"ffle bp"}
+{"type":"tool_input_delta","fragment":"m=132 d"}
+{"type":"tool_input_delta","fragment":"yn=3 te"}
+{"type":"tool_input_delta","fragment":"nsion=0"}
+{"type":"tool_input_delta","fragment":".55\\nCH"}
+{"type":"tool_input_delta","fragment":"D | C# "}
+{"type":"tool_input_delta","fragment":"| G# | "}
+{"type":"tool_input_delta","fragment":"A#m | D"}
+{"type":"tool_input_delta","fragment":"# | C# "}
+{"type":"tool_input_delta","fragment":"| G# | "}
+{"type":"tool_input_delta","fragment":"A#m | D"}
+{"type":"tool_input_delta","fragment":"# |\\nDR"}
+{"type":"tool_input_delta","fragment":"M K:1,7"}
+{"type":"tool_input_delta","fragment":",9,13 S"}
+{"type":"tool_input_delta","fragment":":5,13 H"}
+{"type":"tool_input_delta","fragment":":1,4,7,"}
+{"type":"tool_input_delta","fragment":"10,13,1"}
+{"type":"tool_input_delta","fragment":"6\\nBAS "}
+{"type":"tool_input_delta","fragment":"deg=1 o"}
+{"type":"tool_input_delta","fragment":"ct=2 rh"}
+{"type":"tool_input_delta","fragment":"y:1,7,9"}
+{"type":"tool_input_delta","fragment":",13\\nGT"}
+{"type":"tool_input_delta","fragment":"R voi=p"}
+{"type":"tool_input_delta","fragment":"ow rhy:"}
+{"type":"tool_input_delta","fragment":"1,4,7,9"}
+{"type":"tool_input_delta","fragment":",10,13,"}
+{"type":"tool_input_delta","fragment":"16 palm"}
+{"type":"tool_input_delta","fragment":"=on\\nKE"}
+{"type":"tool_input_delta","fragment":"Y voi=s"}
+{"type":"tool_input_delta","fragment":"hell rh"}
+{"type":"tool_input_delta","fragment":"y:1,9 r"}
+{"type":"tool_input_delta","fragment":"eg=mid\\"}
+{"type":"tool_input_delta","fragment":"n\"}"}
+{"type":"done","stop":"tool_use","usage":{"input_tokens":303,"output_tokens":217,"cache_read_tokens":1250,"cache_write_tokens":0,"estimated":false}}

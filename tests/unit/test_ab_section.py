@@ -220,6 +220,24 @@ def test_a_second_run_over_an_existing_log_refuses_without_resume(
     assert "--resume" in capsys.readouterr().err
 
 
+class _NoTerminal:
+    def isatty(self) -> bool:
+        return False
+
+
+def test_a_run_without_a_terminal_refuses_before_anything_is_generated(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The vote is typed; with no stdin the first pair would be paid for and never judged."""
+    monkeypatch.setattr(ab, "build_adapter", lambda host, timeout_s: pytest.fail("opened Live"))
+    monkeypatch.setattr(ab, "build_provider", lambda catalog: object())
+    monkeypatch.setattr(sys, "stdin", _NoTerminal())
+    monkeypatch.setattr(sys, "argv", ["ab_section.py", "--log", str(tmp_path / "ab.jsonl")])
+
+    assert ab.main() == 1
+    assert "terminal" in capsys.readouterr().err
+
+
 # --------------------------------------------------------------------------- the pairing
 
 

@@ -289,6 +289,7 @@ Cache hits cost 10% of base input at Anthropic; the Batch API gives a further 50
 | [ADR-020](ADR-020-endings-are-composed-over-the-score.md) | **Endings are composed over the finished score**, by the scheduler: fills, builds, stops, the final chord | **New** — realises §7's Phase 4 transitions; refines ADR-017 |
 | [ADR-021](ADR-021-the-minilab-joins-phase-4.md) | **The MiniLab joins Phase 4** as the tactical layer's instrument; Setlist Mode and voice stay in Phase 5 | **New** — amends §7's Phases 4 and 5 |
 | [ADR-022](ADR-022-a-cue-costs-a-fire-never-a-write.md) | **A cue costs a fire, never a write**: candidates, legato variants, re-plan, explicit precedence | **New** — extends ADR-001 to human cues |
+| [ADR-023](ADR-023-the-second-ab-waiver.md) | **The blind A/B is waived a second time**, threshold intact; when the model is worth calling opens Phase 5 | **New** — waives §7's A/B clause again; amends §7's Phase 5 |
 
 ADR-001 is written down in [`ADR-001-clip-ahead-and-quantised-launch.md`](ADR-001-clip-ahead-and-quantised-launch.md).
 
@@ -383,6 +384,10 @@ a session directed from the MiniLab is judged by ear.
 macros (tension, density) are delivered in Phase 4. This phase keeps Setlist Mode, the
 voice/MCP control plane, KEEP/VETO curation and the other six macros; the exit criterion's
 MiniLab half is already met by the time it starts.
+
+**Amended by [ADR-023](ADR-023-the-second-ab-waiver.md)**: the blind A/B reached parity at
+Phase 4's close (18 of 36 pooled), so this phase opens with *when the model is worth calling
+at all*, ahead of Setlist Mode, whose offline case assumes the answer.
 
 ### **Phase 6 — Timbre, mixing and the asset bakery** · ~2 weeks
 

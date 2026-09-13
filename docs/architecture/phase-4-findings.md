@@ -1215,7 +1215,7 @@ next-bar cue, and no stale section after a jump. Three remain:
 
 The verdict is on the whole session. No section, and neither author, was singled out.
 
-## 13. The musical regression suite: built, not yet recorded, and a reading for Fabiano to accept
+## 13. The musical regression suite: built, its reading accepted, and recorded
 
 Built while Fabiano was away, 2026-09-13. Nothing was spent; the recording is his to run.
 
@@ -1290,6 +1290,33 @@ later,** record again with `--yes` and run `tests/regression/`:
 - a target missed is drift past the bar the phase closed on;
 - a golden diff is what the model now plays differently;
 - the commit message says which.
+
+### The recording: every briefing conformant, none repaired, 2026-09-13
+
+Fabiano ran `record_regression.py --yes` against `claude-sonnet-5`, then generated the golden
+files. Every call was made once; none was retried.
+
+| Measure | Value |
+|---|---|
+| Recorded | 29 of 29, no failed call |
+| Conformant | 29 of 29 (1.000) |
+| Approved | 29 of 29 (1.000) |
+| Usable | 29 of 29 |
+| Violations | none |
+| Tokens | 8,691 in, 6,564 out, 35,000 read from the cache, 1,250 written to it |
+| Cost | $0.103 at the prices in `config/models.toml` |
+
+- **Against the expectation above:** one better than the 28 of 29 Phase 3's kept responses
+  gave. Each call ran under the section's deadline, as the producer's does, and none missed
+  it. One recording is one draw: a later one that loses two calls still fails the bar.
+- **The golden files were read before they were kept.**
+  - All 29 note digests differ.
+  - Several choruses share note counts per part, for example 181 drum hits, 72 bass notes, 192
+    guitar notes and 96 keys notes. Their notation differs: kick pattern, guitar rhythm and
+    accents, key and chords. Equal counts come from equal density, not from a copied section.
+  - No cassette holds a key or an authorisation header.
+- **The suite now runs, instead of skipping:** `tests/regression/` is 35 tests, and the whole
+  suite is 2092 passed, 27 skipped (all live-marked).
 
 ## 14. The chaos test, prepared, and the defect preparing it found
 
@@ -1442,8 +1469,11 @@ generated. Fabiano accepted each choice below on 2026-09-13.
   only at the vote.
 - **Pairs not counted.** A pair whose two sides are identical is refused, and so is a pair
   where the model returned nothing usable.
-- **Balance.** The plan is six choruses, three verses and three bridges. Every feel appears
-  three times, halftime included, and every tempo three times.
+- **Balance.** The plan is six choruses, four verses and two bridges. Every feel appears
+  three times, halftime included, and every tempo three times. *Corrected after the run:*
+  this line said three verses and three bridges. `PLAN` in the script was never changed and
+  is the plan Phase 3's final run used (`bench/ab-phase3-final.jsonl`). The text was wrong,
+  and the design was not.
 
 ### The choices, made before listening
 
@@ -1469,6 +1499,41 @@ generated. Fabiano accepted each choice below on 2026-09-13.
   afterwards and written down, as ADR-018 requires of a waiver. A "no" is the answer ADR-018
   itself calls valuable: it would say the floor is good enough.
 
+### How to listen, written before listening
+
+Fabiano asked what to listen for. A listening routine written down before the run is part of
+the pre-registration. The same routine on every pair keeps the order and fatigue out of the
+votes.
+
+- **One question: which of the two would you rather hear in the song?** It is a preference,
+  not a check of which one is correct. His taste is what the test measures (ADR-019).
+- **Do not try to guess which side is the model.** If a side seems recognisable, vote for the
+  one preferred anyway. A guess turns a preference test into a detection test.
+- **The same routine on every pair.**
+  1. The script plays A, then B.
+  2. Press `a`, then `b`, so each side is heard twice.
+  3. Only then vote.
+  - Hearing each twice keeps "the second one sounded better" out of the vote.
+  - The prompt waits as long as needed, so a pause belongs there: rest, then hear both again
+    before voting.
+- **The same headphones, and the volume left alone** for the whole run.
+- **Listen to all eight bars.** A section can start well and wear thin by the end.
+- **What to notice.** The five reasons the script offers are the same questions asked of
+  either side:
+  - energy;
+  - whether it gets boring;
+  - whether each instrument can be heard, or it turns into a blur;
+  - whether it makes you want to move;
+  - whether it simply sounds nicer.
+- **Nothing is said about how the model and the floor usually differ.** Phase 3's reasons
+  (`phase-3-findings.md` §16) are withheld from the listener, because knowing them would
+  unblind the test.
+- **A near-tie is still a vote.** Pick the one you would rather hear again, and type `tie` as
+  the reason. The vote counts the same, and the log keeps that it was close.
+- **Skip only for a failure of the rig,** not for a hard choice. That means one side silent,
+  Live stalling, or the sound cutting out. A skipped pair leaves fewer than 12 votes, and
+  with fewer than 12 the criterion is not met.
+
 ### The command
 
 Live open and stopped, about 20 minutes, about $0.05:
@@ -1478,3 +1543,212 @@ uv run python scripts/ab_section.py --pairs 12 --seed 2026 --log bench/ab-phase4
 ```
 
 `--resume` continues a run that was stopped. The tally prints only at the end.
+
+### A first attempt that recorded nothing, 2026-09-13
+
+The command above was first run through Claude Code's `!` prefix, which gives a script no
+standard input.
+
+- **What happened.** Pair 1 (chorus, 8 bars at 110, straight8) was generated, written into
+  Live and played: A, then B. At the vote prompt `input()` raised `EOFError`, and the run
+  died.
+- **What it cost.** One model call. No vote was cast, `bench/ab-phase4.jsonl` was never
+  created, and Live was stopped on the way out.
+- **What it revealed.** Nothing about the result. Which side was the model is never printed
+  before a vote, and no vote was taken.
+- **What changes.** The design does not. The run starts again from pair 1, with the same
+  command, in a terminal.
+  - The hidden order comes from the seed, so pair 1 plays in the same order.
+  - The model's side is a new call, so it may not be the music already heard.
+- **The script now refuses to start without a terminal.** It checks before anything is
+  generated, so no call is paid for and then lost.
+
+### The run: 6 of 12, not met, 2026-09-13
+
+Fabiano listened in Terminal: twelve pairs in one sitting, none skipped, no reason typed as
+`tie`. The votes are in `bench/ab-phase4.jsonl`.
+
+**The model was preferred in 6 of 12 pairs, against a threshold of 8 of 12. The criterion is
+not met.**
+
+| Pair | Section | Feel | BPM | A was | Voted | Winner | Reason |
+|---|---|---|---|---|---|---|---|
+| 1 | chorus | straight8 | 110 | model | B | floor | better to move to |
+| 2 | verse | shuffle | 110 | floor | A | floor | cleaner, less messy |
+| 3 | chorus | straight16 | 132 | model | B | floor | more energy |
+| 4 | verse | halftime | 132 | model | A | model | just sounds nicer |
+| 5 | chorus | shuffle | 96 | floor | B | model | less boring |
+| 6 | bridge | straight8 | 150 | floor | B | model | more energy |
+| 7 | chorus | halftime | 150 | floor | B | model | just sounds nicer |
+| 8 | verse | straight16 | 110 | model | B | floor | just sounds nicer |
+| 9 | chorus | straight8 | 96 | model | A | model | better to move to |
+| 10 | bridge | shuffle | 132 | model | B | floor | cleaner, less messy |
+| 11 | chorus | straight16 | 150 | model | B | floor | just sounds nicer |
+| 12 | verse | halftime | 96 | floor | B | model | less boring |
+
+#### What the number says
+
+- **6 of 12 is what a coin gives.** A coin reaches 8 of 12 about one time in five (19%). A
+  pass at this size would have been weak evidence, so a result at parity is not a near miss.
+- **Pooled with Phase 3's two runs after composition** (7 of 12 and 5 of 12, the same design),
+  the model has been preferred in **18 of 36** blind pairs. ADR-018 read 12 of 24 as exact
+  parity, and a third run did not move it.
+- **One difference between the runs.** Phase 3's model sections were written in the grid
+  notation, and these in positions (`phase-3-findings.md` §17). The pairs, the plan and the
+  script are the same.
+
+#### Position
+
+- **B was chosen in 9 of 12 pairs.** A coin splits that unevenly, either way, about one time
+  in seven (15%).
+- **The seed put the model first in 7 pairs.** It won 2 of those 7, and 4 of the 5 where it
+  played second (Fisher p = 0.24).
+- **Averaged over the two orders** it is 54%, so that neither side gains from playing second.
+  That is parity either way.
+- **The listening routine was mostly not used.**
+  - Both sides were heard again before the vote in pairs 7 and 12.
+  - In pair 9, only A was heard again.
+  - In the other nine pairs, each side was heard once.
+
+#### Why, by the reasons given
+
+Not pre-registered. Reported because ADR-018 asked for the reasons to be read.
+
+| Reason | Model won, this run | With Phase 3's final run |
+|---|---|---|
+| cleaner, less messy | 0 of 2 | 0 of 5 |
+| less boring | 2 of 2 | 4 of 5 |
+| just sounds nicer | 2 of 4 | 4 of 7 |
+| more energy | 1 of 2 | 2 of 5 |
+| better to move to | 1 of 2 | 1 of 2 |
+
+- **The same picture as ADR-018.** Every pair decided on "cleaner" went to the floor, 5 of 5
+  across two runs. Most pairs decided on "less boring" went to the model, 4 of 5. The model is
+  heard as more interesting and less clean, and the two still cancel.
+- **What "messy" is remains unmeasured.**
+  - `register_spread` and `harmonic_conformance` cannot see it: the DSL never lets the model
+    name a pitch (§1–2).
+  - `kit_collision` missed twice (§3, §5).
+- **Both sides of every pair can now be recovered.** This log keeps the model's DSL, and
+  Phase 3's did not. These twelve are the first A/B pairs that can be replayed and measured.
+
+#### By feel and section
+
+None of these is a criterion.
+
+- **straight16: the model won 0 of 3.**
+  - Phase 3 found straight16 last in both of its runs, 1 of 7, and called it *"a candidate
+    worth a targeted run and nothing more"*.
+  - This was not that targeted run, but it was the next run, and it went 0 of 3. A coin does
+    that one time in eight. Pooled, it is 1 of 10.
+- **The other feels:** halftime 3 of 3, straight8 2 of 3, shuffle 1 of 3. None was flagged
+  before the run, so these are not evidence.
+- **Chorus 3 of 6, and everything else 3 of 6.** The script printed its chorus line as NOT
+  MET, and that line decides nothing ("What is counted").
+
+#### What a miss means: not yet decided
+
+ADR-018 wrote down in advance what this outcome would mean: *"If Phase 4 closes and the A/B
+is still at parity, the finding is about the architecture, not the prompt."* The question
+of when the model is worth calling at all then becomes Phase 5's subject, ahead of Setlist
+Mode. Fabiano decides what the miss means, and the threshold does not move.
+
+**Decided by Fabiano on 2026-09-13.** He followed the recommendation: Phase 4 closes with the
+A/B waived, and its threshold stands. When the model is worth calling opens Phase 5
+([ADR-023](ADR-023-the-second-ab-waiver.md)).
+
+## 16. Shuffle: the model swings what is already swung
+
+After the A/B's tally, 2026-09-13, Fabiano said: *"O modelo, nos testes shuffle, soa muito mais
+messy."* He asked whether there was an explanation. The notation holds one, measured below.
+Whether it is what he heard is a hypothesis written after the votes, not a finding.
+
+### What the votes say
+
+- **"Cleaner, less messy" has been the reason 5 times** in the two runs that recorded
+  reasons.
+  - 4 of the 5 were shuffle pairs: pairs 2 and 5 of Phase 3's final run, and pairs 2 and 10 of
+    this one. The floor won all four.
+  - Shuffle is 3 pairs of 12 in each run.
+- **Across the six shuffle pairs, the model won 2:** 1 of 3 in each run.
+- **The chance figure is a description, not a test.** If reasons fell on feels at random, 4 or
+  more of 5 on a feel that holds a quarter of the pairs would happen about 1.6% of the time.
+  The observation came after the tally was on screen.
+
+### The mechanism in the notation
+
+- **The system plays a shuffle by moving the grid, not the notes.**
+  - The model and the engines write on the same straight bar of 16 slots.
+  - `domain/time.beats_of` then moves each beat's "and" two thirds of the way through the
+    beat: the triplet swing.
+  - So the floor's shuffle grooves put hats, bass and guitar on the eighths only
+    (`engines/groove.py`: *"under a shuffle those eighths are already swung"*).
+- **The prompt never says so.** It says only *"shuffle swings the offbeats and does not make
+  it shorter"* (`dsl/schema.py`). Nothing tells the model that the swing is applied for it, or
+  that it should write straight eighths.
+- **The model writes the shuffle into the notes as well.**
+  - In all three shuffle pairs of this A/B the hat is `H:1,4,7,10,13` or `1,4,7,10,13,16`.
+    That is an attack every three sixteenths, the nearest a 16-slot bar comes to a triplet
+    feel.
+  - In the two pairs the floor won on "cleaner", the guitar plays the same slots. In pair 10
+    the bass does too.
+- **Then the system swings it a second time.** Placed by `beats_of`:
+
+| Hat | Where it lands, in beats | Gaps, in beats |
+|---|---|---|
+| floor `H:1,3,5,7,9,11,13,15` | 0, 0.67, 1, 1.67, 2, 2.67, 3, 3.67 | 0.67, 0.33, repeated: the long-short of a shuffle |
+| model `H:1,4,7,10,13,16` | 0, 0.83, 1.67, 2.33, 3, 3.83 | 0.83, 0.83, 0.67, 0.67, 0.83, 0.17 |
+
+- **No two beats of the model's bar share a pattern,** so there is no pulse to lock to.
+- **The last hat lands a sixth of a beat before the next downbeat,** where the kick and the
+  crash land. That is 104 ms at 96 BPM and 76 ms at 132: the width of a flam.
+- **The kick and the hat disagree about where the beat is.** The kick, `K:1,7,9,13`, stays on
+  the eighths, so it swings correctly.
+
+### How widespread
+
+This covers every model section recorded in the positions notation: Phase 3's round, this
+A/B and the regression set. That is 69 sections, 19 of them shuffle.
+
+| Shuffle, part | Attacks off the eighths, model | Floor |
+|---|---|---|
+| hat | 46% | 0% |
+| guitar | 39% | 0% |
+| bass | 15% | 0% |
+| kick | 0% | 0% |
+| keys | 0% | 0% |
+
+| Feel | Model sections with a run of 4 or more attacks three sixteenths apart |
+|---|---|
+| shuffle | **18 of 19** |
+| straight16 | 11 of 19 |
+| straight8 | 6 of 16 |
+| halftime | 5 of 15 |
+
+- **Only in a shuffle is such a run out of time.** In a straight feel it is a syncopation
+  played where it is written. In a shuffle it is moved to places no shuffle uses.
+- **It became shuffle-specific with the positions notation.**
+  - In Phase 3's six grid-notation rounds, the same run appears in 19 of 45 shuffle sections.
+  - That is about as often as in the other feels, 51 of 127.
+  - A likely reason: `1,4,7,10,13` is counting, and `x..x..x..x..x...` was not.
+- **Phase 3's two shuffle "cleaner" pairs cannot be checked.** They were written in the grid
+  notation, and their model side was never saved. Whether this is what was heard then is
+  unknown.
+
+### What is not known, and how it would be
+
+- **Whether this is what the ear calls messy.** The notation shows the pattern, and the votes
+  point the same way. But the explanation was looked for only after the ear had named
+  shuffle. ADR-019 holds: no metric becomes a target until it passes a pre-registered
+  preference gate.
+- **The test, not run.** A blind audition of the same model shuffle sections, played as
+  written and with their off-eighth attacks moved onto the eighths. Its threshold is fixed
+  before anything is heard.
+- **Two fixes, neither made:**
+  - say it in the prompt: write straight eighths, and the system swings them;
+  - or compose it, as `_lifted` composes density: under a shuffle, `dsl/realise.py` moves
+    the model's off-eighth attacks onto the eighths.
+- **Either waits for the audition,** and belongs to Phase 5's question of when the model is
+  worth calling (ADR-023).
+- **Either fix changes the regression goldens** for the eight shuffle sections. That diff is
+  the intended one, and its commit says so.

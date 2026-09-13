@@ -1,0 +1,47 @@
+{"cassette":1,"provider":"anthropic","model":"claude-sonnet-5","fingerprint":"db4ae456165ca3ae","note":"15-chorus-straight8-110"}
+{"type":"tool_use_start","id":"toolu_01CBmoqQzxUemDad2YMELRPq","name":"write_section"}
+{"type":"tool_input_delta","fragment":""}
+{"type":"tool_input_delta","fragment":"{\"dsl\":"}
+{"type":"tool_input_delta","fragment":" \"SEC c"}
+{"type":"tool_input_delta","fragment":"horus b"}
+{"type":"tool_input_delta","fragment":"ars=8 k"}
+{"type":"tool_input_delta","fragment":"ey=G#m "}
+{"type":"tool_input_delta","fragment":"feel=st"}
+{"type":"tool_input_delta","fragment":"raight8"}
+{"type":"tool_input_delta","fragment":" bpm=11"}
+{"type":"tool_input_delta","fragment":"0 dyn=4"}
+{"type":"tool_input_delta","fragment":" tensio"}
+{"type":"tool_input_delta","fragment":"n=0.7\\n"}
+{"type":"tool_input_delta","fragment":"CHD | C"}
+{"type":"tool_input_delta","fragment":"#m | E "}
+{"type":"tool_input_delta","fragment":"| F# | "}
+{"type":"tool_input_delta","fragment":"G#m | C"}
+{"type":"tool_input_delta","fragment":"#m | E "}
+{"type":"tool_input_delta","fragment":"| F# | "}
+{"type":"tool_input_delta","fragment":"G#m |\\n"}
+{"type":"tool_input_delta","fragment":"DRM K:1"}
+{"type":"tool_input_delta","fragment":",4,7,9,"}
+{"type":"tool_input_delta","fragment":"11,14 S"}
+{"type":"tool_input_delta","fragment":":5,13 H"}
+{"type":"tool_input_delta","fragment":":1,3,5,"}
+{"type":"tool_input_delta","fragment":"7,9,11,"}
+{"type":"tool_input_delta","fragment":"13,15\\n"}
+{"type":"tool_input_delta","fragment":"BAS deg"}
+{"type":"tool_input_delta","fragment":"=1 oct="}
+{"type":"tool_input_delta","fragment":"2 rhy:1"}
+{"type":"tool_input_delta","fragment":",3,5,7,"}
+{"type":"tool_input_delta","fragment":"9,11,13"}
+{"type":"tool_input_delta","fragment":",15\\nGT"}
+{"type":"tool_input_delta","fragment":"R voi=p"}
+{"type":"tool_input_delta","fragment":"ow rhy:"}
+{"type":"tool_input_delta","fragment":"1,2,4,5"}
+{"type":"tool_input_delta","fragment":",6,8,9,"}
+{"type":"tool_input_delta","fragment":"11,12,1"}
+{"type":"tool_input_delta","fragment":"4,15 pa"}
+{"type":"tool_input_delta","fragment":"lm=on\\n"}
+{"type":"tool_input_delta","fragment":"KEY voi"}
+{"type":"tool_input_delta","fragment":"=triad "}
+{"type":"tool_input_delta","fragment":"rhy:1,5"}
+{"type":"tool_input_delta","fragment":",9,13 r"}
+{"type":"tool_input_delta","fragment":"eg=mid\"}"}
+{"type":"done","stop":"tool_use","usage":{"input_tokens":303,"output_tokens":244,"cache_read_tokens":1250,"cache_write_tokens":0,"estimated":false}}

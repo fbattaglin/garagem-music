@@ -21,6 +21,8 @@
     Setlist Mode and voice stay in Phase 5.
   - `ADR-022-a-cue-costs-a-fire-never-a-write.md` — how a cue lands on the next bar:
     pre-written candidates and legato variants, fired, never written at cue time.
+  - `ADR-023-the-second-ab-waiver.md` — the Phase 4 blind A/B, waived at parity with its
+    threshold intact; when the model is worth calling opens Phase 5.
 - `phase-0-findings.md` … `phase-4-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 

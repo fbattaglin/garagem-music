@@ -52,7 +52,11 @@ deterministically on the next bar while the model refines the next section, beca
       three-minute conducted song: 4 calls lost, the floor played those sections, 0 beats
       lost, and the model came back between the two losses. Fabiano: *"Não ouvi nenhuma
       interrupção."*
-- [ ] Musical regression suite in CI against cassettes, detecting model drift
+- [x] Musical regression suite in CI against cassettes, detecting model drift
+      — **met 2026-09-13** (`phase-4-findings.md` §13). Phase 3's 29 sections recorded from
+      `claude-sonnet-5` for $0.103: 29 of 29 conformant, none repaired. CI fails on a moved
+      prompt, a missed target or a golden diff. Drift is caught when someone records again,
+      never continuously — the reading Fabiano accepted before recording.
 
 Added by [ADR-021](ADR-021-the-minilab-joins-phase-4.md), when the MiniLab moved into this
 phase. How a cue reaches the bar is [ADR-022](ADR-022-a-cue-costs-a-fire-never-a-write.md).
@@ -102,10 +106,18 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 - [ ] **Blind A/B re-run at this phase's close — same design, same threshold: 8 of 12.**
       Blind, balanced across sections and feels, pre-registered. The Phase 3 waiver moved
       the gate; it did not lower the bar.
+      — **NOT MET 2026-09-13** (`phase-4-findings.md` §15): the model was preferred in
+      **6 of 12**. Pooled with Phase 3's runs after composition, that is 18 of 36, exact
+      parity. The reasons repeat ADR-018's picture: "cleaner" went to the floor 5 of 5, and
+      "less boring" to the model 4 of 5. **Waived by Fabiano on 2026-09-13**
+      ([ADR-023](ADR-023-the-second-ab-waiver.md)): the threshold stands, and when the model
+      is worth calling opens Phase 5. Fabiano heard the model's shuffles as the messy ones.
+      §16 finds a mechanism that fits: the model writes its own swing, and the system swings
+      it again. It is a lead for Phase 5, not a result.
 
 ### Where the phase actually is
 
-Done, with the suite at **2057 passed, 28 skipped** (27 live-marked, and the regression suite until it is recorded), `ruff` and `mypy` clean:
+Done, with the suite at **2092 passed, 27 skipped** (all live-marked), `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -220,7 +232,7 @@ Done, with the suite at **2057 passed, 28 skipped** (27 live-marked, and the reg
 Next, in order — Stage 6, closing the phase with the instrument in hand:
 
 - **Prepared while Fabiano was away** (`phase-4-findings.md` §13, §14). The chaos test has
-  since run and passed; the regression suite is not recorded or accepted.
+  since run and passed, and so has the regression suite.
   - **Musical regression suite.** `scripts/record_regression.py` records Phase 3's closing
     population of 29 sections; `tests/regression/` judges the recording in CI. It fails on a
     moved prompt, on conformance or approval under Phase 3's targets, and on a golden diff.
@@ -232,12 +244,15 @@ Next, in order — Stage 6, closing the phase with the instrument in hand:
   - **Chaos test: met, 2026-09-13.** The Wi-Fi went twice during a three-minute conducted
     song. The floor played the four sections the model could not, and no beat was lost.
     Fabiano: *"Tudo me pareceu ótimo. Não ouvi nenhuma interrupção."*
+  - **Musical regression suite: met, 2026-09-13.** 29 of 29 recorded, conformant and
+    unrepaired, for $0.103. The golden files were read before they were kept.
+  - **Blind A/B at close: not met, 2026-09-13.** 6 of 12, pre-registered in §15, and waived
+    by Fabiano (ADR-023).
 
-1. **Musical regression suite:** record the set (`record_regression.py --yes`, about $0.10),
-   generate its golden files, and commit them together (§13).
-2. **Blind A/B at close:** 8 of 12, same design as ADR-018, pre-registered in §15: a new seed
-   (2026), no endings, and its own log. `ab_section.py --pairs 12 --seed 2026 --log
-   bench/ab-phase4.jsonl`.
+1. **The gate: `/phase-gate`,** run by Fabiano. Every criterion but the A/B needs its
+   evidence confirmed, and the A/B stands waived, before Phase 4 is marked closed.
+2. **Phase 5's plan opens with when the model is worth calling** (ADR-023). Its first leads
+   are the shuffle double swing (§16) and a blind song-level pair.
 
 ## Phase 3 — closed with one waiver
 

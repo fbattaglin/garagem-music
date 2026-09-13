@@ -499,6 +499,14 @@ def main() -> int:
             "them, or move the file to start again.\n"
         )
         return 1
+    # Every pair ends in a vote typed at the keyboard. Without a terminal the first `input()`
+    # dies after a pair has already been paid for and played (phase-4-findings §15).
+    if not sys.stdin.isatty():
+        sys.stderr.write(
+            "The A/B takes a vote after every pair, so it needs a terminal to type into. "
+            "Claude Code's `!` gives it none: run it in Terminal.\n"
+        )
+        return 1
     already = judged if args.resume else set()
 
     sections = briefings(args.pairs, args.seed)
