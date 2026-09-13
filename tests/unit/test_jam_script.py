@@ -462,7 +462,7 @@ def test_the_controller_is_heard_during_the_run_and_stopped_after_it(
     assert jam.main() == 0
     assert (controller.started, controller.stopped) == (1, 1)
     printed = capsys.readouterr().err
-    assert "cues are logged only" in printed
+    assert "act on the next bar" in printed
     assert "2 controls received: density x1, stop x1" in printed
 
 
@@ -618,5 +618,24 @@ def test_the_summary_says_how_many_bars_each_jump_took_to_land() -> None:
     log.record("cue_received", 1.0, bar=-1, drained_bar=-1, cue="chorus_now", family="jump")
     log.record("cue_declined", 1.0, cue="chorus_now", cue_bar=-1, reason="before_the_downbeat")
     text = jam.render_cues(log)
-    assert "1 jumps landed after: 1 bar x1" in text
+    assert "1 cues landed after: 1 bar x1" in text
     assert "declined: before_the_downbeat x1" in text
+
+
+def test_bar_cue_variants_go_into_the_scenes_session_toml_names_for_them() -> None:
+    spec = jam.load_session(jam.DEFAULT_SESSION)
+    assert jam.variant_scenes(spec) == {"stop": {0: 4, 1: 5}, "fill": {0: 6, 1: 7}}
+
+
+def test_a_session_without_variant_scenes_is_refused_with_their_names() -> None:
+    spec = jam.load_session(jam.DEFAULT_SESSION)
+    short = type(spec)(
+        name=spec.name,
+        tempo_bpm=spec.tempo_bpm,
+        quantization=spec.quantization,
+        tracks=spec.tracks,
+        scenes=spec.scenes[:3],
+        loop=spec.loop,
+    )
+    with pytest.raises(jam.SessionSpecError, match="STOP A"):
+        jam.variant_scenes(short)

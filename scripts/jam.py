@@ -38,9 +38,12 @@ which is what makes the two comparable by ear.
 **The MiniLab conducts** (`--controller minilab`, ADR-021, ADR-022). Every pad strike and
 knob position is logged as `cue_received`, with the beat it arrived at. **"chorus now" is
 acted on:** the chorus candidate, written into the `CHORUS` scene before the downbeat, is
-fired for the next bar and the rest of the song is re-planned from it. The other cues are
-still only logged. The legend is printed before the downbeat, and after the last bar a count
-of what was heard and how many bars each jump took to land.
+fired for the next bar and the rest of the song is re-planned from it. **Stop, fill and drums
+and bass are acted on too** (Stage 4): variants of each section are written ahead into the
+`STOP` and `FILL` scenes and fired per track for the next bar, and guitar and keys stop until
+the next section. "next bridge", "end" and the knobs are still only logged. The legend is
+printed before the downbeat, and after the last bar a count of what was heard and how many
+bars each cue took to land.
 
 `--dry-run` prints the form and exits without opening a socket, which makes it the
 cheapest way to see what a seed produces. `--provider cassette:<path>` replays a recording
@@ -118,6 +121,12 @@ DEFAULT_CATALOG = ROOT / "config" / "models.toml"
 DEFAULT_BUDGET = ROOT / "config" / "budget.toml"
 DEFAULT_CONTROLLER = ROOT / "controller.toml"
 CHORUS_SCENE = "CHORUS"
+# ADR-022's variant scenes, by the names session.toml gives them, paired with main scenes A, B.
+MAIN_SCENES = ("A", "B")
+VARIANT_SCENES: dict[str, tuple[str, str]] = {
+    "stop": ("STOP A", "STOP B"),
+    "fill": ("FILL A", "FILL B"),
+}
 
 CASSETTE_PREFIX = "cassette:"
 
@@ -240,7 +249,7 @@ def render_cues(log: EventLog) -> str:
         bars = ", ".join(
             f"{gap} bar{'s' if gap != 1 else ''} x{n}" for gap, n in sorted(landed.items())
         )
-        lines.append(f"{len(applied)} jumps landed after: {bars}")
+        lines.append(f"{len(applied)} cues landed after: {bars}")
     declined = log.of_kind("cue_declined")
     if declined:
         reasons = Counter(str(event.detail["reason"]) for event in declined)
@@ -257,6 +266,21 @@ def candidate_scenes(spec: SessionSpec) -> dict[str, int]:
             "there"
         )
     return {CHORUS: named[CHORUS_SCENE]}
+
+
+def variant_scenes(spec: SessionSpec) -> dict[str, dict[int, int]]:
+    """Variant kind -> main scene -> the scene its variants are written into, by name."""
+    named = {scene.name: scene.index for scene in spec.scenes}
+    wanted = [*MAIN_SCENES, *(name for pair in VARIANT_SCENES.values() for name in pair)]
+    missing = [name for name in wanted if name not in named]
+    if missing:
+        raise SessionSpecError(
+            f"session.toml names no scene {missing}; ADR-022 writes bar-cue variants there"
+        )
+    return {
+        kind: {named[main]: named[variant] for main, variant in zip(MAIN_SCENES, pair, strict=True)}
+        for kind, pair in VARIANT_SCENES.items()
+    }
 
 
 def tracks_of(spec: SessionSpec) -> dict[Instrument, int]:
@@ -417,6 +441,7 @@ def main() -> int:
     # must ask the model for what replaced it (ADR-022).
     shared = FormPlan(form, endings)
     jumps = candidate_scenes(spec) if controller is not None else {}
+    variants = variant_scenes(spec) if controller is not None else {}
     # Stamped with the beat Live last reported, read on the controller's own thread.
     cues = CueQueue(stamp=lambda: clock.beat) if controller is not None else None
     try:
@@ -442,7 +467,8 @@ def main() -> int:
                 return 1
             sys.stderr.write(controls.legend())
             sys.stderr.write(
-                "chorus_now jumps on the next bar; the other cues are logged only in this stage\n"
+                "chorus_now, stop, fill and drums_and_bass act on the next bar; next_bridge, "
+                "end and the knobs are logged only in this stage\n"
             )
         if provider is not None and model is not None:
             sys.stderr.write(f"generating with {model.id}\n")
@@ -474,6 +500,7 @@ def main() -> int:
             cues=cues,
             candidates=jumps,
             plan=shared,
+            variants=variants,
         )
         scheduler.run(form, endings=endings)
         if not scheduler.finished:

@@ -186,7 +186,7 @@ def _build(part: Part, section: Section, slots: tuple[float, ...], rng: Random) 
 
 
 def _roll(part: Part, section: Section, first: int) -> list[Note]:
-    velocity = _reference(part, SNARE)
+    velocity = reference_velocity(part, SNARE)
     rows = ROLL[len(ROLL) - (section.bars - first) :]
     return [
         Note(
@@ -207,7 +207,7 @@ def _let_go_of_the_last_beat(part: Part, section: Section, slots: tuple[float, .
     cut = beats_of(last_beat, section.feel) - RELEASE_BEATS
     notes: list[Note] = []
     for note in part.notes:
-        if _slot(slots, note) >= last_beat:
+        if slot_of(slots, note) >= last_beat:
             continue
         notes.append(_ending_by(note, cut))
     return notes
@@ -248,19 +248,19 @@ def _hit(
     last = section.bars - 1
     downbeat_slot = last * SIXTEENTHS_PER_BAR
     downbeat = last * BEATS_PER_BAR
-    before = [note for note in part.notes if _slot(slots, note) < downbeat_slot]
-    on = [note for note in part.notes if _slot(slots, note) == downbeat_slot]
+    before = [note for note in part.notes if slot_of(slots, note) < downbeat_slot]
+    on = [note for note in part.notes if slot_of(slots, note) == downbeat_slot]
 
     if part.instrument is Instrument.DRUMS:
         hit = [note for note in on if note.pitch in HIT_VOICES]
         added: list[Note] = []
         if not any(note.pitch == CRASH for note in hit):
-            added.append(_drum(CRASH, downbeat, _reference(part, CRASH)))
+            added.append(drum_hit(CRASH, downbeat, reference_velocity(part, CRASH)))
         if into is not None:
             pickup = fill_for(into.tension)
-            velocity = _reference(part, SNARE)
+            velocity = reference_velocity(part, SNARE)
             added.extend(
-                _drum(SNARE, beats_of(downbeat_slot + slot, section.feel), velocity)
+                drum_hit(SNARE, beats_of(downbeat_slot + slot, section.feel), velocity)
                 for slot in range(LAST_BEAT_SLOT, SIXTEENTHS_PER_BAR)
                 if pickup[slot]
             )
@@ -284,7 +284,7 @@ def _hit(
 # -------------------------------------------------------------------------------- helpers
 
 
-def _slot(slots: tuple[float, ...], note: Note) -> int:
+def slot_of(slots: tuple[float, ...], note: Note) -> int:
     """Which sixteenth of the section a note belongs to, humanisation undone."""
     index = bisect_left(slots, note.start_beats)
     if index == 0:
@@ -296,7 +296,7 @@ def _slot(slots: tuple[float, ...], note: Note) -> int:
 
 
 def _bar(slots: tuple[float, ...], note: Note) -> int:
-    return _slot(slots, note) // SIXTEENTHS_PER_BAR
+    return slot_of(slots, note) // SIXTEENTHS_PER_BAR
 
 
 def _ending_by(note: Note, cut: float) -> Note:
@@ -308,7 +308,7 @@ def _ending_by(note: Note, cut: float) -> Note:
     )
 
 
-def _reference(part: Part, pitch: int) -> int:
+def reference_velocity(part: Part, pitch: int) -> int:
     """How hard this drummer already hits `pitch`, or anything, in this section."""
     same = [note.velocity for note in part.notes if note.pitch == pitch]
     if same:
@@ -316,5 +316,5 @@ def _reference(part: Part, pitch: int) -> int:
     return max((note.velocity for note in part.notes), default=DEFAULT_VELOCITY)
 
 
-def _drum(pitch: int, at: float, velocity: int) -> Note:
+def drum_hit(pitch: int, at: float, velocity: int) -> Note:
     return Note(pitch=pitch, start_beats=at, duration_beats=HIT_BEATS, velocity=velocity)

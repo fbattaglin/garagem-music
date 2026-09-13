@@ -44,8 +44,10 @@ from garagem.daw.abletonosc import (
     ADD_NOTES,
     CREATE_CLIP,
     DELETE_CLIP,
+    FIRE_CLIP,
     FIRE_SCENE,
     GET_BEAT,
+    GET_CLIP_LEGATO,
     GET_CLIP_LENGTH,
     GET_DEVICE_NAMES,
     GET_HAS_CLIP,
@@ -55,6 +57,7 @@ from garagem.daw.abletonosc import (
     GET_TRACK_ARM,
     GET_TRACK_NAME,
     REMOVE_NOTES,
+    SET_CLIP_LEGATO,
     SET_LOOP,
     SET_QUANTIZATION,
     SET_TEMPO,
@@ -64,6 +67,7 @@ from garagem.daw.abletonosc import (
     START_PLAYING,
     STOP_LISTEN_BEAT,
     STOP_PLAYING,
+    STOP_TRACK,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -82,7 +86,7 @@ ARGUMENTS: Arguments = {
 }
 
 # These two read a clip, so they need a slot that holds one. See the module docstring.
-NEEDS_A_CLIP: frozenset[str] = frozenset({GET_CLIP_LENGTH, GET_NOTES})
+NEEDS_A_CLIP: frozenset[str] = frozenset({GET_CLIP_LENGTH, GET_NOTES, GET_CLIP_LEGATO})
 
 # `/live/song/get/beat` is where Live *sends* beats; it has no handler at all. Verified
 # in AbletonOSC's `song.py`: `current_song_time_changed` calls `osc_server.send` on that
@@ -101,6 +105,9 @@ WRITES: frozenset[str] = frozenset(
         START_PLAYING,
         STOP_PLAYING,
         FIRE_SCENE,
+        FIRE_CLIP,
+        STOP_TRACK,
+        SET_CLIP_LEGATO,
         CREATE_CLIP,
         DELETE_CLIP,
         ADD_NOTES,

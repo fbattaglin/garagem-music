@@ -772,3 +772,178 @@ def test_run_reads_a_cue_inside_the_bar_it_arrives_in() -> None:
     pusher.join()
     (applied,) = log.of_kind("cue_applied")
     assert int(str(applied.detail["fired_bar"])) - int(str(applied.detail["cue_bar"])) == 1
+
+
+# --------------------------------------------------------------------- bar cues (Stage 4)
+
+
+VARIANT_SCENES = {"stop": {0: 4, 1: 5}, "fill": {0: 6, 1: 7}}
+# Eight-bar sections, as a real song has: intro bars 0-3, verse 4-11, chorus 12-19, outro
+# 20-23. The verse plays from scene 1; its stop lives in scene 5 and its fill in scene 7.
+LONG = (a_section("intro", 4), a_section("verse", 8), a_section("chorus", 8), a_section("outro", 4))
+VERSE_STOP, VERSE_FILL, VERSE_MAIN = 5, 7, 1
+
+
+class BarRig:
+    """LONG with variant scenes, a chorus candidate and a cue queue, a beat at a time."""
+
+    def __init__(self) -> None:
+        self.daw = FakeDawAdapter(scenes=8)
+        self.clock = BarClock(self.daw)
+        self.clock.start()
+        self.log = EventLog(None)
+        self.queue = CueQueue(stamp=lambda: self.clock.beat)
+        self.scheduler = Scheduler(
+            self.daw,
+            self.clock,
+            ScoreBuffer(),
+            TRACKS,
+            self.log,
+            seed=7,
+            cues=self.queue,
+            candidates={"chorus": 2},
+            variants=VARIANT_SCENES,
+        )
+        self.sounding_at_write: list[tuple[int, int | None]] = []
+        original = self.daw.write_notes
+
+        def watched(at: ClipAddress, notes: Iterable[MidiNote]) -> None:
+            self.sounding_at_write.append((at.scene, self.scheduler._bar_cues.sounding_scene()))
+            original(at, notes)
+
+        self.daw.write_notes = watched  # type: ignore[method-assign]
+        self.calls_by_bar: dict[int, list[str]] = {}
+
+    def play(self, strikes: dict[int, CueKind] | None = None) -> BarRig:
+        strikes = strikes or {}
+        self.scheduler.begin(LONG)
+        beat = 0
+        while not self.scheduler.finished and beat < 2000:
+            self.daw.push_beat(beat)
+            if beat in strikes:
+                self.queue.offer(Cue(kind=strikes[beat]))
+            before = len(self.daw.calls)
+            self.scheduler.tick()
+            self.calls_by_bar.setdefault(beat // 4, []).extend(self.daw.calls[before:])
+            beat += 1
+        return self
+
+    def of_kind(self, kind: str) -> tuple[Event, ...]:
+        return self.log.of_kind(kind)
+
+
+def at(instrument: Instrument, scene: int) -> ClipAddress:
+    return ClipAddress(track=TRACKS[instrument], scene=scene)
+
+
+def test_variants_are_written_ahead_fill_drums_first_each_with_legato_on() -> None:
+    rig = BarRig().play()
+    verse = [e.detail for e in rig.of_kind("variant_written") if e.detail["section"] == 1]
+    assert [(d["variant"], d["instrument"]) for d in verse] == [
+        ("fill", "DRM"),
+        ("stop", "DRM"),
+        ("stop", "BAS"),
+        ("stop", "GTR"),
+        ("stop", "KEY"),
+    ]
+    assert rig.daw.clip_legato(at(Instrument.DRUMS, VERSE_FILL))
+    assert all(rig.daw.clip_legato(at(instrument, VERSE_STOP)) for instrument in Instrument)
+
+
+def test_a_variant_is_never_written_in_a_tick_that_wrote_a_section() -> None:
+    rig = BarRig().play()
+    section_beats = {e.at_beats for e in rig.of_kind("section_written")}
+    assert not section_beats & {e.at_beats for e in rig.of_kind("variant_written")}
+
+
+def test_a_stop_fires_every_track_into_the_stop_variant_for_the_next_bar() -> None:
+    rig = BarRig().play({25: CueKind.STOP})
+    (applied,) = rig.of_kind("cue_applied")
+    assert (applied.detail["cue_bar"], applied.detail["fired_bar"]) == (6, 7)
+    assert applied.detail["scene"] == VERSE_STOP
+    assert rig.daw.fired_clips[:4] == [at(instrument, VERSE_STOP) for instrument in Instrument]
+
+
+def test_a_bar_after_the_stop_every_track_goes_back_to_the_groove_with_legato() -> None:
+    rig = BarRig().play({25: CueKind.STOP})
+    (returned,) = rig.of_kind("variant_returned")
+    assert returned.detail["via"] == "legato"
+    assert returned.detail["fired_bar"] == 8
+    assert rig.daw.fired_clips[4:8] == [at(instrument, VERSE_MAIN) for instrument in Instrument]
+    assert rig.calls_by_bar[7].count("set_clip_legato") == 4
+    # Once it has landed, the main clips lose legato again — or the verse's scene would start
+    # its next section mid-way.
+    assert rig.calls_by_bar[8].count("set_clip_legato") == 4
+    assert not any(rig.daw.clip_legato(at(instrument, VERSE_MAIN)) for instrument in Instrument)
+
+
+def test_a_fill_fires_and_returns_only_the_drums() -> None:
+    rig = BarRig().play({33: CueKind.FILL})
+    (applied,) = rig.of_kind("cue_applied")
+    assert applied.detail["tracks"] == "DRM"
+    assert rig.daw.fired_clips == [
+        at(Instrument.DRUMS, VERSE_FILL),
+        at(Instrument.DRUMS, VERSE_MAIN),
+    ]
+
+
+def test_drums_and_bass_stops_guitar_and_keys_until_the_next_section() -> None:
+    rig = BarRig().play({25: CueKind.DRUMS_AND_BASS})
+    (applied,) = rig.of_kind("cue_applied")
+    assert (applied.detail["fired_bar"], applied.detail["tracks"]) == (7, "GTR,KEY")
+    assert rig.daw.stopped_tracks == [TRACKS[Instrument.GUITAR], TRACKS[Instrument.KEYS]]
+    assert rig.daw.fired_clips == []
+    assert [e.detail["name"] for e in rig.of_kind("scene_fired")][2] == "chorus"
+
+
+def test_a_stop_while_guitar_and_keys_are_out_leaves_them_out() -> None:
+    rig = BarRig().play({21: CueKind.DRUMS_AND_BASS, 25: CueKind.STOP})
+    stop = next(e for e in rig.of_kind("cue_applied") if e.detail["cue"] == "stop")
+    assert stop.detail["tracks"] == "DRM,BAS"
+    assert all(address.track not in (2, 3) for address in rig.daw.fired_clips)
+
+
+def test_a_bar_cue_in_the_bar_the_next_section_was_fired_is_declined() -> None:
+    rig = BarRig().play({44: CueKind.STOP})
+    (declined,) = rig.of_kind("cue_declined")
+    assert declined.detail["reason"] == "section_change"
+    assert rig.daw.fired_clips == []
+
+
+def test_a_variant_heard_in_the_last_bar_is_returned_by_the_section_change_not_a_fire() -> None:
+    """Live's last trigger wins: a return fired beside the chorus would take its tracks."""
+    rig = BarRig().play({43: CueKind.FILL})
+    (returned,) = rig.of_kind("variant_returned")
+    assert returned.detail["via"] == "section_change"
+    assert rig.daw.fired_clips == [at(Instrument.DRUMS, VERSE_FILL)]
+
+
+def test_a_bar_cue_before_its_variant_is_written_is_declined_as_unavailable() -> None:
+    rig = BarRig().play({0: CueKind.STOP})
+    (declined,) = rig.of_kind("cue_declined")
+    assert declined.detail["reason"] == "unavailable"
+
+
+def test_a_bar_cue_while_the_chorus_candidate_plays_is_declined() -> None:
+    rig = BarRig().play({25: CueKind.CHORUS_NOW, 33: CueKind.STOP})
+    (declined,) = rig.of_kind("cue_declined")
+    assert declined.detail["reason"] == "no_variant"
+
+
+def test_a_jump_right_after_a_stop_cancels_its_return() -> None:
+    rig = BarRig().play({25: CueKind.STOP, 26: CueKind.CHORUS_NOW})
+    assert rig.of_kind("variant_returned") == ()
+    assert at(Instrument.DRUMS, VERSE_MAIN) not in rig.daw.fired_clips
+
+
+def test_no_write_ever_lands_in_the_scene_a_bar_cue_is_sounding_from() -> None:
+    rig = BarRig().play({25: CueKind.STOP, 33: CueKind.FILL, 41: CueKind.STOP})
+    assert all(scene != sounding for scene, sounding in rig.sounding_at_write)
+
+
+def test_a_performance_with_bar_cues_replays_byte_for_byte() -> None:
+    strikes = {21: CueKind.DRUMS_AND_BASS, 25: CueKind.STOP, 33: CueKind.FILL}
+    first, second = BarRig().play(strikes), BarRig().play(strikes)
+    assert [(e.kind, musical_detail(e)) for e in first.log] == [
+        (e.kind, musical_detail(e)) for e in second.log
+    ]

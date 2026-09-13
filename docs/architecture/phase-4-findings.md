@@ -708,3 +708,158 @@ seven of the ten cues land before that shorter song ends, and all seven still la
 one bar. The remainder is section granularity: a tail can only be built from 8-bar
 sections, so each jump can miss its budget by up to half of one. A test holds ten jumps to
 within one section of the planned length.
+
+## 10. Stage 4 is built: stop, fill, and the band down to drums and bass, from the next bar
+
+The rest of ADR-022's next-bar cues, end to end, offline. **The gate — Fabiano striking pads
+1, 2 and 3 during a song, judged by ear — has not run.**
+
+### What happens when each pad is struck
+
+**Behind the music, one track per bar**, the scheduler writes two variants of the section
+that is playing and of the one after it. They go into the scenes paired with that section's
+main scene: stop into 4 or 5, fill into 6 or 7.
+- `stop_bars` turns every bar into a stop: the downbeat, the chord ringing a beat and a half,
+  kick and crash, a snare pickup on beat four.
+- `fill_bars` turns every bar into a fill: the kick keeps its groove, the snare fills at least
+  as hard as a chorus's, the hats drop out.
+- Both come from the section exactly as it was written, ending included, so a stopped bar
+  carries that bar's chord.
+- The fill's drums are written first. Every variant clip has legato on.
+- No variant is written in a bar that already wrote a section, or into a scene a cue is
+  sounding from.
+
+**Pad 1, stop.** The four variant clips are fired for the next bar. Each track takes over at
+the same position. At that bar, the main clips get legato on and are fired for the bar after,
+so the band comes back into the groove where it would have been. Once they have landed, their
+legato goes off again: a main clip left with legato would start its next section mid-way.
+
+**Pad 2, fill.** The same, for the drums track alone; bass, guitar and keys never stop.
+
+**Pad 3, drums and bass.** Guitar and keys are stopped at the next bar, and their own scene's
+next fire brings them back with the next section. A stop struck while they are out leaves
+them out.
+
+**Precedence.** A bar cue is declined when the next bar belongs to another section — fired
+already, or simply the boundary — because Live's last trigger would take that section's
+tracks away. A variant heard in the last bar of a section fires no return: the section change
+brings every track back. A jump cancels a pending return. A cue arriving before its variant is
+written is declined as `unavailable`, and one struck while the chorus candidate plays is
+declined as `no_variant`: candidates have no variants.
+
+### What is measured, offline
+
+- Every applied bar cue lands after one bar, alone and interleaved with jumps across a whole
+  three-minute song.
+- The return fires the main clips of exactly the tracks the cue changed, with legato set four
+  times at the variant bar and reset four times after the return lands.
+- A fill touches only the drums. Drums and bass stops tracks 2 and 3 and fires nothing.
+- A stop during drums and bass fires only drums and bass.
+- A cue in the bar a section was fired is declined; a fill heard in a section's last bar is
+  returned by the section change.
+- No write lands in a sounding variant scene, and a performance with bar cues replays byte
+  for byte.
+- Both variants validate for any briefing and seed (2000 examples before committing at 60),
+  never invent a pitch, and never overlap a note of their own pitch.
+
+Suite: **1963 passed, 27 live-marked skipped**; `ruff`, `mypy` and the timing properties
+clean.
+
+### What the ear is asked, written before it is asked
+
+1. **Does the stop feel like the band stopping with you?** One bar of hit-and-silence, then
+   back in.
+2. **Does the fill sound like a fill, and does the groove come back in the right place?**
+3. **Does dropping to drums and bass, and the others coming back with the next section, feel
+   intentional?**
+
+Named in advance:
+
+- **A cue struck early in a section may be declined as `unavailable`.** On the first section,
+  and after a jump, the variants of the section that is playing are still being written, a
+  track a bar. The summary counts declines by reason, so this is visible rather than a pad
+  that silently did nothing.
+- **Nothing happens on the pads while the jumped-to chorus plays.** Candidates have no
+  variants yet; two more scenes would give them some.
+- **The return costs legato round trips.** Four confirmed sets before the return fire, about
+  400 ms inside a 1.82 s bar. It fits, and it is the first thing to look at if a return
+  arrives a bar late.
+
+### The gate: passed, with the fill in question, 2026-09-12
+
+Fabiano ran `jam.py --controller minilab --seconds 150` and struck pads 1, 2 and 3 through a
+twelve-section song. The run ended normally. The exit code 1 his terminal showed came from
+the `!` that led the pasted second line, which the shell reads as "negate".
+
+- **21 cues applied**: `fill` ×13, `drums_and_bass` ×6, `stop` ×2.
+  - One stop fired only drums and bass, because guitar and keys were out, as designed.
+- **Every return went back to the groove by its own legato fire, on time** — `late_bars` 0
+  in all 13.
+- **20 of 21 landed one bar after the pad. One landed two.** That fill arrived stamped with
+  the last beat of bar 24, and was read after the clock had turned to bar 25, so it could only
+  be fired for bar 26.
+  - The clock only knows the last beat Live pushed, and Live pushes it on its control-surface
+    tick, so a strike on the bar line itself can be stamped with the bar before.
+  - A strike on a downbeat is heard by the person as "now". The system can only give it the
+    next quantum, which is then a bar further than it looks.
+  - That is latency in the beat's arrival, not in the queue. `fired_bar − cue_bar = 1` is a
+    criterion a person can miss by striking on the line, and the log should read with that in
+    mind.
+- **Five cues declined**, each for its stated reason.
+  - `section_change` ×4 — struck in the bar the next section was fired, or the bar before a
+    boundary.
+  - `unavailable` ×1 — a stop in the first verse, whose variants were still being written
+    after a four-bar intro.
+
+Asked §10's questions, he answered:
+
+> *"Achei tudo bem, talvez a virada (pad 2) não me parecia tão clara, mas pode ser porque sou
+> destreinado."* — I thought it was all fine; maybe the fill (pad 2) didn't seem that clear to
+> me, but that may be because I'm untrained.
+
+The stop and the drop pass. **The fill passes with a question on it, and the question is
+not dismissed as an untrained ear.** ADR-019 makes his ear the instrument, and "not that
+clear" is a reading from it. There are two plain reasons it could be true of the sound:
+
+- **The fill changes only the snare**, over the second half of the bar, on a drum kit that
+  is one Drift synthesiser. A kick carrying on underneath and hats dropping out are subtle
+  on a synth.
+- **A fill in a song lands on a crash.** This one returns to a groove bar that has none.
+
+Making it clearer is a by-ear choice between concrete options, not a threshold: a fuller
+and rising snare, a falling run of pitched drum hits in place of toms, a crash on the bar
+the groove returns in. It is left open here rather than guessed at.
+
+### The fill, auditioned blind
+
+`scripts/audition_fills.py` played six fills, blind:
+- the approved snare fill, a rising snare, and a run down four toms;
+- each of the three again with a crash on the bar the groove returns in.
+
+Every passage was the same five bars of the default song's first verse, twice, with a bar
+of silence between passages to count them by. Fabiano asked to hear it twice. The second run
+was the one he ranked (seed 69374), before anything was revealed:
+
+> *"Mais claro em ordem 3, 5, 6, 4, 2, 1."*
+
+Revealed:
+
+| Rank | Passage | Fill |
+|---|---|---|
+| 1 | 3 | run down the toms, crash on the return |
+| 2 | 5 | run down the toms |
+| 3 | 6 | snare fill (the one heard at the gate) |
+| 4 | 4 | rising snare |
+| 5 | 2 | snare fill, crash on the return |
+| 6 | 1 | rising snare, crash on the return |
+
+- **The toms won outright**, first and second, with the crash and without.
+- **The rising snare did not help.** It ranked below the fill it was meant to improve.
+- **The crash is ambiguous.** It lifted the toms from second to first, but dropped the snare
+  from third to fifth and the rising snare from fourth to sixth. One ranking by one listener
+  cannot say the crash helps, and it is the expensive half: a crash on the return needs two
+  more scenes and a second return step.
+
+**Decision, Fabiano's: the fill cue becomes the run down the toms, without the crash** — his
+second choice, a place behind the first, and a one-constant change. The crash stays an idea
+with a cost attached; an audition between just those two options is how to settle it.

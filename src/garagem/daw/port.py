@@ -238,6 +238,24 @@ class DawPort(Protocol):
         """
         ...
 
+    def fire_clip(self, at: ClipAddress) -> None:
+        """Launch one clip at the next quantum, in its track only. Returns immediately.
+
+        Quantised like a scene fire, unconfirmed for the same reason — measured in Stage 0
+        (`phase-4-findings.md` §7). A bar cue fires the tracks it changes and no others.
+        """
+        ...
+
+    def stop_track(self, track: int) -> None:
+        """Stop whatever the track plays, at the next quantum. Returns immediately."""
+        ...
+
+    def clip_legato(self, at: ClipAddress) -> bool: ...
+
+    def set_clip_legato(self, at: ClipAddress, on: bool) -> None:
+        """Whether a launch of this clip takes over the playing clip's position (ADR-022)."""
+        ...
+
     # ------------------------------------------------------------------------ the beat
 
     def listen_beats(self, handler: BeatHandler) -> None:

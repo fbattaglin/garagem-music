@@ -82,6 +82,10 @@ SET_TRACK_ARM: Final = "/live/track/set/arm"
 GET_METER_LEVEL: Final = "/live/track/get/output_meter_level"
 
 FIRE_SCENE: Final = "/live/scene/fire"
+FIRE_CLIP: Final = "/live/clip/fire"
+STOP_TRACK: Final = "/live/track/stop_all_clips"
+GET_CLIP_LEGATO: Final = "/live/clip/get/legato"
+SET_CLIP_LEGATO: Final = "/live/clip/set/legato"
 
 CREATE_CLIP: Final = "/live/clip_slot/create_clip"
 DELETE_CLIP: Final = "/live/clip_slot/delete_clip"
@@ -120,6 +124,10 @@ ALL_ADDRESSES: Final[tuple[str, ...]] = (
     SET_TRACK_ARM,
     GET_METER_LEVEL,
     FIRE_SCENE,
+    FIRE_CLIP,
+    STOP_TRACK,
+    GET_CLIP_LEGATO,
+    SET_CLIP_LEGATO,
     CREATE_CLIP,
     DELETE_CLIP,
     GET_HAS_CLIP,
@@ -437,6 +445,22 @@ class AbletonOSCAdapter:
         # Deliberately not confirmed: at `1 Bar` the launch is up to 1.82 s away, so a
         # read now would only prove the packet was slow. ADR-001.
         self._transport.send(FIRE_SCENE, scene)
+
+    def fire_clip(self, at: ClipAddress) -> None:
+        # Unconfirmed, like a scene fire, and a bar cue cannot afford the read anyway: a
+        # request is a fifth of a beat (`phase-4-findings.md` §7).
+        self._transport.send(FIRE_CLIP, at.track, at.scene)
+
+    def stop_track(self, track: int) -> None:
+        self._transport.send(STOP_TRACK, track)
+
+    def clip_legato(self, at: ClipAddress) -> bool:
+        return bool(self._clip_reply(GET_CLIP_LEGATO, at)[0])
+
+    def set_clip_legato(self, at: ClipAddress, on: bool) -> None:
+        self._transport.send(SET_CLIP_LEGATO, at.track, at.scene, on)
+        if (seen := self.clip_legato(at)) != on:
+            raise _unconfirmed(SET_CLIP_LEGATO, on, seen)
 
     # -- internals
 

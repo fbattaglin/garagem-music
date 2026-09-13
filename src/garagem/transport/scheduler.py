@@ -48,6 +48,13 @@ Stage 2's gate measured that: 62 of 63 cues read a bar late, one two bars late
 queue between them, and a section write reads it between tracks — a cue waits at most one
 track's write, not the whole section's.
 
+**Bar cues** — a stop, a fill, drums and bass only — are Stage 4, and their mechanics live in
+`transport/bar_cues.py`: variants written a track per bar, fired per track with legato, and
+returned from a bar later. The scheduler keeps the timing rules. A bar cue fires for the next
+bar or not at all, and it never lands on a section change: in the bar the next section was
+fired, or the bar before a boundary, it is declined and logged. A variant is written only in a
+tick that wrote no section, and never into the scene a variant is sounding from.
+
 **Candidates never move the main scenes' alternation.** A jump plays the candidate from its
 own scene; while it plays, both main scenes are silent, and the next section is written into
 the first of them. A jump beats a section change fired in the same bar, because Live's last
@@ -81,6 +88,7 @@ from garagem.engines import (
 from garagem.engines.arranger import CHORUS
 from garagem.obs import EventLog
 from garagem.theory import validate
+from garagem.transport.bar_cues import FILL, STOP, BarCues
 from garagem.transport.buffer import ScoreBuffer
 from garagem.transport.clock import BEATS_PER_BAR, NO_BEAT, BarClock
 from garagem.transport.cues import CueQueue, Received, describe
@@ -116,6 +124,10 @@ WAKE_S: Final = 0.02
 # Which cue jumps to which kind of section. The only jump in Stage 3.
 JUMPS: Final[dict[CueKind, str]] = {CueKind.CHORUS_NOW: CHORUS}
 
+# Which cue fires which variant (Stage 4). Drums-and-bass is handled apart: it is a stop of
+# two tracks, not a variant.
+BAR_VARIANTS: Final[dict[CueKind, str]] = {CueKind.STOP: STOP, CueKind.FILL: FILL}
+
 # Seeds for material that is not a section of the planned form, kept far from `seed + index`
 # so a candidate or a re-planned tail never shares a seed with a planned section by accident.
 CANDIDATE_SEED: Final = 90_000
@@ -141,6 +153,7 @@ class Scheduler:
         candidates: Mapping[str, int] | None = None,
         plan: FormPlan | None = None,
         wake_s: float = WAKE_S,
+        variants: Mapping[str, Mapping[int, int]] | None = None,
     ) -> None:
         self._daw = daw
         self._clock = clock
@@ -156,6 +169,8 @@ class Scheduler:
         self._candidate_scenes = dict(candidates or {})
         self._plan = plan
         self._wake_s = wake_s
+        # Variant kind -> main scene -> variant scene (ADR-022's layout). Empty: no bar cues.
+        self._bar_cues = BarCues(daw, tracks, log, self._beats, variants or {})
 
         self._sections: tuple[Section, ...] = ()
         self._endings: tuple[Ending, ...] | None = None
@@ -341,9 +356,16 @@ class Scheduler:
             self._start_bar = bar
             self._buffer.advance(self._index)
 
+        prepared = self._prepared
         self._prepare_next()
         self._fire_if_due(bar)
         self._advance_if_past(bar)
+        if self.finished:
+            return
+        self._bar_cues.settle(bar, self._index, change_due=self._change_due(bar))
+        if self._prepared == prepared and self._bar_cues.enabled:
+            # One variant track a bar, and never in a bar that already paid for a section.
+            self._bar_cues.write_one((self._index, self._index + 1))
 
     # ------------------------------------------------------------------------ the steps
 
@@ -420,6 +442,7 @@ class Scheduler:
                 self.finished = True
             return
         self._index += 1
+        self._bar_cues.section_changed()
         self._playing_scene = (
             self._jump_scene if self._jump_scene is not None else self.free_scene()
         )
@@ -438,6 +461,7 @@ class Scheduler:
         self._start_bar = bar
         self._boundary_override = None
         self._jump_scene = None
+        self._bar_cues.reset()
         self._log.record("beat_lost", self._beats(), reason="rewind", bar=bar)
 
     # ----------------------------------------------------------------------------- cues
@@ -455,8 +479,78 @@ class Scheduler:
                 **describe(received.control),
             )
             control = received.control
-            if isinstance(control, Cue) and control.kind in JUMPS:
+            if not isinstance(control, Cue):
+                continue
+            if control.kind in JUMPS:
                 self._jump(received, control.kind, JUMPS[control.kind])
+            elif control.kind in BAR_VARIANTS:
+                self._bar_cue(received, control.kind, BAR_VARIANTS[control.kind])
+            elif control.kind is CueKind.DRUMS_AND_BASS:
+                self._drop(received)
+
+    def _bar_cue(self, received: Received, cue: CueKind, variant: str) -> None:
+        """Fire a variant for the next bar, or decline it and say why."""
+        bar = self._clock.bar
+        declined = self._why_not_now(bar) or self._bar_cues.unavailable(
+            variant, self._index, self._playing_scene
+        )
+        if declined is not None:
+            self._decline(received, cue, declined)
+            return
+        pending = self._bar_cues.fire(variant, self._index, self._playing_scene, bar)
+        self._log.record(
+            "cue_applied",
+            self._beats(),
+            cue=str(cue),
+            cue_bar=_bar_of(received.beat),
+            fired_bar=bar + 1,
+            scene=pending.variant_scene,
+            section=self._index,
+            tracks=",".join(str(instrument) for instrument in pending.tracks),
+        )
+
+    def _drop(self, received: Received) -> None:
+        """Guitar and keys out from the next bar until the next section brings them back."""
+        bar = self._clock.bar
+        declined = self._why_not_now(bar)
+        if declined is not None:
+            self._decline(received, CueKind.DRUMS_AND_BASS, declined)
+            return
+        dropped = self._bar_cues.drop()
+        self._log.record(
+            "cue_applied",
+            self._beats(),
+            cue=str(CueKind.DRUMS_AND_BASS),
+            cue_bar=_bar_of(received.beat),
+            fired_bar=bar + 1,
+            section=self._index,
+            tracks=",".join(str(instrument) for instrument in dropped),
+        )
+
+    def _why_not_now(self, bar: int) -> str | None:
+        """The timing rules every bar cue shares (ADR-022)."""
+        if self.finished:
+            return "song_over"
+        if bar == NO_BEAT or self._start_bar == NO_BEAT:
+            return "before_the_downbeat"
+        if self._change_due(bar):
+            # A section change is on its way: a bar cue fired now would land on it, and
+            # Live's last trigger would take the new section's tracks away.
+            return "section_change"
+        return None
+
+    def _change_due(self, bar: int) -> bool:
+        """Whether the next bar belongs to another section, fired or about to be."""
+        return self._fired > self._index or bar + 1 >= self.boundary_bar()
+
+    def _decline(self, received: Received, cue: CueKind, reason: str) -> None:
+        self._log.record(
+            "cue_declined",
+            self._beats(),
+            cue=str(cue),
+            cue_bar=_bar_of(received.beat),
+            reason=reason,
+        )
 
     def _jump(self, received: Received, cue: CueKind, kind: str) -> None:
         """Fire the candidate for the next bar, then re-plan everything after it.
@@ -495,6 +589,8 @@ class Scheduler:
         self._prepared = target
         self._fired = target
         self._buffer.discard_from(target)
+        self._bar_cues.forget_from(target)
+        self._bar_cues.section_written(target, candidate, scene)
         if self._plan is not None:
             self._plan.replace(sections, self._endings)
 
@@ -589,6 +685,11 @@ class Scheduler:
                 f"refusing to write section {index} into scene {scene}, which is playing "
                 "(invariant 6: never rewrite a clip that is playing)"
             )
+        if scene == self._bar_cues.sounding_scene():
+            raise DawError(
+                f"refusing to write section {index} into scene {scene}, which a bar cue is "
+                "sounding from (invariant 6)"
+            )
         ms = self._write_tracks(score, scene)
         self._log.record(
             "section_written",
@@ -601,6 +702,7 @@ class Scheduler:
             **({} if ending is None else {"ending": str(ending)}),
         )
         self._measure(score, index)
+        self._bar_cues.section_written(index, score, scene)
 
     def _write_candidate(self, kind: str, scene: int) -> None:
         """A section a jump cue can land on, written before the song starts."""

@@ -31,8 +31,10 @@ from garagem.daw.abletonosc import (
     ADD_NOTES,
     ALL_ADDRESSES,
     CREATE_CLIP,
+    FIRE_CLIP,
     FIRE_SCENE,
     GET_BEAT,
+    GET_CLIP_LEGATO,
     GET_CLIP_LENGTH,
     GET_DEVICE_NAMES,
     GET_HAS_CLIP,
@@ -48,6 +50,7 @@ from garagem.daw.abletonosc import (
     GET_TRACK_ARM,
     GET_TRACK_NAMES,
     REMOVE_NOTES,
+    SET_CLIP_LEGATO,
     SET_LOOP,
     SET_QUANTIZATION,
     SET_TEMPO,
@@ -57,6 +60,7 @@ from garagem.daw.abletonosc import (
     START_PLAYING,
     STOP_LISTEN_BEAT,
     STOP_PLAYING,
+    STOP_TRACK,
     TEST,
     AbletonOSCAdapter,
 )
@@ -84,6 +88,7 @@ HEALTHY: dict[str, tuple[OscArg, ...]] = {
     GET_HAS_MIDI_INPUT: (3, True),
     GET_TRACK_ARM: (3, False),
     GET_LOOP: (False,),
+    GET_CLIP_LEGATO: (3, 1, True),
     GET_CLIP_LENGTH: (3, 1, 16.0),
     GET_NOTES: (3, 1),
 }
@@ -227,6 +232,34 @@ def test_a_loop_live_applies_a_tick_later_is_confirmed_without_writing_twice() -
     transport = FakeOscTransport(handler=handler)
     adapter(transport).set_song_loop(False)
     assert sent(transport) == [SET_LOOP, GET_LOOP, GET_LOOP]
+
+
+def test_a_clip_fire_names_the_slot_and_waits_for_nothing() -> None:
+    """A bar cue cannot afford a read: a request is a fifth of a beat (Stage 0)."""
+    transport = serving()
+    adapter(transport).fire_clip(AT)
+    assert transport.sent == [(FIRE_CLIP, (3, 1))]
+
+
+def test_stopping_a_track_names_the_track_and_waits_for_nothing() -> None:
+    transport = serving()
+    adapter(transport).stop_track(2)
+    assert transport.sent == [(STOP_TRACK, (2,))]
+
+
+def test_legato_is_read_from_the_clip_and_setting_it_is_confirmed() -> None:
+    transport = serving()
+    daw = adapter(transport)
+    assert daw.clip_legato(AT) is True
+    transport.sent.clear()
+    daw.set_clip_legato(AT, True)
+    assert transport.sent == [(SET_CLIP_LEGATO, (3, 1, True)), (GET_CLIP_LEGATO, (3, 1))]
+
+
+def test_a_legato_that_did_not_take_is_not_confirmed() -> None:
+    transport = serving(GET_CLIP_LEGATO=(3, 1, False))
+    with pytest.raises(DawWriteNotConfirmedError, match="did not take"):
+        adapter(transport).set_clip_legato(AT, True)
 
 
 def test_disarming_a_track_is_confirmed_by_reading_the_arm_back() -> None:

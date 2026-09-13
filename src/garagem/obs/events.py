@@ -69,6 +69,10 @@ KINDS: Final[tuple[str, ...]] = (
     "cue_applied",
     "cue_declined",
     "form_replanned",
+    # Phase 4, Stage 4 (ADR-022). A track of a stop or fill variant written ahead, and the
+    # way a fired variant went back to the groove: its own legato fire, or a section change.
+    "variant_written",
+    "variant_returned",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so

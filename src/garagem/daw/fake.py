@@ -33,6 +33,7 @@ DEFAULT_DEVICE: str = "Drift"
 class _Clip:
     length_beats: float
     notes: tuple[MidiNote, ...] = ()
+    legato: bool = False
 
 
 class FakeDawAdapter:
@@ -77,6 +78,9 @@ class FakeDawAdapter:
         # idempotence machine-checkable: a second `apply_session` must record no
         # `set_*` call at all, which is a stronger claim than "the Set looks the same".
         self.calls: list[str] = []
+        # Clip fires and track stops, in order, as a test would want to read them back.
+        self.fired_clips: list[ClipAddress] = []
+        self.stopped_tracks: list[int] = []
         self.fired: list[int] = []
         # A plain attribute, so a test can move the playhead without a clock.
         self.song_position_beats: float = 0.0
@@ -230,6 +234,25 @@ class FakeDawAdapter:
             raise DawError(f"scene {scene} does not exist (the Set has {self._scenes})")
         self.fired.append(scene)
         self._playing = True
+
+    def fire_clip(self, at: ClipAddress) -> None:
+        self._record("fire_clip")
+        self._clip(at)
+        self.fired_clips.append(at)
+        self._playing = True
+
+    def stop_track(self, track: int) -> None:
+        self._record("stop_track")
+        self._track(track)
+        self.stopped_tracks.append(track)
+
+    def clip_legato(self, at: ClipAddress) -> bool:
+        self._record("clip_legato")
+        return self._clip(at).legato
+
+    def set_clip_legato(self, at: ClipAddress, on: bool) -> None:
+        self._record("set_clip_legato")
+        self._clip(at).legato = on
 
     # -- internals
 

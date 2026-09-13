@@ -249,3 +249,56 @@ def test_every_section_of_a_whole_song_carries_its_metrics() -> None:
         measured = [event.detail["section"] for event in log.of_kind("section_measured")]
         assert measured == written
         assert len(set(measured)) == len(arrange(BRIEF, SEED))
+
+
+def test_a_whole_song_conducted_with_every_acting_cue_plays_to_its_end() -> None:
+    """Jumps and bar cues interleaved over three minutes, against the fake Live."""
+    from garagem.domain import Cue, CueKind
+    from garagem.transport import CueQueue
+
+    daw = RecordingDaw()
+    daw._scenes = 8
+    clock = BarClock(daw)
+    clock.start()
+    log = EventLog(None)
+    queue = CueQueue(stamp=lambda: clock.beat)
+    scheduler = Scheduler(
+        daw,
+        clock,
+        ScoreBuffer(),
+        TRACKS,
+        log,
+        seed=SEED,
+        cues=queue,
+        candidates={"chorus": 2},
+        variants={"stop": {0: 4, 1: 5}, "fill": {0: 6, 1: 7}},
+    )
+    sounding: list[tuple[int, int | None, int]] = []
+    original = daw.write_notes
+
+    def watched(at: ClipAddress, notes: Iterable[MidiNote]) -> None:
+        sounding.append((at.scene, scheduler._bar_cues.sounding_scene(), scheduler.playing_scene))
+        original(at, notes)
+
+    daw.write_notes = watched  # type: ignore[method-assign]
+    form = with_climax(arrange(BRIEF, SEED))
+    cycle = (CueKind.STOP, CueKind.FILL, CueKind.DRUMS_AND_BASS, CueKind.CHORUS_NOW)
+    strikes = {beat: cycle[n % len(cycle)] for n, beat in enumerate(range(41, 700, 23))}
+    scheduler.begin(form, endings=endings_for(form))
+    beat = 0
+    while not scheduler.finished and beat < 20_000:
+        daw.push_beat(beat)
+        if beat in strikes:
+            queue.offer(Cue(kind=strikes[beat]))
+        scheduler.tick()
+        beat += 1
+
+    assert scheduler.finished
+    applied = {str(event.detail["cue"]) for event in log.of_kind("cue_applied")}
+    assert applied == {"stop", "fill", "drums_and_bass", "chorus_now"}
+    assert all(
+        int(str(event.detail["fired_bar"])) - int(str(event.detail["cue_bar"])) == 1
+        for event in log.of_kind("cue_applied")
+    )
+    assert all(scene != variant for scene, variant, _ in sounding)
+    assert log.of_kind("beat_lost") == ()

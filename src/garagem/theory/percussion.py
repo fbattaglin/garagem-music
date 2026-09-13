@@ -23,6 +23,15 @@ OPEN_HAT: Final = 46
 CRASH: Final = 49
 RIDE: Final = 51
 
+# Toms, high to low, as General MIDI numbers them. A fill cue that runs down the kit uses
+# them (`engines/variants.py`). On a kit that is one synthesiser they are four pitches,
+# which is exactly what makes a run audible as a run.
+TOM_HIGH: Final = 50
+TOM_MID: Final = 47
+TOM_LOW: Final = 45
+TOM_FLOOR: Final = 43
+TOMS: Final[tuple[int, ...]] = (TOM_HIGH, TOM_MID, TOM_LOW, TOM_FLOOR)
+
 # One pedal, one hi-hat: two of these sounding in the same slot is physically impossible
 # and audibly wrong, which is the `hihat_conflict` rule.
 HATS: Final[frozenset[int]] = frozenset({CLOSED_HAT, PEDAL_HAT, OPEN_HAT})

@@ -87,7 +87,7 @@ Carried out of Phase 3 as an explicit debt ([ADR-018](ADR-018-the-ab-waiver.md))
 
 ### Where the phase actually is
 
-Done, with the suite at **1903 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
+Done, with the suite at **1995 passed, 27 live-marked skipped**, `ruff` and `mypy` clean:
 
 - **Version control.** The project is under `git` for the first time; Phase 4 moves the
   eight golden files and reviewing them without a diff is not possible.
@@ -161,13 +161,19 @@ Done, with the suite at **1903 passed, 27 live-marked skipped**, `ruff` and `myp
   a sounding scene. Fabiano: *"Dentro do esperado"*, *"Tudo correu bem"*, the cut
   *"perceptível, mais natural"*. The gate also found jumps lengthening the song, 102 s to
   216 s; the re-plan now aims at the length it replaces.
+- **Stage 4: stop, fill and drums-and-bass from the MiniLab — gate passed, 2026-09-12**
+  (`phase-4-findings.md` §10). Stop and fill variants are written a track per bar into scenes
+  4–7 and fired per track for the next bar, returning to the groove by a legato fire a bar
+  later; pad 3 stops guitar and keys until the next section. In the real Set, 21 cues applied,
+  20 landing after one bar and one after two (struck on the bar line), and all 13 returns on
+  time. Fabiano: *"Achei tudo bem, talvez a virada não me parecia tão clara."* A blind
+  audition of six fills put the run down the toms first and second; the fill cue becomes the
+  toms.
 
 Next, in order:
 
-1. **Stage 4: bar cues** (ADR-022). STOP and FILL as legato variants of the playing section,
-   written a section ahead into scenes 4–7, fired per track and returned from after one bar;
-   DRUMS+BASS as a quantised stop of guitar and keys until the next section. Gate, by ear:
-   stop, fill and drop each feel on time.
+1. **Hear the toms fill in a jam.** Pad 2 now runs down the toms; one jam with the MiniLab
+   says whether it is as clear in the song as it was in the audition.
 2. **Stage 5: boundary cues and knobs** (ADR-022), gated by ear and hand.
 
 ## Phase 3 — closed with one waiver
