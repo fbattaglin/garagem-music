@@ -546,7 +546,7 @@
           "output_tokens": 208,
           "cost_usd": "0.0076465",
           "digest": "f1ecf0627e117f91",
-          "status": "unmarked"
+          "status": "vetoed"
         },
         {
           "section": 2,
@@ -588,7 +588,7 @@
           "output_tokens": 259,
           "cost_usd": "0.003728",
           "digest": "6165120ecc97e132",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 3,
@@ -630,7 +630,7 @@
           "output_tokens": 231,
           "cost_usd": "0.003442",
           "digest": "cee8c79eaf39b0fa",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 8,
@@ -759,7 +759,8 @@
           "status": "unmarked"
         }
       ],
-      "missed": []
+      "missed": [],
+      "retired": []
     },
     {
       "title": "Swing low",
@@ -1514,7 +1515,8 @@
           "status": "unmarked"
         }
       ],
-      "missed": []
+      "missed": [],
+      "retired": []
     },
     {
       "title": "Half light",
@@ -2269,7 +2271,8 @@
           "status": "unmarked"
         }
       ],
-      "missed": []
+      "missed": [],
+      "retired": []
     }
   ]
 }
