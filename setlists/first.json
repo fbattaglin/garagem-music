@@ -1,0 +1,2275 @@
+{
+  "format": 1,
+  "name": "first",
+  "provider": "anthropic",
+  "model": "claude-sonnet-5",
+  "baked_on": "2026-09-14",
+  "bpm": 132.0,
+  "songs": [
+    {
+      "title": "Seven",
+      "key": 4,
+      "scale": "minor",
+      "feel": "straight8",
+      "seconds": 200.0,
+      "seed": 7,
+      "form": [
+        {
+          "name": "intro",
+          "bars": 4,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 1,
+          "tension": 0.2,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 5,
+          "tension": 0.8,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "outro",
+          "bars": 4,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.15,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          }
+        }
+      ],
+      "endings": [
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "final"
+      ],
+      "takes": [
+        {
+          "section": 1,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 132.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 8,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=Em feel=straight8 bpm=132 dyn=2 tension=0.35\nCHD | Em | C | G | D | Em | C | G | D |\nDRM K:1,9 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,5,9,13\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off\nKEY voi=triad rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 293,
+          "output_tokens": 208,
+          "cost_usd": "0.0076465",
+          "digest": "f1ecf0627e117f91",
+          "status": "unmarked"
+        },
+        {
+          "section": 2,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 132.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                }
+              ]
+            }
+          },
+          "seed": 9,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=4 tension=0.7\nCHD | C | D | Em | Em | C | D | Em | Em |\nDRM K:1,4,7,9,11,14 S:5,9,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,5,7,8,9,11,13,15\nGTR voi=pow rhy:1,2,4,5,6,8,9,10,12,13,14,16 palm=on\nKEY voi=triad rhy:1,5,9,13 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 296,
+          "output_tokens": 259,
+          "cost_usd": "0.003728",
+          "digest": "6165120ecc97e132",
+          "status": "unmarked"
+        },
+        {
+          "section": 3,
+          "briefing": {
+            "name": "bridge",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 132.0,
+            "dyn": 3,
+            "tension": 0.55,
+            "chart": {
+              "chords": [
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 10,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC bridge bars=8 key=Em feel=straight8 bpm=132 dyn=3 tension=0.55\nCHD | C | G | Am | D | C | G | Am | D |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,3,5,7,9,11,13,15\nGTR voi=triad rhy:1,2,4,5,6,8,9,11,12,14,15 palm=on\nKEY voi=sus2 rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 294,
+          "output_tokens": 231,
+          "cost_usd": "0.003442",
+          "digest": "cee8c79eaf39b0fa",
+          "status": "unmarked"
+        },
+        {
+          "section": 8,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 132.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                }
+              ]
+            }
+          },
+          "seed": 15,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=4 tension=0.7\nCHD | Am | C | D | Em | Am | C | D | Em |\nDRM K:1,4,7,9,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,4,5,7,8,9,11,12,13,15,16\nGTR voi=pow rhy:1,2,4,5,6,8,9,10,12,13,14,16 palm=off\nKEY voi=triad rhy:1,5,9,13 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 296,
+          "output_tokens": 263,
+          "cost_usd": "0.003768",
+          "digest": "d16765c6bb319307",
+          "status": "unmarked"
+        },
+        {
+          "section": 9,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 132.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 16,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=Em feel=straight8 bpm=132 dyn=2 tension=0.35\nCHD | Em | Em | C | D | Em | Em | C | D |\nDRM K:1,9 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,5,9,13\nGTR voi=triad rhy:1,4,7,9,12,15 palm=on\nKEY voi=sus2 rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 295,
+          "output_tokens": 208,
+          "cost_usd": "0.003215",
+          "digest": "91da67d2946f6376",
+          "status": "unmarked"
+        },
+        {
+          "section": 14,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 132.0,
+            "dyn": 5,
+            "tension": 0.8,
+            "chart": {
+              "chords": [
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                }
+              ]
+            }
+          },
+          "seed": 21,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=5 tension=0.8\nCHD | C | D | Em | Em | C | D | Em | Em |\nDRM K:1,4,7,9,11,14 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,5,7,8,9,11,13,15\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off\nKEY voi=triad rhy:1,5,9,13 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 296,
+          "output_tokens": 263,
+          "cost_usd": "0.003768",
+          "digest": "7843fd96624051ae",
+          "status": "unmarked"
+        }
+      ],
+      "missed": []
+    },
+    {
+      "title": "Swing low",
+      "key": 9,
+      "scale": "minor",
+      "feel": "shuffle",
+      "seconds": 200.0,
+      "seed": 11,
+      "form": [
+        {
+          "name": "intro",
+          "bars": 4,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 1,
+          "tension": 0.2,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "min"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "min"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 5,
+          "tension": 0.8,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          }
+        },
+        {
+          "name": "outro",
+          "bars": 4,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.15,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          }
+        }
+      ],
+      "endings": [
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "final"
+      ],
+      "takes": [
+        {
+          "section": 1,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 132.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 12,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=Am feel=shuffle bpm=132 dyn=2 tension=0.35\nCHD | Am | Am | F | G | Am | Am | F | G |\nDRM K:1,7,9,13 S:5,13 H:1,4,7,10,13\nBAS deg=1 oct=2 rhy:1,7,9,13\nGTR voi=pow rhy:1,4,7,9,10,13 palm=on\nKEY voi=sus2 rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 295,
+          "output_tokens": 206,
+          "cost_usd": "0.003195",
+          "digest": "d5dd1995f92289d5",
+          "status": "unmarked"
+        },
+        {
+          "section": 2,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 132.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 2,
+                  "quality": "min"
+                },
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                }
+              ]
+            }
+          },
+          "seed": 13,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Am feel=shuffle bpm=132 dyn=4 tension=0.7\nCHD | Dm | F | G | Am | Dm | F | G | Am |\nDRM K:1,7,9,13 S:5,13 H:1,4,7,10,13,16\nBAS deg=1 oct=2 rhy:1,4,7,9,10,13\nGTR voi=power rhy:1,4,7,9,10,13 palm=on\nKEY voi=triad rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 298,
+          "output_tokens": 212,
+          "cost_usd": "0.003264",
+          "digest": "580b04d212d2c218",
+          "status": "unmarked"
+        },
+        {
+          "section": 3,
+          "briefing": {
+            "name": "bridge",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 132.0,
+            "dyn": 3,
+            "tension": 0.55,
+            "chart": {
+              "chords": [
+                {
+                  "root": 2,
+                  "quality": "min"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 5,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 14,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC bridge bars=8 key=Am feel=shuffle bpm=132 dyn=3 tension=0.55\nCHD | Dm | G | C | F | Dm | G | C | F |\nDRM K:1,7,9,13 S:5,13 H:1,4,7,10,13,16\nBAS deg=1 oct=2 rhy:1,4,7,10,13,16\nGTR voi=triad rhy:1,4,7,10,13,16 palm=on\nKEY voi=drop2 rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 296,
+          "output_tokens": 213,
+          "cost_usd": "0.003268",
+          "digest": "5b221393acd0b655",
+          "status": "unmarked"
+        },
+        {
+          "section": 4,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 132.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                }
+              ]
+            }
+          },
+          "seed": 15,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Am feel=shuffle bpm=132 dyn=4 tension=0.7\nCHD | F | G | Am | Am | F | G | Am | Am |\nDRM K:1,7,9,13 S:5,9,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,7,9,13\nGTR voi=pow rhy:1,4,7,9,12,13 palm=on\nKEY voi=triad rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 296,
+          "output_tokens": 213,
+          "cost_usd": "0.003268",
+          "digest": "a45e36ee94d81fc9",
+          "status": "unmarked"
+        },
+        {
+          "section": 5,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 132.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 16,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=Am feel=shuffle bpm=132 dyn=2 tension=0.35\nCHD | Am | F | C | G | Am | F | C | G |\nDRM K:1,7,9 S:5,13 H:1,4,7,10,13\nBAS deg=1 oct=2 rhy:1,7,9,13\nGTR voi=triad rhy:1,4,7,10,13 palm=on\nKEY voi=sus2 rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 293,
+          "output_tokens": 200,
+          "cost_usd": "0.003129",
+          "digest": "75d9e36755897c8b",
+          "status": "unmarked"
+        },
+        {
+          "section": 14,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 132.0,
+            "dyn": 5,
+            "tension": 0.8,
+            "chart": {
+              "chords": [
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                }
+              ]
+            }
+          },
+          "seed": 25,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Am feel=shuffle bpm=132 dyn=5 tension=0.8\nCHD | F | G | Am | Am | F | G | Am | Am |\nDRM K:1,4,7,9,11,14 S:9 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,4,7,9,11,13\nGTR voi=triad rhy:1,3,4,6,7,9,10,12,13,15 palm=on\nKEY voi=drop2 rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 296,
+          "output_tokens": 227,
+          "cost_usd": "0.003408",
+          "digest": "a69a31378af4708e",
+          "status": "unmarked"
+        }
+      ],
+      "missed": []
+    },
+    {
+      "title": "Half light",
+      "key": 7,
+      "scale": "major",
+      "feel": "halftime",
+      "seconds": 200.0,
+      "seed": 23,
+      "form": [
+        {
+          "name": "intro",
+          "bars": 4,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 1,
+          "tension": 0.2,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 5,
+          "tension": 0.8,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          }
+        },
+        {
+          "name": "outro",
+          "bars": 4,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 132.0,
+          "dyn": 2,
+          "tension": 0.15,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          }
+        }
+      ],
+      "endings": [
+        "fill",
+        "fill",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "final"
+      ],
+      "takes": [
+        {
+          "section": 1,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 132.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 24,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=G feel=halftime bpm=132 dyn=2 tension=0.35\nCHD | G | Em | C | D | G | Em | C | D |\nDRM K:1,7,9 S:9 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,7,9\nGTR voi=pow rhy:1,7,9 palm=on\nKEY voi=triad rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 291,
+          "output_tokens": 194,
+          "cost_usd": "0.003063",
+          "digest": "ccb179d58ae44d6a",
+          "status": "unmarked"
+        },
+        {
+          "section": 2,
+          "briefing": {
+            "name": "bridge",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 132.0,
+            "dyn": 3,
+            "tension": 0.55,
+            "chart": {
+              "chords": [
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 25,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC bridge bars=8 key=G feel=halftime bpm=132 dyn=3 tension=0.55\nCHD | Em | C | G | D | Em | C | G | D |\nDRM K:1,7,9 S:9 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,7,9\nGTR voi=triad rhy:1,4,7,9,12,15 palm=on\nKEY voi=triad rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 292,
+          "output_tokens": 201,
+          "cost_usd": "0.003136",
+          "digest": "9ce6dff62d311ca4",
+          "status": "unmarked"
+        },
+        {
+          "section": 4,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 132.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 27,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=G feel=halftime bpm=132 dyn=4 tension=0.7\nCHD | G | C | D | D | G | C | D | D |\nDRM K:1,7,9,11 S:9 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,4,7,9,11,13\nGTR voi=pow rhy:1,2,4,6,7,9,10,12,13,15 palm=on\nKEY voi=triad rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 290,
+          "output_tokens": 215,
+          "cost_usd": "0.00327",
+          "digest": "3c92da614faf0c99",
+          "status": "unmarked"
+        },
+        {
+          "section": 5,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 132.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 28,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=G feel=halftime bpm=132 dyn=2 tension=0.35\nCHD | G | D | Em | C | G | D | Em | C |\nDRM K:1,7 S:9 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,9\nGTR voi=triad rhy:1,9 palm=on\nKEY voi=sus2 rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 291,
+          "output_tokens": 190,
+          "cost_usd": "0.003023",
+          "digest": "9d21a30217a57b37",
+          "status": "unmarked"
+        },
+        {
+          "section": 6,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 132.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 29,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=G feel=halftime bpm=132 dyn=4 tension=0.7\nCHD | C | D | G | G | C | D | G | G |\nDRM K:1,7,9,11 S:9 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,7,9,11\nGTR voi=pow rhy:1,3,4,7,9,11,12,15 palm=on\nKEY voi=triad rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 290,
+          "output_tokens": 207,
+          "cost_usd": "0.00319",
+          "digest": "aa04cf0fefde7f19",
+          "status": "unmarked"
+        },
+        {
+          "section": 14,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 132.0,
+            "dyn": 5,
+            "tension": 0.8,
+            "chart": {
+              "chords": [
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            }
+          },
+          "seed": 37,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=G feel=halftime bpm=132 dyn=5 tension=0.8\nCHD | G | C | D | D | G | C | D | D |\nDRM K:1,7,9,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,4,7,9,11,14\nGTR voi=pow rhy:1,2,4,6,7,9,10,12,14,15 palm=off\nKEY voi=triad rhy:1,9 reg=mid",
+          "parts": "BAS,DRM,GTR,KEY",
+          "input_tokens": 290,
+          "output_tokens": 231,
+          "cost_usd": "0.00343",
+          "digest": "dcdda435f840ec2a",
+          "status": "unmarked"
+        }
+      ],
+      "missed": []
+    }
+  ]
+}

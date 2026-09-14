@@ -3305,3 +3305,99 @@
 {"at_beats":404.0,"kind":"scene_fired","detail":{"scene":0,"section":13,"name":"outro","slack_bars":1,"first":false}}
 {"at_beats":405.0,"kind":"variant_written","detail":{"section":13,"variant":"stop","instrument":"KEY","scene":4}}
 {"at_beats":424.0,"kind":"session_ended","detail":{"finished":true,"bpm":132.0,"spent_usd":"0.0318985","estimated_usd":"0","target_usd":"0.3","cap_usd":"1.0","killed":false}}
+{"at_beats":0.0,"kind":"setlist_loaded","detail":{"setlist":"first","provider":"anthropic","model":"claude-sonnet-5","song":1,"title":"Seven","takes":6}}
+{"at_beats":0.0,"kind":"fallback","detail":{"section":0,"reason":"no_time","deadline_s":2.91}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":1,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"verse 8 bars dyn=2 tension=0.35"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":1,"model":"claude-sonnet-5","seed":8,"briefing":"verse 8 bars dyn=2 tension=0.35","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC verse bars=8 key=Em feel=straight8 bpm=132 dyn=2 tension=0.35\nCHD | Em | C | G | D | Em | C | G | D |\nDRM K:1,9 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,5,9,13\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off\nKEY voi=triad rhy:1,9 reg=mid"}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":2,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"chorus 8 bars dyn=4 tension=0.70"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":2,"model":"claude-sonnet-5","seed":9,"briefing":"chorus 8 bars dyn=4 tension=0.70","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=4 tension=0.7\nCHD | C | D | Em | Em | C | D | Em | Em |\nDRM K:1,4,7,9,11,14 S:5,9,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,5,7,8,9,11,13,15\nGTR voi=pow rhy:1,2,4,5,6,8,9,10,12,13,14,16 palm=on\nKEY voi=triad rhy:1,5,9,13 reg=mid"}}
+{"at_beats":0.0,"kind":"fallback","detail":{"section":0,"seed":7,"reason":"not_in_buffer"}}
+{"at_beats":4.0,"kind":"section_written","detail":{"section":0,"scene":0,"seed":7,"briefing":"intro 4 bars dyn=1 tension=0.20","notes":137,"ms":1965.7,"ending":"fill"}}
+{"at_beats":4.0,"kind":"section_measured","detail":{"section":0,"seed":7,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.906,"kit_collision":1.0}}
+{"at_beats":4.0,"kind":"scene_fired","detail":{"scene":0,"section":0,"name":"intro","slack_bars":0,"first":true}}
+{"at_beats":8.0,"kind":"section_generated","detail":{"section":1,"seed":8,"source":"buffer"}}
+{"at_beats":10.0,"kind":"section_written","detail":{"section":1,"scene":1,"seed":8,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":360,"ms":1169.1,"ending":"build"}}
+{"at_beats":10.0,"kind":"section_measured","detail":{"section":1,"seed":8,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.99,"kit_collision":0.905}}
+{"at_beats":20.0,"kind":"scene_fired","detail":{"scene":1,"section":1,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":3,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"bridge 8 bars dyn=3 tension=0.55"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":3,"model":"claude-sonnet-5","seed":10,"briefing":"bridge 8 bars dyn=3 tension=0.55","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC bridge bars=8 key=Em feel=straight8 bpm=132 dyn=3 tension=0.55\nCHD | C | G | Am | D | C | G | Am | D |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,3,5,7,9,11,13,15\nGTR voi=triad rhy:1,2,4,5,6,8,9,11,12,14,15 palm=on\nKEY voi=sus2 rhy:1,9 reg=mid"}}
+{"at_beats":28.0,"kind":"section_generated","detail":{"section":2,"seed":9,"source":"buffer"}}
+{"at_beats":32.0,"kind":"section_written","detail":{"section":2,"scene":0,"seed":9,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":548,"ms":1986.5,"ending":"fill"}}
+{"at_beats":32.0,"kind":"section_measured","detail":{"section":2,"seed":9,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.667,"density_against_tension":0.936,"kit_collision":0.864}}
+{"at_beats":52.0,"kind":"scene_fired","detail":{"scene":0,"section":2,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":4,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"chorus 8 bars dyn=4 tension=0.70"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":4,"model":"claude-sonnet-5","seed":11,"briefing":"chorus 8 bars dyn=4 tension=0.70","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=4 tension=0.7\nCHD | C | D | Em | Em | C | D | Em | Em |\nDRM K:1,4,7,9,11,14 S:5,9,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,5,7,8,9,11,13,15\nGTR voi=pow rhy:1,2,4,5,6,8,9,10,12,13,14,16 palm=on\nKEY voi=triad rhy:1,5,9,13 reg=mid"}}
+{"at_beats":60.0,"kind":"section_generated","detail":{"section":3,"seed":10,"source":"buffer"}}
+{"at_beats":62.0,"kind":"section_written","detail":{"section":3,"scene":1,"seed":10,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":447,"ms":1161.4,"ending":"stop"}}
+{"at_beats":62.0,"kind":"section_measured","detail":{"section":3,"seed":10,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.611,"density_against_tension":0.937,"kit_collision":1.0}}
+{"at_beats":84.0,"kind":"scene_fired","detail":{"scene":1,"section":3,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":5,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"verse 8 bars dyn=2 tension=0.35"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":5,"model":"claude-sonnet-5","seed":12,"briefing":"verse 8 bars dyn=2 tension=0.35","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC verse bars=8 key=Em feel=straight8 bpm=132 dyn=2 tension=0.35\nCHD | Em | C | G | D | Em | C | G | D |\nDRM K:1,9 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,5,9,13\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off\nKEY voi=triad rhy:1,9 reg=mid"}}
+{"at_beats":92.0,"kind":"section_generated","detail":{"section":4,"seed":11,"source":"buffer"}}
+{"at_beats":94.0,"kind":"section_written","detail":{"section":4,"scene":0,"seed":11,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":548,"ms":1215.8,"ending":"fill"}}
+{"at_beats":94.0,"kind":"section_measured","detail":{"section":4,"seed":11,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.667,"density_against_tension":0.936,"kit_collision":0.864}}
+{"at_beats":116.0,"kind":"scene_fired","detail":{"scene":0,"section":4,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":6,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"chorus 8 bars dyn=4 tension=0.70"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":6,"model":"claude-sonnet-5","seed":13,"briefing":"chorus 8 bars dyn=4 tension=0.70","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=4 tension=0.7\nCHD | C | D | Em | Em | C | D | Em | Em |\nDRM K:1,4,7,9,11,14 S:5,9,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,5,7,8,9,11,13,15\nGTR voi=pow rhy:1,2,4,5,6,8,9,10,12,13,14,16 palm=on\nKEY voi=triad rhy:1,5,9,13 reg=mid"}}
+{"at_beats":124.0,"kind":"section_generated","detail":{"section":5,"seed":12,"source":"buffer"}}
+{"at_beats":126.0,"kind":"section_written","detail":{"section":5,"scene":1,"seed":12,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":360,"ms":1159.1,"ending":"build"}}
+{"at_beats":126.0,"kind":"section_measured","detail":{"section":5,"seed":12,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.99,"kit_collision":0.905}}
+{"at_beats":148.0,"kind":"scene_fired","detail":{"scene":1,"section":5,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":7,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"verse 8 bars dyn=2 tension=0.35"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":7,"model":"claude-sonnet-5","seed":14,"briefing":"verse 8 bars dyn=2 tension=0.35","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC verse bars=8 key=Em feel=straight8 bpm=132 dyn=2 tension=0.35\nCHD | Em | C | G | D | Em | C | G | D |\nDRM K:1,9 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,5,9,13\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off\nKEY voi=triad rhy:1,9 reg=mid"}}
+{"at_beats":156.0,"kind":"section_generated","detail":{"section":6,"seed":13,"source":"buffer"}}
+{"at_beats":158.0,"kind":"section_written","detail":{"section":6,"scene":0,"seed":13,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":548,"ms":1137.2,"ending":"fill"}}
+{"at_beats":158.0,"kind":"section_measured","detail":{"section":6,"seed":13,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.667,"density_against_tension":0.936,"kit_collision":0.864}}
+{"at_beats":180.0,"kind":"scene_fired","detail":{"scene":0,"section":6,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":8,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"chorus 8 bars dyn=4 tension=0.70"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":8,"model":"claude-sonnet-5","seed":15,"briefing":"chorus 8 bars dyn=4 tension=0.70","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=4 tension=0.7\nCHD | Am | C | D | Em | Am | C | D | Em |\nDRM K:1,4,7,9,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,4,5,7,8,9,11,12,13,15,16\nGTR voi=pow rhy:1,2,4,5,6,8,9,10,12,13,14,16 palm=off\nKEY voi=triad rhy:1,5,9,13 reg=mid"}}
+{"at_beats":188.0,"kind":"section_generated","detail":{"section":7,"seed":14,"source":"buffer"}}
+{"at_beats":190.0,"kind":"section_written","detail":{"section":7,"scene":1,"seed":14,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":360,"ms":1168.6,"ending":"build"}}
+{"at_beats":190.0,"kind":"section_measured","detail":{"section":7,"seed":14,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.99,"kit_collision":0.905}}
+{"at_beats":212.0,"kind":"scene_fired","detail":{"scene":1,"section":7,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":9,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"verse 8 bars dyn=2 tension=0.35"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":9,"model":"claude-sonnet-5","seed":16,"briefing":"verse 8 bars dyn=2 tension=0.35","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC verse bars=8 key=Em feel=straight8 bpm=132 dyn=2 tension=0.35\nCHD | Em | Em | C | D | Em | Em | C | D |\nDRM K:1,9 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,5,9,13\nGTR voi=triad rhy:1,4,7,9,12,15 palm=on\nKEY voi=sus2 rhy:1,9 reg=mid"}}
+{"at_beats":220.0,"kind":"section_generated","detail":{"section":8,"seed":15,"source":"buffer"}}
+{"at_beats":222.0,"kind":"section_written","detail":{"section":8,"scene":0,"seed":15,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":565,"ms":1136.8,"ending":"fill"}}
+{"at_beats":222.0,"kind":"section_measured","detail":{"section":8,"seed":15,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.833,"density_against_tension":0.972,"kit_collision":0.97}}
+{"at_beats":244.0,"kind":"scene_fired","detail":{"scene":0,"section":8,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":10,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"chorus 8 bars dyn=4 tension=0.70"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":10,"model":"claude-sonnet-5","seed":17,"briefing":"chorus 8 bars dyn=4 tension=0.70","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=4 tension=0.7\nCHD | C | D | Em | Em | C | D | Em | Em |\nDRM K:1,4,7,9,11,14 S:5,9,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,5,7,8,9,11,13,15\nGTR voi=pow rhy:1,2,4,5,6,8,9,10,12,13,14,16 palm=on\nKEY voi=triad rhy:1,5,9,13 reg=mid"}}
+{"at_beats":252.0,"kind":"section_generated","detail":{"section":9,"seed":16,"source":"buffer"}}
+{"at_beats":254.0,"kind":"section_written","detail":{"section":9,"scene":1,"seed":16,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":315,"ms":1181.4,"ending":"build"}}
+{"at_beats":254.0,"kind":"section_measured","detail":{"section":9,"seed":16,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.99,"kit_collision":0.905}}
+{"at_beats":276.0,"kind":"scene_fired","detail":{"scene":1,"section":9,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":11,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"verse 8 bars dyn=2 tension=0.35"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":11,"model":"claude-sonnet-5","seed":18,"briefing":"verse 8 bars dyn=2 tension=0.35","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC verse bars=8 key=Em feel=straight8 bpm=132 dyn=2 tension=0.35\nCHD | Em | C | G | D | Em | C | G | D |\nDRM K:1,9 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,5,9,13\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off\nKEY voi=triad rhy:1,9 reg=mid"}}
+{"at_beats":284.0,"kind":"section_generated","detail":{"section":10,"seed":17,"source":"buffer"}}
+{"at_beats":286.0,"kind":"section_written","detail":{"section":10,"scene":0,"seed":17,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":548,"ms":1167.3,"ending":"fill"}}
+{"at_beats":286.0,"kind":"section_measured","detail":{"section":10,"seed":17,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.667,"density_against_tension":0.936,"kit_collision":0.864}}
+{"at_beats":308.0,"kind":"scene_fired","detail":{"scene":0,"section":10,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":12,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"chorus 8 bars dyn=4 tension=0.70"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":12,"model":"claude-sonnet-5","seed":19,"briefing":"chorus 8 bars dyn=4 tension=0.70","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=4 tension=0.7\nCHD | Am | C | D | Em | Am | C | D | Em |\nDRM K:1,4,7,9,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,4,5,7,8,9,11,12,13,15,16\nGTR voi=pow rhy:1,2,4,5,6,8,9,10,12,13,14,16 palm=off\nKEY voi=triad rhy:1,5,9,13 reg=mid"}}
+{"at_beats":316.0,"kind":"section_generated","detail":{"section":11,"seed":18,"source":"buffer"}}
+{"at_beats":318.0,"kind":"section_written","detail":{"section":11,"scene":1,"seed":18,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":360,"ms":1113.7,"ending":"build"}}
+{"at_beats":318.0,"kind":"section_measured","detail":{"section":11,"seed":18,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.99,"kit_collision":0.905}}
+{"at_beats":340.0,"kind":"scene_fired","detail":{"scene":1,"section":11,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":13,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"verse 8 bars dyn=2 tension=0.35"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":13,"model":"claude-sonnet-5","seed":20,"briefing":"verse 8 bars dyn=2 tension=0.35","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC verse bars=8 key=Em feel=straight8 bpm=132 dyn=2 tension=0.35\nCHD | Em | C | G | D | Em | C | G | D |\nDRM K:1,9 S:5,13 H:1,3,5,7,9,11,13,15\nBAS deg=1 oct=2 rhy:1,5,9,13\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off\nKEY voi=triad rhy:1,9 reg=mid"}}
+{"at_beats":348.0,"kind":"section_generated","detail":{"section":12,"seed":19,"source":"buffer"}}
+{"at_beats":350.0,"kind":"section_written","detail":{"section":12,"scene":0,"seed":19,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":565,"ms":1176.1,"ending":"fill"}}
+{"at_beats":350.0,"kind":"section_measured","detail":{"section":12,"seed":19,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.833,"density_against_tension":0.972,"kit_collision":0.97}}
+{"at_beats":372.0,"kind":"scene_fired","detail":{"scene":0,"section":12,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"section_requested","detail":{"section":14,"model":"claude-sonnet-5","deadline_s":5.82,"briefing":"chorus 8 bars dyn=5 tension=0.80"}}
+{"at_beats":0.0,"kind":"section_parsed","detail":{"section":14,"model":"claude-sonnet-5","seed":21,"briefing":"chorus 8 bars dyn=5 tension=0.80","source":"model","parts":"BAS,DRM,GTR,KEY","input_tokens":0,"output_tokens":0,"dsl":"SEC chorus bars=8 key=Em feel=straight8 bpm=132 dyn=5 tension=0.8\nCHD | C | D | Em | Em | C | D | Em | Em |\nDRM K:1,4,7,9,11,14 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nBAS deg=1 oct=2 rhy:1,3,5,7,8,9,11,13,15\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off\nKEY voi=triad rhy:1,5,9,13 reg=mid"}}
+{"at_beats":380.0,"kind":"section_generated","detail":{"section":13,"seed":20,"source":"buffer"}}
+{"at_beats":382.0,"kind":"section_written","detail":{"section":13,"scene":1,"seed":20,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":335,"ms":1182.1,"ending":"stop"}}
+{"at_beats":382.0,"kind":"section_measured","detail":{"section":13,"seed":20,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.938,"kit_collision":1.0}}
+{"at_beats":404.0,"kind":"scene_fired","detail":{"scene":1,"section":13,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":0.0,"kind":"fallback","detail":{"section":15,"reason":"no_time","deadline_s":2.91}}
+{"at_beats":412.0,"kind":"section_generated","detail":{"section":14,"seed":21,"source":"buffer"}}
+{"at_beats":414.0,"kind":"section_written","detail":{"section":14,"scene":0,"seed":21,"briefing":"chorus 8 bars dyn=5 tension=0.80","notes":601,"ms":1167.4,"ending":"fill"}}
+{"at_beats":414.0,"kind":"section_measured","detail":{"section":14,"seed":21,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.667,"density_against_tension":0.922,"kit_collision":0.815}}
+{"at_beats":436.0,"kind":"scene_fired","detail":{"scene":0,"section":14,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":444.0,"kind":"fallback","detail":{"section":15,"seed":22,"reason":"not_in_buffer"}}
+{"at_beats":448.0,"kind":"section_written","detail":{"section":15,"scene":1,"seed":22,"briefing":"outro 4 bars dyn=2 tension=0.15","notes":126,"ms":1969.6,"ending":"final"}}
+{"at_beats":448.0,"kind":"section_measured","detail":{"section":15,"seed":22,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.812,"kit_collision":1.0}}
+{"at_beats":468.0,"kind":"scene_fired","detail":{"scene":1,"section":15,"name":"outro","slack_bars":1,"first":false}}
+{"at_beats":488.0,"kind":"session_ended","detail":{"finished":true,"bpm":132.0,"spent_usd":"0.000","estimated_usd":"0","target_usd":"0.3","cap_usd":"1.0","killed":false}}

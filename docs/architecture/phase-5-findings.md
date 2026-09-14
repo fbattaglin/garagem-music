@@ -318,3 +318,31 @@ Built on 2026-09-13. Nothing was spent and nothing was heard. The paid bake is F
    rejected here unless the other two fail.
 
 Suite: **2176 passed, 27 skipped**; `ruff` and `mypy` clean.
+
+## 5. The first real bake, and the first song played from it
+
+**The bake, 2026-09-13.** Fabiano ran `bake_setlist.py setlists/first.toml --yes` against
+`claude-sonnet-5`. The file records the date in UTC: 2026-09-14.
+
+| Song | Feel | Takes | Missed | Cost |
+|---|---|---|---|---|
+| Seven | straight8 | 6 of 6 | 0 | $0.0256 |
+| Swing low | shuffle | 6 of 6 | 0 | $0.0195 |
+| Half light | halftime | 6 of 6 | 0 | $0.0191 |
+
+- **18 of 18 delivered, every take with all four parts from the model.** Nothing was completed
+  from the floor, and no call missed its deadline.
+- **$0.0642 against the $0.06 expected**, at the usage Phase 4 measured.
+- `setlists/first.json` is committed. It is material, and it will hold the curation.
+
+**The first playback in the real Set:** `jam.py --setlist setlists/first.json --song 1`,
+unconducted.
+
+- **220 s, played to its end, 0 beats lost**, 16 sections written and fired.
+- **14 of the 16 sections played from the setlist.** The 4-bar intro and outro are the floor's,
+  never asked, as the rehearsal predicted.
+- **$0 spent while it played.** No adapter was built and no key was read.
+- **The slowest clip write was 1,987 ms,** inside what Phase 4's sessions saw.
+- **The report still reads Phase 4's criteria.** Its "after a jump" line is "NOT met" whenever no
+  jump is struck, which says nothing about a setlist. Stage 5 writes Phase 5's report. The length
+  line now names a song's own length in seconds, where it printed "3.63636 minutes".

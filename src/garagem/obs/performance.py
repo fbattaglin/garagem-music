@@ -114,7 +114,10 @@ def render_checks(checks: Sequence[Check], share: tuple[int, int] | None = None)
 def _continuous(events: Sequence[Event], ended: Event | None, minimum_seconds: float) -> Check:
     fires = [event for event in events if event.kind == "scene_fired"]
     lost = [event for event in events if event.kind == "beat_lost"]
-    criterion = f"{minimum_seconds / 60:g} minutes of continuous session"
+    minutes = minimum_seconds / 60
+    # A song from a setlist lasts its form, not a round number of minutes: say it in seconds.
+    length = f"{minutes:g} minutes" if minutes.is_integer() else f"{minimum_seconds:.0f} s"
+    criterion = f"{length} of continuous session"
     if ended is None or not fires:
         return Check(criterion=criterion, met=False, evidence="the log has no ending to read")
     bpm = float(str(ended.detail["bpm"]))
