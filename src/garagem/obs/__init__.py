@@ -1,5 +1,6 @@
 """Observability: event log, metrics and the latency rig."""
 
+from garagem.obs.curation import Mark, marks, per_author
 from garagem.obs.events import (
     DENOMINATOR,
     KINDS,
@@ -48,6 +49,7 @@ __all__ = [
     "Event",
     "EventLog",
     "MalformedEventError",
+    "Mark",
     "Report",
     "Sample",
     "Shot",
@@ -58,7 +60,9 @@ __all__ = [
     "load_events",
     "load_samples",
     "load_shots",
+    "marks",
     "model_share",
+    "per_author",
     "percentile",
     "performance_checks",
     "rate_of",

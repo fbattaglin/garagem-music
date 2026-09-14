@@ -334,6 +334,15 @@ def render_cues(log: EventLog) -> str:
             f"dyn {int(str(last['dyn_offset'])):+d}, "
             f"tension {float(str(last['tension_offset'])):+.2f}"
         )
+    marked = log.of_kind("take_marked")
+    if marked:
+        kinds = Counter(str(event.detail["mark"]) for event in marked)
+        # Never who wrote what was marked: the next time the song plays is blind too (ADR-024).
+        lines.append(
+            "marked: "
+            + ", ".join(f"{kind} x{count}" for kind, count in sorted(kinds.items()))
+            + " — scripts/curate_setlist.py applies them to the setlist"
+        )
     declined = log.of_kind("cue_declined")
     if declined:
         reasons = Counter(str(event.detail["reason"]) for event in declined)

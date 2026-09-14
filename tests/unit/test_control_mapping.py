@@ -104,8 +104,15 @@ def test_a_key_on_the_keyboard_with_a_pads_note_number_is_not_a_pad() -> None:
     assert load_controller(SHIPPED).translate("note_on", KNOB_CHANNEL, 36, 100) is None
 
 
-def test_an_unmapped_pad_asks_for_nothing() -> None:
-    assert load_controller(SHIPPED).translate("note_on", PAD_CHANNEL, 39, 100) is None
+def test_a_note_no_pad_is_mapped_to_asks_for_nothing() -> None:
+    """All eight pads ask for something since keep and veto took pads 4 and 7 (ADR-024)."""
+    assert load_controller(SHIPPED).translate("note_on", PAD_CHANNEL, 44, 100) is None
+
+
+def test_pads_4_and_7_keep_and_veto_what_is_playing() -> None:
+    spec = load_controller(SHIPPED)
+    assert spec.translate("note_on", PAD_CHANNEL, 39, 100) == Cue(kind=CueKind.KEEP)
+    assert spec.translate("note_on", PAD_CHANNEL, 42, 100) == Cue(kind=CueKind.VETO)
 
 
 def test_a_knob_is_its_macro_scaled_between_the_stops() -> None:

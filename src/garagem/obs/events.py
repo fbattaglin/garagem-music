@@ -82,6 +82,9 @@ KINDS: Final[tuple[str, ...]] = (
     # Phase 5, Stage 2. A song played from a baked setlist: which one, and that its takes
     # come from disk (ADR-024). What the Wi-Fi-off session is read against.
     "setlist_loaded",
+    # Phase 5, Stage 3. A keep or a veto struck on the section playing: who wrote it and its
+    # seed. Curation reads the take from the log (ADR-024); nothing sounded different.
+    "take_marked",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so

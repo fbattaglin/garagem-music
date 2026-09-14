@@ -693,6 +693,28 @@ def test_the_summary_says_how_many_bars_each_jump_took_to_land() -> None:
     assert "declined: before_the_downbeat x1" in text
 
 
+def test_the_summary_counts_marks_and_never_names_who_wrote_them() -> None:
+    from garagem.obs import EventLog
+
+    log = EventLog(None)
+    for mark, author in (("keep", "model"), ("veto", "floor"), ("veto", "model")):
+        log.record("cue_received", 12.0, bar=3, drained_bar=3, cue=mark, family="mark")
+        log.record(
+            "take_marked",
+            12.0,
+            mark=mark,
+            cue_bar=3,
+            section=1,
+            name="verse",
+            author=author,
+            seed=8,
+        )
+    text = jam.render_cues(log)
+    assert "marked: keep x1, veto x2" in text
+    assert "model" not in text
+    assert "floor" not in text
+
+
 def test_the_summary_names_where_boundary_cues_and_knobs_reached() -> None:
     from garagem.obs import EventLog
 

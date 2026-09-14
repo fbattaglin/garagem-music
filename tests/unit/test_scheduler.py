@@ -492,6 +492,89 @@ def test_without_a_queue_nothing_about_cues_is_logged() -> None:
     assert rig.of_kind("cue_received") == ()
 
 
+# -------------------------------------------------------------------------------- marks
+
+
+def test_a_keep_marks_the_section_playing_with_who_wrote_it() -> None:
+    """ADR-024: a mark names the section, its author and its seed, and nothing else."""
+    rig, _ = a_performance_with_cues({12: Cue(kind=CueKind.KEEP)})
+    (marked,) = rig.of_kind("take_marked")
+    assert marked.detail == {
+        "mark": "keep",
+        "cue_bar": 3,
+        "section": 1,
+        "name": "verse",
+        "author": "floor",
+        "seed": 8,
+    }
+
+
+def test_a_mark_on_a_section_from_the_buffer_names_the_model() -> None:
+    rig = Rig()
+    queue = CueQueue(stamp=lambda: rig.clock.beat)
+    rig.scheduler._cues = queue
+    rig.scheduler.begin(FORM)
+    while not rig.scheduler.finished and rig.beat < 2000:
+        rig.daw.push_beat(rig.beat)
+        if rig.beat == 28:
+            queue.offer(Cue(kind=CueKind.VETO))
+        rig.scheduler.tick()
+        if rig.beat == 8:
+            # The verse has begun: the chorus is wanted, and it arrives from a model.
+            assert rig.buffer.offer(2, play_section(FORM[2], 9))
+        rig.beat += 1
+    (marked,) = rig.of_kind("take_marked")
+    assert marked.detail["section"] == 2
+    assert marked.detail["mark"] == "veto"
+    assert marked.detail["author"] == "model"
+    assert marked.detail["seed"] == 9
+
+
+def test_a_strike_heard_in_a_sections_last_bar_marks_that_section() -> None:
+    """Read in the next section's first bar, it still marks the one that was sounding."""
+    rig = Rig()
+    struck: list[int] = []
+    queue = CueQueue(stamp=lambda: struck[-1])
+    rig.scheduler._cues = queue
+    rig.scheduler.begin(FORM)
+    while not rig.scheduler.finished and rig.beat < 2000:
+        rig.daw.push_beat(rig.beat)
+        if rig.beat == 24:
+            struck.append(23)  # the verse's last beat, drained after the chorus began
+            queue.offer(Cue(kind=CueKind.KEEP))
+        rig.scheduler.tick()
+        rig.beat += 1
+    (marked,) = rig.of_kind("take_marked")
+    assert marked.detail["cue_bar"] == 5
+    assert marked.detail["name"] == "verse"
+
+
+def test_a_mark_before_the_first_beat_is_declined() -> None:
+    rig = Rig()
+    queue = CueQueue(stamp=lambda: rig.clock.beat)
+    rig.scheduler._cues = queue
+    rig.scheduler.begin(FORM)
+    queue.offer(Cue(kind=CueKind.KEEP))
+    rig.scheduler.tick()
+    assert rig.of_kind("take_marked") == ()
+    (declined,) = rig.of_kind("cue_declined")
+    assert declined.detail["reason"] == "before_the_downbeat"
+
+
+def test_marks_change_nothing_that_is_played() -> None:
+    """Option 1 of Stage 3: a veto is curation for next time, not a cue for now."""
+    marked, _ = a_performance_with_cues(
+        {6: Cue(kind=CueKind.KEEP), 14: Cue(kind=CueKind.VETO), 30: Cue(kind=CueKind.VETO)}
+    )
+    plain = Rig()
+    plain.play()
+    kinds = ("section_written", "scene_fired")
+    assert [(event.kind, musical_detail(event)) for event in marked.log if event.kind in kinds] == [
+        (event.kind, musical_detail(event)) for event in plain.log if event.kind in kinds
+    ]
+    assert len(marked.of_kind("take_marked")) == 3
+
+
 # ---------------------------------------------------------------------- a stopped transport
 
 
@@ -673,6 +756,15 @@ def test_a_second_jump_while_the_chorus_plays_starts_it_again() -> None:
     assert [event.detail["fired_bar"] for event in applied] == [4, 6]
     assert rig.daw.fired.count(CHORUS_SCENE) == 2
     assert rig.scheduler.finished
+
+
+def test_a_mark_on_the_chorus_a_jump_landed_on_names_the_floor_and_its_seed() -> None:
+    rig = JumpRig().play({13: CueKind.CHORUS_NOW, 18: CueKind.KEEP})
+    (applied,) = rig.of_kind("cue_applied")
+    (marked,) = rig.of_kind("take_marked")
+    assert marked.detail["section"] == applied.detail["section"]
+    assert marked.detail["author"] == "floor"
+    assert marked.detail["seed"] == applied.detail["seed"]
 
 
 def test_a_jump_before_the_first_beat_is_declined() -> None:

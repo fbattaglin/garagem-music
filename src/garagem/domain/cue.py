@@ -8,11 +8,13 @@ controller in the tests and a later voice plane all speak these two types.
 `stop` is `controller.toml`'s business. A pad renamed there moves nothing in the music, and
 a cue renamed here breaks the loader loudly rather than a performance quietly.
 
-**The three families have different timing** (ADR-022), so each kind says which it is:
+**The families have different timing** (ADR-022), so each kind says which it is:
 
 - a *jump* fires a pre-written candidate section on the next bar;
 - a *bar* cue fires a pre-written variant of the section that is playing, on the next bar;
-- a *boundary* cue changes sections not yet written, and takes effect at a section change.
+- a *boundary* cue changes sections not yet written, and takes effect at a section change;
+- a *mark* changes nothing that sounds: it records a verdict on the section playing, for
+  curation (ADR-024).
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ class CueFamily(StrEnum):
     JUMP = "jump"
     BAR = "bar"
     BOUNDARY = "boundary"
+    MARK = "mark"
 
 
 class CueKind(StrEnum):
@@ -47,6 +50,10 @@ class CueKind(StrEnum):
     NEXT_BRIDGE = "next_bridge"
     # This section finishes, then the outro and the final chord.
     END = "end"
+    # Keep what is playing: a setlist pins its take. Nothing sounds different.
+    KEEP = "keep"
+    # Not this again: a setlist retires its take. Nothing sounds different now.
+    VETO = "veto"
 
     @property
     def family(self) -> CueFamily:
@@ -60,6 +67,8 @@ FAMILIES: dict[CueKind, CueFamily] = {
     CueKind.DRUMS_AND_BASS: CueFamily.BAR,
     CueKind.NEXT_BRIDGE: CueFamily.BOUNDARY,
     CueKind.END: CueFamily.BOUNDARY,
+    CueKind.KEEP: CueFamily.MARK,
+    CueKind.VETO: CueFamily.MARK,
 }
 
 

@@ -3,6 +3,7 @@
     uv run python scripts/bake_setlist.py setlists/first.toml         # estimate; spends nothing
     uv run python scripts/bake_setlist.py setlists/first.toml --yes   # bakes; spends real money
     uv run python scripts/bake_setlist.py setlists/first.toml --fake  # the floor's DSL; free
+    uv run python scripts/bake_setlist.py setlists/first.toml --rebake-vetoed --yes
 
 Setlist Mode's first half (ADR-000 §7, ADR-024): connected pre-production, so the performance
 can be disconnected. `jam.py --setlist setlists/first.json` plays what this writes, from disk.
@@ -28,7 +29,10 @@ not a performance, and it must not share the performance's budget.
 money, and a file `jam.py` and `rehearse_session.py` play the same way. It exists to check the
 playback path before paying, and it says so in the file (`provider = "fake"`).
 
-**An existing bake is never overwritten.** It may hold curation, which is not recomputable.
+**An existing bake is never overwritten**, except by `--rebake-vetoed`, which touches only the
+takes curation vetoed (`scripts/curate_setlist.py`). Each is asked for again, once. A delivered
+take replaces it, unmarked, and the vetoed one is kept in the song's `retired`. A miss leaves the
+veto standing, and the floor keeps playing that briefing.
 """
 
 from __future__ import annotations
@@ -44,7 +48,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Final
 
-from garagem.agents import request_for, structural, worth_asking
+from garagem.agents import by_id, request_for, structural, worth_asking
 from garagem.daw import load_session
 from garagem.domain import Section
 from garagem.dsl import SectionStream, brief, realise, serialize_section
@@ -75,9 +79,11 @@ from garagem.setlist import (
     Song,
     SongSpec,
     Take,
+    TakeStatus,
     arranged,
     askable,
     digest,
+    load_setlist,
     load_spec,
     save_setlist,
 )
@@ -228,28 +234,103 @@ async def bake(
 # ----------------------------------------------------------------------------------- main
 
 
+async def rebake(
+    provider: LLMProvider,
+    model: ModelSpec,
+    setlist: Setlist,
+    emit: Callable[[str], object] = sys.stderr.write,
+) -> tuple[Setlist, int, int]:
+    """Ask again for every vetoed take's briefing. (setlist, delivered, still vetoed).
+
+    A delivered take replaces the vetoed one, unmarked, and the vetoed take is retired with the
+    song rather than deleted. A miss leaves the veto standing, so the floor keeps that briefing.
+    """
+    delivered = missed = 0
+    songs = []
+    for number, song in enumerate(setlist.songs, start=1):
+        takes: list[Take] = []
+        retired = list(song.retired)
+        for take in song.takes:
+            if take.status is not TakeStatus.VETOED:
+                takes.append(take)
+                continue
+            outcome = await shoot(provider, model, take.briefing, take.section, take.seed)
+            where = f"song {number} section {take.section + 1:>2}/{len(song.form)}"
+            if isinstance(outcome, Take):
+                takes.append(outcome)
+                retired.append(take)
+                delivered += 1
+                emit(f"  {where} {take.briefing.name:<7} delivered\n")
+            else:
+                takes.append(take)
+                missed += 1
+                emit(f"  {where} {take.briefing.name:<7} missed: {outcome.reason}, still vetoed\n")
+        songs.append(song.model_copy(update={"takes": tuple(takes), "retired": tuple(retired)}))
+    return setlist.model_copy(update={"songs": tuple(songs)}), delivered, missed
+
+
+def guarded(inner: LLMProvider, catalog: list[ModelSpec], cap_usd: Decimal) -> GuardedProvider:
+    return GuardedProvider(
+        inner,
+        governor=Governor(
+            Budget(
+                session_usd=cap_usd,
+                per_minute_usd=cap_usd,
+                max_in_flight=1,
+                prices=prices_of(catalog),
+            )
+        ),
+        breaker=CircuitBreaker(),
+    )
+
+
+def paid_provider(yes: bool, model: ModelSpec, calls: int, cap_usd: Decimal) -> LLMProvider | int:
+    """The real adapter once `--yes` is given, or the exit code to stop with."""
+    expected, bound = estimate(model, calls)
+    sys.stderr.write(
+        f"expected ~${expected:.2f} at the usage Phase 4 measured; at most ~${bound:.2f} "
+        f"if every call filled max_tokens; capped at ${cap_usd}\n"
+    )
+    if not yes:
+        sys.stderr.write("nothing sent. Re-run with --yes.\n")
+        return 0
+    try:
+        return AnthropicAdapter.from_env()
+    except ProviderError as exc:
+        sys.stderr.write(f"{exc}\n")
+        return 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("spec", type=Path, help="setlists/<name>.toml")
     parser.add_argument("--out", type=Path, help="default: the spec's path, .json or .fake.json")
     parser.add_argument("--yes", action="store_true", help="actually bake; spends money")
     parser.add_argument("--fake", action="store_true", help="bake the floor's DSL; free, offline")
+    parser.add_argument(
+        "--rebake-vetoed",
+        action="store_true",
+        help="ask again for the vetoed takes of the existing bake, in place",
+    )
     parser.add_argument("--cap-usd", type=Decimal, default=DEFAULT_CAP_USD)
     args = parser.parse_args()
+
+    # A fake bake never takes the real one's name: that file must stay free for the paid bake.
+    out: Path = args.out or args.spec.with_suffix(".fake.json" if args.fake else ".json")
+    catalog = load_catalog(CATALOG)
+    if args.rebake_vetoed:
+        return main_rebake(args, out, catalog)
 
     try:
         spec = load_spec(args.spec)
     except SetlistError as exc:
         sys.stderr.write(f"{exc}\n")
         return 1
-    # A fake bake never takes the real one's name: that file must stay free for the paid bake.
-    out: Path = args.out or args.spec.with_suffix(".fake.json" if args.fake else ".json")
     if out.exists():
         sys.stderr.write(f"{out} already exists and may hold curation. Move it, or pass --out.\n")
         return 1
 
     bpm = load_session(SESSION).tempo_bpm
-    catalog = load_catalog(CATALOG)
     model = structural(catalog)
     planned = plan(spec, bpm)
     calls = sum(len(song.asked) for song in planned)
@@ -263,7 +344,6 @@ def main() -> int:
             f"{song.spec.scale}, {seconds:.0f}s, {len(song.form)} sections, "
             f"{len(song.asked)} to ask\n"
         )
-    expected, bound = estimate(model, calls)
     sys.stderr.write(
         f"{len(planned)} songs, {minutes:.1f} minutes at {bpm:g} BPM, {sections} sections: "
         f"{calls} calls to {model.id}\n"
@@ -275,32 +355,12 @@ def main() -> int:
         provider_name = "fake"
         sys.stderr.write("baking the floor's own DSL: no network, no money\n")
     else:
-        sys.stderr.write(
-            f"expected ~${expected:.2f} at the usage Phase 4 measured; at most ~${bound:.2f} "
-            f"if every call filled max_tokens; capped at ${args.cap_usd}\n"
-        )
-        if not args.yes:
-            sys.stderr.write("nothing sent. Re-run with --yes to bake.\n")
-            return 0
-        try:
-            inner = AnthropicAdapter.from_env()
-        except ProviderError as exc:
-            sys.stderr.write(f"{exc}\n")
-            return 1
-        provider_name = "anthropic"
+        paid = paid_provider(args.yes, model, calls, args.cap_usd)
+        if isinstance(paid, int):
+            return paid
+        inner, provider_name = paid, "anthropic"
 
-    provider = GuardedProvider(
-        inner,
-        governor=Governor(
-            Budget(
-                session_usd=args.cap_usd,
-                per_minute_usd=args.cap_usd,
-                max_in_flight=1,
-                prices=prices_of(catalog),
-            )
-        ),
-        breaker=CircuitBreaker(),
-    )
+    provider = guarded(inner, catalog, args.cap_usd)
     songs = asyncio.run(bake(provider, model, planned))
     setlist = Setlist(
         name=spec.name,
@@ -322,6 +382,42 @@ def main() -> int:
     for baked in songs:
         for miss in baked.missed:
             sys.stderr.write(f"  {baked.title}, section {miss.section + 1}: {miss.reason}\n")
+    return 0
+
+
+def main_rebake(args: argparse.Namespace, path: Path, catalog: list[ModelSpec]) -> int:
+    """`--rebake-vetoed`: the one mode that rewrites an existing bake, and only its vetoes."""
+    try:
+        setlist = load_setlist(path)
+    except SetlistError as exc:
+        sys.stderr.write(f"{exc}\n")
+        return 1
+    vetoed = [
+        take for song in setlist.songs for take in song.takes if take.status is TakeStatus.VETOED
+    ]
+    model = by_id(catalog, setlist.model)
+    sys.stderr.write(f"{len(vetoed)} vetoed take(s) in {path} to ask {model.id} for again\n")
+    if not vetoed:
+        return 0
+    inner: LLMProvider
+    if args.fake:
+        answers = {
+            brief(take.briefing): serialize_section(play_section(take.briefing, take.seed))
+            for take in vetoed
+        }
+        inner = BakedProvider(answers, name="fake")
+    else:
+        paid = paid_provider(args.yes, model, len(vetoed), args.cap_usd)
+        if isinstance(paid, int):
+            return paid
+        inner = paid
+    provider = guarded(inner, catalog, args.cap_usd)
+    rebaked, delivered, missed = asyncio.run(rebake(provider, model, setlist))
+    save_setlist(rebaked, path)
+    spent = provider.governor.snapshot()
+    sys.stderr.write(
+        f"{delivered} replaced, {missed} still vetoed, in {path}; spent ${spent.spent_usd:.4f}\n"
+    )
     return 0
 
 

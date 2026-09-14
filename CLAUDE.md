@@ -39,6 +39,8 @@ written to a file is in English.
   `--yes`; spends real money. `--fake` bakes the floor's own DSL, free and offline.
 - `uv run python scripts/jam.py --setlist setlists/<name>.json --song N` — plays a baked song
   from disk: no network, no key.
+- `uv run python scripts/curate_setlist.py setlists/<name>.json` — writes the keeps and vetoes
+  struck on pads 4 and 7 into the setlist, from `bench/jam.jsonl`. `--dry-run` writes nothing.
 - `uv run python scripts/audition_shuffle.py` — the five-minute blind check of the shuffle fix
   (ADR-024). `--table` shows the takes and the five chosen; the run needs Terminal and Live.
   No model call.

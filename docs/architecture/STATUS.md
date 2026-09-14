@@ -91,11 +91,26 @@ Suite at **2176 passed, 27 skipped**; `ruff` and `mypy` clean. Nothing has been 
   every briefing still to come off the bake, so the floor plays the rest: 2 or 3 sections of 16 or 18 from the setlist.
   What a knob should do from disk is open, and is decided before the Wi-Fi-off session.
 
+**The first real bake and its playback are done** (`phase-5-findings.md` §5). 18 of 18 takes
+for $0.064, and all three songs played from disk in the real Set, 220 s each, with 0 beats lost.
+
+**Stage 3 is built: keep and veto, and curation from the log** (`phase-5-findings.md` §6). Suite
+at **2197 passed, 27 skipped**; `ruff` and `mypy` clean.
+- **Pads 4 and 7 keep and veto the section playing.** Nothing sounds different. That was
+  Fabiano's choice before building.
+- **`scripts/curate_setlist.py` writes the marks into the setlist.** Each mark is joined offline
+  to the take it fell on, and the last word on a take wins.
+- **`bake_setlist.py --rebake-vetoed` asks again for vetoed briefings** and keeps the old takes as
+  retired.
+- **Rehearsed on the real bake:** a keep and a veto reached their takes, and a veto on the intro
+  counted without changing anything.
+
 Next, in order:
 
-1. **The first real bake.** `uv run python scripts/bake_setlist.py setlists/first.toml --yes`,
-   about $0.06, once Fabiano has read the songs it proposes.
-2. **KEEP and VETO on pads 4 and 7, and curation from the logs.**
+1. **Fabiano plays the setlist with the pads and marks what stands out**, then curates:
+   `uv run python scripts/curate_setlist.py setlists/first.json`. Pads only, until the knobs are
+   decided.
+2. **Decide what a knob does to a baked song** (§4), before the Wi-Fi-off session.
 3. **Voice through `garagem-mcp`.** A spike of the voice path first, and the `mcp` dependency is
    asked for before it is added.
 4. **The two ten-minute sessions, then the gate.**

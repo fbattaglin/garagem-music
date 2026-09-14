@@ -356,3 +356,68 @@ Suite: **2176 passed, 27 skipped**; `ruff` and `mypy` clean.
 - **The report still reads Phase 4's criteria.** Its "after a jump" line is "NOT met" whenever no
   jump is struck, which says nothing about a setlist. Stage 5 writes Phase 5's report. The length
   line now names a song's own length in seconds, where it printed "3.63636 minutes".
+
+## 6. Stage 3: keep and veto, and curation from the log
+
+Built on 2026-09-13. Nothing was spent and nothing was heard.
+
+**The decision, taken with Fabiano before building:** a mark changes nothing that sounds.
+- A veto is curation for the next time the song plays, not a cue for now.
+- Changing the music at the strike would be a new musical move, with its own listening, and the
+  phase keeps those few (ADR-024).
+
+### What was built
+
+- **Pads 4 and 7 are `keep` and `veto`** (`controller.toml`, notes 39 and 42, heard by the probe
+  in Phase 4). They are a new cue family, `mark`, and all eight pads now ask for something.
+- **The scheduler logs `take_marked`** for the section that was sounding when the pad was struck:
+  its index, its name, who wrote it (`model` or `floor`) and its seed.
+  - A strike in a section's last bar, read after the next section began, marks the one that was
+    heard.
+  - A jump's chorus is marked as the floor's, with the candidate's seed.
+  - Nothing is fired, written or re-planned, and a test holds the music identical with and
+    without marks.
+  - The take's text is never serialised on the bar loop (invariant 3).
+- **`obs/curation.py` joins each mark to its take offline**, from the order of the log. The last
+  `section_parsed` for a section is the take the buffer held; `section_generated` from the buffer
+  says it was written; a `not_in_buffer` fallback or a jump says the floor's was. `per_author`
+  counts keeps and vetoes by author, which is the telemetry ADR-024 asks the gate to report.
+- **`scripts/curate_setlist.py setlists/<name>.json` writes the marks into the setlist.**
+  - Keep pins a take and veto retires it. The last word on a take wins.
+  - A mark on the floor's music, on another setlist, or on a take re-baked since is counted and
+    changes nothing.
+  - Applying one log twice gives one file. `--dry-run` writes nothing.
+  - Its output counts marks by kind and never says which sections the model wrote, so the next
+    session is blind too.
+- **`bake_setlist.py --rebake-vetoed` asks the model again for each vetoed briefing, once.**
+  - A delivered take replaces the vetoed one, unmarked.
+  - The vetoed take is kept in the song's `retired`, because a veto is a preference and the take
+    it fell on is half of that evidence.
+  - A miss leaves the veto standing, and the floor keeps that briefing.
+- **`jam.py`'s closing summary adds the marks**, by kind, with no authors.
+
+### Rehearsed on the real bake
+
+Song 1 of `setlists/first.json` was played offline through the real scheduler and producer,
+curated in memory without writing the file. Three marks were struck:
+
+| Struck in | Fell on | Author | Curation |
+|---|---|---|---|
+| bar 1 | the intro | floor | counted, nothing changed |
+| bar 6 | the first verse | model | take kept |
+| bar 14 | the first chorus | model | take vetoed |
+
+Every mark reached the take that was playing.
+
+### How it is used
+
+1. Play the setlist, pads only. The knobs move every briefing still to come off the bake
+   (§4), so marks would fall on the floor.
+2. Strike pad 4 on what should stay and pad 7 on what should not. Unmarked takes stay as they
+   are.
+3. `uv run python scripts/curate_setlist.py setlists/first.json`
+4. If anything was vetoed and the model should try again:
+   `uv run python scripts/bake_setlist.py setlists/first.toml --rebake-vetoed --yes`
+   costs about $0.004 per vetoed briefing.
+
+Suite: **2197 passed, 27 skipped**; `ruff` and `mypy` clean.

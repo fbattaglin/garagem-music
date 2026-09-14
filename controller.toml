@@ -12,7 +12,8 @@
 # pads stream pressure while held), asks for nothing.
 #
 # Which pad does what is a musical choice, to be argued with by ear. Bar cues sit on the
-# left, section cues on the right, and pads 4 and 7 are free.
+# left, section cues on the right, and pads 4 and 7 mark what is playing: keep and veto
+# (ADR-024). A mark changes nothing that sounds.
 
 schema = 1
 
@@ -42,6 +43,12 @@ channel = 10
 note = 38
 cue = "drums_and_bass"
 
+# Pad 4: keep the section that is playing. A setlist pins its take.
+[[pad]]
+channel = 10
+note = 39
+cue = "keep"
+
 # Pad 5: the band cuts to the chorus on the next downbeat.
 [[pad]]
 channel = 10
@@ -53,6 +60,13 @@ cue = "chorus_now"
 channel = 10
 note = 41
 cue = "next_bridge"
+
+# Pad 7: veto the section that is playing. A setlist retires its take, from the next time
+# the song is played.
+[[pad]]
+channel = 10
+note = 42
+cue = "veto"
 
 # Pad 8: this section finishes, then the outro and the final chord.
 [[pad]]

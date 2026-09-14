@@ -17,6 +17,11 @@ at bake time, and `drifted` says which takes now play differently.
 after the arranger changes. Its briefings are what the bake holds, and the producer asks for
 nothing else (`agents.routing.only`).
 
+**Curation marks takes in place.** `scripts/curate_setlist.py` reads the keeps and vetoes a
+performance logged and sets each take's status; the last word on a take wins. A vetoed take no
+longer plays, and `bake_setlist.py --rebake-vetoed` asks for its briefing again, retiring the
+old take rather than deleting it.
+
 **One take per briefing, not per section.** A second verse briefed exactly like the first plays
 the first verse's take, with its own seed, so the groove repeats and the humanisation does not:
 what a band does with a verse. It is ADR-000's P6, *"sections already generated from the same
@@ -160,6 +165,9 @@ class Song(BaseModel):
     endings: tuple[Ending, ...]
     takes: tuple[Take, ...] = ()
     missed: tuple[Missed, ...] = ()
+    # Vetoed takes that a new bake replaced. Kept, because a veto is a preference and the
+    # material it fell on is half of the evidence (ADR-000 §10.4).
+    retired: tuple[Take, ...] = ()
 
     @model_validator(mode="after")
     def _consistent(self) -> Self:

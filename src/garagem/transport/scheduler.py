@@ -83,7 +83,7 @@ from typing import Final
 
 from garagem.daw import ClipAddress, DawError, DawPort
 from garagem.daw.session import ensure_clip
-from garagem.domain import CueKind, Instrument, Macro, MacroKind, Section, SectionScore
+from garagem.domain import CueFamily, CueKind, Instrument, Macro, MacroKind, Section, SectionScore
 from garagem.engines import (
     Ending,
     candidate_for,
@@ -148,6 +148,10 @@ BOUNDARY_SEED_STEP: Final = 1_000_000
 # so a candidate or a re-planned tail never shares a seed with a planned section by accident.
 CANDIDATE_SEED: Final = 90_000
 JUMP_SEED_STEP: Final = 100_000
+
+# Who wrote a section, as a mark logs it.
+MODEL: Final = "model"
+FLOOR: Final = "floor"
 
 
 class Scheduler:
@@ -216,6 +220,8 @@ class Scheduler:
         self._knobs: dict[MacroKind, float] = {}
         self._knobs_moved = False
         self._replans = 0
+        # Who wrote each section as last written, and its seed: what a keep or a veto marks.
+        self._authors: dict[int, tuple[str, int]] = {}
 
     # ---------------------------------------------------------------------------- state
 
@@ -517,6 +523,37 @@ class Scheduler:
                 self._drop(received)
             elif control.kind in (CueKind.NEXT_BRIDGE, CueKind.END):
                 self._boundary(received, control.kind)
+            elif control.kind.family is CueFamily.MARK:
+                self._mark(received, control.kind)
+
+    # -------------------------------------------------------------------------------- marks
+
+    def _mark(self, received: Received, cue: CueKind) -> None:
+        """Keep or veto the section that was sounding when the pad was struck (ADR-024).
+
+        Nothing is fired, written or re-planned: a mark changes no sound. It is logged with who
+        wrote the section and its seed, and curation reads the take from the log afterwards.
+        A strike in the bar a section ended in, read after the next one began, marks the one
+        that was heard.
+        """
+        cue_bar = _bar_of(received.beat)
+        if self._index < 0 or self._start_bar == NO_BEAT:
+            self._decline(received, cue, "before_the_downbeat")
+            return
+        index = self._index
+        if cue_bar < self._start_bar and index > 0:
+            index -= 1
+        author, seed = self._authors.get(index, (FLOOR, self._seed + index))
+        self._log.record(
+            "take_marked",
+            self._beats(),
+            mark=str(cue),
+            cue_bar=cue_bar,
+            section=index,
+            name=self._sections[index].name,
+            author=author,
+            seed=seed,
+        )
 
     # ------------------------------------------------------------ boundary cues and knobs
 
@@ -730,6 +767,8 @@ class Scheduler:
         self._fired = target
         self._buffer.discard_from(target)
         self._buffer.written(target)
+        # The candidate was written by the floor before the song began.
+        self._authors[target] = (FLOOR, candidate.seed)
         self._bar_cues.forget_from(target)
         self._bar_cues.section_written(target, candidate, scene)
         if self._plan is not None:
@@ -782,12 +821,14 @@ class Scheduler:
             self._log.record(
                 "section_generated", self._beats(), section=index, seed=score.seed, source="buffer"
             )
+            self._authors[index] = (MODEL, score.seed)
         else:
             seed = self._seed + index
             score = play_section(section, seed)
             self._log.record(
                 "fallback", self._beats(), section=index, seed=seed, reason="not_in_buffer"
             )
+            self._authors[index] = (FLOOR, seed)
         return self._ended(score, index)
 
     def _ended(self, score: SectionScore, index: int) -> tuple[SectionScore, Ending | None]:
