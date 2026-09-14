@@ -335,14 +335,24 @@ Suite: **2176 passed, 27 skipped**; `ruff` and `mypy` clean.
 - **$0.0642 against the $0.06 expected**, at the usage Phase 4 measured.
 - `setlists/first.json` is committed. It is material, and it will hold the curation.
 
-**The first playback in the real Set:** `jam.py --setlist setlists/first.json --song 1`,
-unconducted.
+**Every song played from it in the real Set,** one after another, unconducted:
+`jam.py --setlist setlists/first.json --song N`.
 
-- **220 s, played to its end, 0 beats lost**, 16 sections written and fired.
-- **14 of the 16 sections played from the setlist.** The 4-bar intro and outro are the floor's,
-  never asked, as the rehearsal predicted.
-- **$0 spent while it played.** No adapter was built and no key was read.
-- **The slowest clip write was 1,987 ms,** inside what Phase 4's sessions saw.
+| Song | Played | Beats lost | From the setlist | Spent | Slowest write |
+|---|---|---|---|---|---|
+| 1, Seven | 220 s, to its end | 0 | 14 of 16 | $0 | 1,987 ms |
+| 2, Swing low | 220 s, to its end | 0 | 14 of 16 | $0 | 1,983 ms |
+| 3, Half light | 220 s, to its end | 0 | 14 of 16 | $0 | 2,001 ms |
+
+- **Eleven minutes of music from disk, and nothing failed.** No adapter was built and no key was
+  read.
+- **The 4-bar intro and outro of each song are the floor's.** They are never asked, as the
+  rehearsal predicted.
+- **No take drifted.** The shuffle's takes were baked after straightening, and they play what they
+  played at bake time.
+- **The slowest clip writes, about 2 s, are inside what Phase 4's sessions saw.**
+- **No verdict by ear was asked for.** These runs checked that playback works; curation (Stage 3)
+  is where the ear decides.
 - **The report still reads Phase 4's criteria.** Its "after a jump" line is "NOT met" whenever no
   jump is struck, which says nothing about a setlist. Stage 5 writes Phase 5's report. The length
   line now names a song's own length in seconds, where it printed "3.63636 minutes".
