@@ -26,16 +26,37 @@ nothing but the calls.
 Model IDs are never written in the source outside this module, and even here they are
 looked up in `config/models.toml` rather than constructed — the project rule is that a
 model is referenced by an explicit ID coming from configuration.
+
+**Which sections are asked at all is a route** (ADR-024). Live, every section worth asking
+is (`everything`). Played from a setlist, only the briefings the bake holds are (`only`): a
+jump or a knob moves the song onto briefings nobody baked, and the floor plays those without
+a call, exactly as it plays a section the model could not deliver.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from typing import Final
 
+from garagem.domain import Section
 from garagem.llm import ModelSpec
 
 STRUCTURAL: Final = "claude-sonnet-5"
 TACTICAL: Final = "claude-haiku-4-5-20251001"
+
+# Whether a section's briefing is one the producer may ask for.
+Route = Callable[[Section], bool]
+
+
+def everything(section: Section) -> bool:
+    """The live route: any briefing may be asked. `worth_asking` still decides the time."""
+    return True
+
+
+def only(briefings: Iterable[Section]) -> Route:
+    """A route that asks for these briefings and no other: what a setlist holds."""
+    held = frozenset(briefings)
+    return lambda section: section in held
 
 
 class UnknownModelError(LookupError):
@@ -49,6 +70,11 @@ class UnknownModelError(LookupError):
 def structural(catalog: list[ModelSpec]) -> ModelSpec:
     """The model that writes a whole section. Strong, and inside the deadline."""
     return _find(catalog, STRUCTURAL)
+
+
+def by_id(catalog: list[ModelSpec], model_id: str) -> ModelSpec:
+    """A model the configuration names, such as the one a setlist was baked with."""
+    return _find(catalog, model_id)
 
 
 def tactical(catalog: list[ModelSpec]) -> ModelSpec:

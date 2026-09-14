@@ -233,3 +233,88 @@ under four minutes, none skipped. The votes are in `bench/audition-shuffle.jsonl
   - **Bass and keys counts are unchanged.**
   - **Nothing else moved:** conformance, approval and `kit_collision` are identical, and no other
     section's golden file changed.
+
+## 4. Stage 2: a setlist is baked once and played from disk
+
+Built on 2026-09-13. Nothing was spent and nothing was heard. The paid bake is Fabiano's to run.
+
+### What was built
+
+- **`setlists/<name>.toml`, the spec.** A person writes it: songs in play order, each with key,
+  scale, feel, length and seed. `setlists/first.toml` is a proposal for the ten-minute
+  sessions: three songs of about 218 s each, in straight eighths, shuffle and halftime. The
+  first is seed 7 in E minor, the song Fabiano approved in Phase 2.
+- **`scripts/bake_setlist.py` writes `setlists/<name>.json`, the bake.**
+  - It estimates and stops unless `--yes`.
+  - Each song is arranged exactly as `jam.py` arranges one. The form and endings are stored.
+  - It makes the producer's own call, with the same request and deadline and no retry. A miss is
+    stored with its reason.
+  - It has its own cap, $1.00 by default, and never overwrites an existing bake.
+- **`--fake` bakes the floor's own DSL**, free and offline, into `<name>.fake.json`. It exists to
+  check playback before paying.
+- **`jam.py --setlist <file> --song N` plays a song from disk.**
+  - The takes answer through `llm/baked.py`'s `BakedProvider`, behind the same governor and
+    breaker, billing $0. No adapter is built and no key is read.
+  - The producer asks only for the briefings the bake holds (`agents/routing.py`'s `only`). Any
+    other briefing is declined as `not_routed`, and the floor plays it.
+  - The log records `setlist_loaded`. Nothing printed while it plays says who wrote a section.
+- **`rehearse_session.py --setlist`** plays a baked song offline through the real scheduler and
+  producer, conducted as before.
+- **`engines.completed`** fills a partial take from the floor. It was copied in three places and
+  is now one function, used by the producer, the bake and the audition.
+
+### Three decisions made while building it
+
+**One take per briefing, not per section.**
+- A second verse briefed exactly like the first plays the first verse's take, with its own seed.
+  The groove repeats and the humanisation does not, which is what a band does with a verse.
+- This is ADR-000's P6: *"sections already generated from the same briefing are reused rather than
+  regenerated, saving latency and cost, and forming the basis of Setlist Mode."*
+- A veto therefore removes a groove everywhere it would have played.
+- It makes the bake cheaper: `first.toml` asks 18 calls for 48 sections, about $0.06 expected.
+- Live, the producer still asks per section.
+
+**Takes are keyed by the briefing text, not by the request's fingerprint.**
+- A cassette refuses a moved prompt, which is its job as a drift alarm.
+- A curated take is material. The key is `dsl.brief` of the stored briefing, computed at playback,
+  so a reworded prompt does not strand a setlist.
+
+**A take is stored as DSL and a seed, with a digest of the notes it made.**
+- The notes are made again at playback, so straightening and any later composition fix reach
+  takes already baked.
+- `jam.py` warns when a take no longer plays what it played at bake time.
+
+### What the rehearsal predicts
+
+`first.fake.json`, every song, with the conducting of the last three conducted runs in
+`bench/jam.jsonl`. "From the setlist" counts sections that played from a take.
+
+| Song | Nobody at the MiniLab | Pads only | Knobs only | Pads and knobs |
+|---|---|---|---|---|
+| 1, straight eighths | 14 of 16 | 13 of 18 | 3 of 16 | 2 of 18 |
+| 2, shuffle | 14 of 16 | 9 of 18 | 3 of 16 | 2 of 18 |
+| 3, halftime | 14 of 16 | 11 of 18 | 3 of 16 | 2 of 18 |
+
+- **Unconducted, the setlist plays all but the intro and the outro.** Those are four bars and
+  never asked, live or baked.
+- **Pads cost a little.** A jump's chorus and the section after it are the floor's, as live
+  (`phase-4-findings.md` §12).
+- **Knobs cost almost everything.**
+  - A knob moves `dyn` or `tension` for every section still to come. None of the moved briefings
+    is in the bake, so the floor plays the rest of the song.
+  - The conducting replayed is the Stage 5 gate's, with knobs swept hundreds of times. But the
+    first knob step that changes an offset moves the whole rest of the song just the same.
+  - Live, the model is asked again for the moved briefings. From disk, nobody can be.
+
+### Open, and to be decided before the Wi-Fi-off session
+
+**What a knob should do to a baked song.** Three answers, none taken yet.
+1. **Re-realise the take under the moved briefing.** The model's groove stays, and the system's
+   own density and tension respond to the knob. This is ADR-000's *"parameterised deterministic
+   material"*, taken literally. It is a musical change, and would be heard in the curation
+   session rather than in a test.
+2. **Leave the knobs alone in Session S.** The criterion's share is then the pads-only column.
+3. **Bake the knobs' neighbours.** At 65 knob positions per briefing, this is expensive, and
+   rejected here unless the other two fail.
+
+Suite: **2176 passed, 27 skipped**; `ruff` and `mypy` clean.

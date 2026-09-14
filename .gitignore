@@ -9,5 +9,7 @@ __pycache__/
 !.env.example
 CLAUDE.local.md
 sessions/*.jsonl
-setlists/
+# Bakes made from the floor for rehearsing are free to remake. Specs and real bakes are
+# committed: a real bake cost money and holds curation (ADR-024).
+setlists/*.fake.json
 .claude/settings.local.json

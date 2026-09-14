@@ -78,12 +78,23 @@ clean.
   kick with the figure the model put on its hat. And every A/B pair played at the Set's 132 BPM,
   whatever its briefing's tempo.
 
+**Stage 2 is built: a setlist is baked once and played from disk** (`phase-5-findings.md` §4).
+Suite at **2176 passed, 27 skipped**; `ruff` and `mypy` clean. Nothing has been spent.
+- **`scripts/bake_setlist.py`** bakes `setlists/<name>.toml` into `<name>.json`. It stops unless
+  `--yes`, and `--fake` bakes the floor's own DSL for free.
+- **`jam.py --setlist <file> --song N`** plays a song with no network, no adapter and no key. The
+  producer asks only for the briefings the bake holds, and the floor plays the rest.
+- **`rehearse_session.py --setlist`** predicts how much of a song the setlist serves.
+- **One take per briefing** (ADR-000's P6). `setlists/first.toml`, three songs and about eleven
+  minutes, asks 18 calls, about $0.06 expected.
+- **The rehearsal found what knobs do to a baked song.** A knob turn that changes an offset moves
+  every briefing still to come off the bake, so the floor plays the rest: 2 or 3 sections of 16 or 18 from the setlist.
+  What a knob should do from disk is open, and is decided before the Wi-Fi-off session.
+
 Next, in order:
 
-1. **Bake and baked playback, Setlist Mode's core.**
-   - `scripts/bake_setlist.py` generates songs online once, with the live deadlines and no retry.
-   - `jam.py --setlist` plays them from disk. A section the bake does not hold plays the floor.
-   - The offline rehearsal predicts how much of a session the setlist will serve.
+1. **The first real bake.** `uv run python scripts/bake_setlist.py setlists/first.toml --yes`,
+   about $0.06, once Fabiano has read the songs it proposes.
 2. **KEEP and VETO on pads 4 and 7, and curation from the logs.**
 3. **Voice through `garagem-mcp`.** A spike of the voice path first, and the `mcp` dependency is
    asked for before it is added.

@@ -79,6 +79,9 @@ KINDS: Final[tuple[str, ...]] = (
     # Phase 4, Stage 6. How the performance ended and what it spent, so the exit criteria
     # can be read back from the log alone (`obs/performance.py`).
     "session_ended",
+    # Phase 5, Stage 2. A song played from a baked setlist: which one, and that its takes
+    # come from disk (ADR-024). What the Wi-Fi-off session is read against.
+    "setlist_loaded",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so

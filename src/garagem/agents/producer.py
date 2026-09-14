@@ -45,11 +45,12 @@ import threading
 from collections.abc import Sequence
 from typing import Final
 
+from garagem.agents.routing import Route, everything
 from garagem.agents.section import request_for, worth_asking
-from garagem.domain import Instrument, Part, Section, SectionScore
+from garagem.domain import Section
 from garagem.dsl import ParsedSection, SectionStream, realise
 from garagem.dsl.errors import DslError
-from garagem.engines import play_section
+from garagem.engines import completed
 from garagem.llm import (
     BudgetError,
     CircuitOpenError,
@@ -86,6 +87,7 @@ class Producer:
         *,
         model: ModelSpec,
         seed: int = 0,
+        route: Route = everything,
     ) -> None:
         self._provider = provider
         self._buffer = buffer
@@ -94,6 +96,7 @@ class Producer:
         self._plan = sections if isinstance(sections, FormPlan) else FormPlan(sections)
         self._model = model
         self._seed = seed
+        self._route = route
 
         # Attempted once and never again, whatever the outcome (P7). A section that came
         # back malformed is not more likely to come back well the second time, and the
@@ -199,6 +202,12 @@ class Producer:
             )
             return False
 
+        if not self._route(section):
+            # Not a briefing this performance may ask about: a setlist that does not hold it
+            # (ADR-024). Declined without a call, and the floor plays it, as for `no_time`.
+            self._log.record("fallback", 0.0, section=index, reason="not_routed")
+            return False
+
         self._log.record(
             "section_requested",
             0.0,
@@ -295,7 +304,7 @@ class Producer:
             return False
 
         from_model = sorted(str(instrument) for instrument in score.instruments())
-        score = self._completed(score, section, seed)
+        score = completed(score)
 
         repaired, left = repair(score)
         if repaired != score:
@@ -345,27 +354,3 @@ class Producer:
             **({} if accepted else {"reason": "too_late"}),
         )
         return accepted
-
-    def _completed(self, score: SectionScore, section: Section, seed: int) -> SectionScore:
-        """Fill whatever the model did not send from the deterministic engine.
-
-        §4.3, verbatim: *"if the stream is cut short, write what arrived and complete the
-        rest locally."* The scheduler writes only the instruments a score contains, so an
-        incomplete score would leave the previous section still sounding underneath this
-        one — a partial section offered as-is is worse than no section at all.
-        """
-        missing = [instrument for instrument in Instrument if instrument not in score.instruments()]
-        if not missing:
-            return score
-        floor = play_section(section, seed)
-        filled: list[Part] = [floor.part(instrument) for instrument in missing]
-        return score.model_copy(
-            update={
-                "parts": tuple(
-                    sorted(
-                        (*score.parts, *filled),
-                        key=lambda part: list(Instrument).index(part.instrument),
-                    )
-                )
-            }
-        )

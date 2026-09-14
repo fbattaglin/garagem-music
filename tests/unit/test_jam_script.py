@@ -744,3 +744,124 @@ def test_a_session_without_variant_scenes_is_refused_with_their_names() -> None:
     )
     with pytest.raises(jam.SessionSpecError, match="STOP A"):
         jam.variant_scenes(short)
+
+
+# ------------------------------------------------------------------------------ --setlist
+
+
+def a_fake_bake(tmp_path: Path, bpm: float = 132.0) -> Path:
+    """A setlist baked from the floor's own DSL, as `bake_setlist.py --fake` writes one."""
+    import asyncio
+    from datetime import date
+
+    from garagem.agents import structural
+    from garagem.llm import (
+        BakedProvider,
+        CircuitBreaker,
+        Governor,
+        GuardedProvider,
+        load_budget,
+        load_catalog,
+        prices_of,
+    )
+    from garagem.setlist import Setlist, SetlistSpec, SongSpec, save_setlist
+
+    path = ROOT / "scripts" / "bake_setlist.py"
+    spec = importlib.util.spec_from_file_location("bake_setlist", path)
+    assert spec is not None and spec.loader is not None
+    bake = importlib.util.module_from_spec(spec)
+    sys.modules["bake_setlist"] = bake
+    spec.loader.exec_module(bake)
+
+    catalog = load_catalog(ROOT / "config" / "models.toml")
+    planned = bake.plan(
+        SetlistSpec(name="t", songs=(SongSpec(title="One", key=4, seconds=60, seed=7),)), bpm
+    )
+    provider = GuardedProvider(
+        BakedProvider(bake.floor_answers(planned)),
+        governor=Governor(load_budget(ROOT / "config" / "budget.toml").fuse(prices_of(catalog))),
+        breaker=CircuitBreaker(),
+    )
+    songs = asyncio.run(bake.bake(provider, structural(catalog), planned, emit=lambda _: None))
+    setlist = Setlist(
+        name="t",
+        provider="fake",
+        model=structural(catalog).id,
+        baked_on=date(2026, 9, 13),
+        bpm=bpm,
+        songs=tuple(songs),
+    )
+    out = tmp_path / "t.fake.json"
+    save_setlist(setlist, out)
+    return out
+
+
+def test_a_setlist_takes_no_generate_or_plain(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with_argv(monkeypatch, "--setlist", str(tmp_path / "x.json"), "--generate")
+    assert jam.main() == 1
+    assert "takes no --generate" in capsys.readouterr().err
+
+
+def test_a_song_the_setlist_does_not_have_is_refused(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with_argv(monkeypatch, "--setlist", str(a_fake_bake(tmp_path)), "--song", "2")
+    assert jam.main() == 1
+    assert "has songs 1 to 1" in capsys.readouterr().err
+
+
+def test_a_setlist_baked_at_another_tempo_is_refused(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with_argv(monkeypatch, "--setlist", str(a_fake_bake(tmp_path, bpm=120.0)))
+    assert jam.main() == 1
+    assert "baked at 120 BPM" in capsys.readouterr().err
+
+
+def test_a_setlist_run_plays_from_disk_and_never_builds_a_model_provider(
+    live: FakeDawAdapter,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    """The Wi-Fi-off session's premise: no key, no adapter, the song's own form and seed."""
+    from garagem.llm import GuardedProvider
+    from garagem.obs import load_events
+
+    def no_network() -> object:
+        raise AssertionError("a setlist run must not build a model adapter")
+
+    monkeypatch.setattr(jam.AnthropicAdapter, "from_env", staticmethod(no_network))
+    built: list[object] = []
+
+    class Idle(jam.Producer):  # type: ignore[misc, name-defined]
+        def __init__(self, provider: object, *args: object, **kwargs: object) -> None:
+            built.append(provider)
+            built.append(kwargs)
+            super().__init__(provider, *args, **kwargs)
+
+        def start(self) -> None:
+            pass
+
+        def stop(self) -> None:
+            pass
+
+    monkeypatch.setattr(jam, "Producer", Idle)
+    monkeypatch.setattr(jam.Scheduler, "run", finished)
+    monkeypatch.setattr(jam, "prime", lambda buffer, first: 0.0)
+    log = tmp_path / "jam.jsonl"
+    with_argv(monkeypatch, "--setlist", str(a_fake_bake(tmp_path)), "--log", str(log))
+
+    assert jam.main() == 0
+    provider, kwargs = built
+    assert isinstance(provider, GuardedProvider)
+    assert provider.name == "guarded:baked:t"
+    assert kwargs["seed"] == 7  # type: ignore[index]
+    (loaded,) = [event for event in load_events(log) if event.kind == "setlist_loaded"]
+    assert loaded.detail["title"] == "One"
+    assert loaded.detail["provider"] == "fake"
+    printed = capsys.readouterr().err
+    assert "playing One, song 1 of 1 of t, from disk: no network" in printed
+    assert "fake bake" in printed

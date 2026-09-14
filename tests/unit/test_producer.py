@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from garagem.agents import Producer, structural
+from garagem.agents import Producer, only, structural
 from garagem.domain import Feel, Instrument, Section
 from garagem.dsl import serialize_section
 from garagem.engines import play_section
@@ -296,6 +296,19 @@ def test_a_section_too_short_to_be_worth_asking_is_not_asked() -> None:
     assert not rig.produce(0)
     assert "section_requested" not in rig.kinds()
     assert rig.of_kind("fallback")[0]["reason"] == "no_time"
+
+
+def test_a_briefing_off_the_route_is_never_asked() -> None:
+    """Played from a setlist, a briefing the bake does not hold gets the floor (ADR-024)."""
+    provider = responding(dsl_for(FORM[1]))
+    buffer = ScoreBuffer()
+    log = EventLog(None)
+    producer = Producer(provider, buffer, log, FORM, model=MODEL, seed=7, route=only([FORM[1]]))
+    assert not asyncio.run(producer.produce(0))
+    assert provider.calls == []
+    assert [event.detail["reason"] for event in log.of_kind("fallback")] == ["not_routed"]
+    assert asyncio.run(producer.produce(1))
+    assert len(provider.calls) == 1
 
 
 # -------------------------------------------------------------------- provider failures

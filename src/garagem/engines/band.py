@@ -40,3 +40,24 @@ def play_section(section: Section, seed: int) -> SectionScore:
     rng = Random(seed)
     parts = tuple(play(section, rng) for _, play in ENGINES)
     return SectionScore(section=section, parts=parts, seed=seed)
+
+
+def completed(score: SectionScore) -> SectionScore:
+    """`score` with every instrument it lacks played by the floor, in the DSL's order.
+
+    ADR-000 §4.3: *"if the stream is cut short, write what arrived and complete the rest
+    locally."* The scheduler writes only the instruments a score contains, so an incomplete
+    score would leave the previous section still sounding underneath this one. The missing
+    parts come from `play_section` with the score's own briefing and seed, so they are the
+    parts the floor would have played in that place.
+    """
+    missing = [instrument for instrument, _ in ENGINES if instrument not in score.instruments()]
+    if not missing:
+        return score
+    floor = play_section(score.section, score.seed)
+    order = [instrument for instrument, _ in ENGINES]
+    parts = sorted(
+        (*score.parts, *(floor.part(instrument) for instrument in missing)),
+        key=lambda part: order.index(part.instrument),
+    )
+    return score.model_copy(update={"parts": tuple(parts)})

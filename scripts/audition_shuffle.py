@@ -62,10 +62,10 @@ from garagem.daw import (
     observe,
     render_divergences,
 )
-from garagem.domain import Feel, Grid, Instrument, Section, SectionScore
+from garagem.domain import Feel, Grid, Section, SectionScore
 from garagem.dsl import ParsedSection, decode_fragments, parse_section, realise
 from garagem.dsl.lines import BassLine, ChordLine, DrumLine
-from garagem.engines import play_section
+from garagem.engines import completed
 from garagem.llm import EVENT_ADAPTER, StreamDone, StreamEvent, ToolInputDelta, ToolUseStart
 from garagem.theory import repair
 
@@ -233,20 +233,7 @@ def sides_of(take: Take) -> dict[str, SectionScore]:
     parsed = parsed_of(take)
     out: dict[str, SectionScore] = {}
     for side, straighten in ((AS_WRITTEN, False), (STRAIGHTENED, True)):
-        score = realise(parsed, take.seed, straighten=straighten)
-        missing = [instrument for instrument in Instrument if instrument not in score.instruments()]
-        if missing:
-            floor = play_section(take.section, take.seed)
-            score = score.model_copy(
-                update={
-                    "parts": tuple(
-                        sorted(
-                            (*score.parts, *(floor.part(instrument) for instrument in missing)),
-                            key=lambda part: list(Instrument).index(part.instrument),
-                        )
-                    )
-                }
-            )
+        score = completed(realise(parsed, take.seed, straighten=straighten))
         out[side], _ = repair(score)
     return out
 

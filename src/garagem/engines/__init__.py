@@ -14,7 +14,7 @@ from garagem.engines.arranger import (
     tension_offset,
     with_climax,
 )
-from garagem.engines.band import ENGINES, play_section
+from garagem.engines.band import ENGINES, completed, play_section
 from garagem.engines.coherence import coherence_of, reference_attacks
 from garagem.engines.groove import FILLS, GROOVES, Groove, fill_for, groove_for
 from garagem.engines.humanise import (
@@ -47,6 +47,7 @@ __all__ = [
     "arrange",
     "candidate_for",
     "coherence_of",
+    "completed",
     "compose",
     "continue_from",
     "density_offset",

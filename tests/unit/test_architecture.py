@@ -43,6 +43,9 @@ FORBIDDEN: dict[str, frozenset[str]] = {
     # Live, the model, the scheduler or the log. `transport/` never imports it either —
     # the two meet at the `CueQueue`, wired by `scripts/jam.py` (invariant 1).
     "control": frozenset({"llm", "daw", "transport", "obs"}),
+    # ADR-024: a setlist is music written ahead of time, not the way it is fetched or played.
+    # The bake script brings the model and `jam.py` brings Live; the format knows neither.
+    "setlist": frozenset({"llm", "daw", "transport", "control", "obs"}),
 }
 
 # The layers `domain-purity.md` governs: no I/O of any kind, and no unseeded randomness.

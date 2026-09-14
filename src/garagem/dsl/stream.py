@@ -25,6 +25,7 @@ arrived at all.
 
 from __future__ import annotations
 
+import json
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict
@@ -44,7 +45,7 @@ from garagem.dsl.lines import (
     tag_of,
 )
 from garagem.dsl.schema import TOOL
-from garagem.llm import StreamEvent
+from garagem.llm import StopReason, StreamDone, StreamEvent, ToolInputDelta, ToolUseStart
 from garagem.theory import Violation
 
 FROZEN = ConfigDict(frozen=True, extra="forbid")
@@ -258,3 +259,17 @@ def parse_section(events: list[StreamEvent], asked: Section) -> ParsedSection:
     for event in events:
         stream.feed(event)
     return stream.result()
+
+
+def parse_text(dsl: str, asked: Section) -> ParsedSection:
+    """DSL already in hand, such as a baked take, through exactly the path a stream takes.
+
+    Wrapped as the one-fragment tool call a stream would have been, so a take read from disk
+    is parsed, counted and refused by the same code as a take read off the wire.
+    """
+    events: list[StreamEvent] = [
+        ToolUseStart(id="text", name=TOOL.name),
+        ToolInputDelta(fragment=json.dumps({"dsl": dsl})),
+        StreamDone(stop=StopReason.TOOL_USE),
+    ]
+    return parse_section(events, asked)

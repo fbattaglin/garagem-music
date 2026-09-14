@@ -5,6 +5,7 @@
     uv run python scripts/rehearse_session.py --conduct pads --latency-beats 13
     uv run python scripts/rehearse_session.py --seconds 180 --network-lost-at-s 60 \
         --network-back-at-s 120                                     # the chaos test
+    uv run python scripts/rehearse_session.py --setlist setlists/first.json --song 1
 
 Stage 6 closes Phase 4 with one paid session, judged against criteria written down before
 it runs. Rehearsing it first is what found that a conducted session spent a third to a half
@@ -31,6 +32,12 @@ one after another until the song ends. `end` is dropped, because an 8-minute reh
 stops at minute three predicts nothing. `--conduct pads` keeps only the pads,
 `--conduct knobs` only the knobs.
 
+**`--setlist` rehearses a baked song instead** (ADR-024). The song's stored form and seed, and
+its takes answering through `BakedProvider` the moment they are asked, as they do from disk.
+What it predicts is the share of the song the setlist serves, conducted or not: a jump or a
+knob moves the song onto briefings the bake does not hold, and the floor plays those. That
+share is the number Phase 5's Wi-Fi-off session is held to, fixed before it runs.
+
 No network, no Live, no money.
 """
 
@@ -44,12 +51,13 @@ from collections.abc import AsyncIterator, Callable, Sequence
 from pathlib import Path
 from typing import Final
 
-from garagem.agents import Producer, structural
+from garagem.agents import Producer, Route, everything, only, structural
 from garagem.daw import FakeDawAdapter
 from garagem.domain import BEATS_PER_BAR, Control, Cue, CueKind, Feel, Instrument, Macro
 from garagem.dsl import brief, serialize_section
 from garagem.engines import SongBrief, arrange, endings_for, play_section, with_climax
 from garagem.llm import (
+    BakedProvider,
     BreakerPolicy,
     CircuitBreaker,
     FakeProvider,
@@ -66,6 +74,7 @@ from garagem.llm import (
     prices_of,
 )
 from garagem.obs import Event, EventLog, load_events, model_share, performance_checks, render_checks
+from garagem.setlist import Setlist, SetlistError, Song, answers, briefings, load_setlist
 from garagem.transport import BarClock, CueQueue, FormPlan, Scheduler, ScoreBuffer
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -192,17 +201,27 @@ def rehearse(
     *,
     latency_beats: int = LATENCY_BEATS,
     offline: tuple[float, float] | None = None,
+    baked: Song | None = None,
 ) -> tuple[EventLog, int]:
     """One performance, a beat at a time. Returns its log and how many calls it made.
 
     `offline` is when the network is gone, in seconds from the downbeat: the chaos test.
     The breaker keeps musical time too, so it recovers on the rehearsal's clock.
+
+    `baked` plays a setlist's song from its takes instead of a perfect model: its stored form,
+    endings and seed, and only the briefings it holds asked for.
     """
     catalog = load_catalog(CATALOG)
     budget = load_budget(BUDGET)
-    song = SongBrief(key=4, scale="minor", bpm=BPM, feel=Feel.STRAIGHT8, minimum_seconds=seconds)
-    form = with_climax(arrange(song, seed))
-    plan = FormPlan(form, endings_for(form))
+    if baked is not None:
+        form, endings, seed = baked.form, baked.endings, baked.seed
+    else:
+        brief_ = SongBrief(
+            key=4, scale="minor", bpm=BPM, feel=Feel.STRAIGHT8, minimum_seconds=seconds
+        )
+        form = with_climax(arrange(brief_, seed))
+        endings = endings_for(form)
+    plan = FormPlan(form, endings)
     daw = FakeDawAdapter(scenes=8)
     clock = BarClock(daw)
     clock.start()
@@ -211,17 +230,25 @@ def rehearse(
     queue = CueQueue(stamp=lambda: clock.beat)
     beat = 0
     lost, back = offline if offline is not None else (float("inf"), float("inf"))
-    model = PerfectModel(
-        plan,
-        seed,
-        lambda: beat,
-        latency_beats,
-        offline=lambda at: lost <= at * 60 / BPM < back,
-    )
+    model: PerfectModel | BakedProvider
+    route: Route = everything
+    if baked is not None:
+        model = BakedProvider(answers(baked))
+        route = only(briefings(baked))
+    else:
+        model = PerfectModel(
+            plan,
+            seed,
+            lambda: beat,
+            latency_beats,
+            offline=lambda at: lost <= at * 60 / BPM < back,
+        )
     governor = Governor(budget.fuse(prices_of(catalog)))
     breaker = CircuitBreaker(BreakerPolicy(), clock=lambda: beat * 60 / BPM)
     provider = GuardedProvider(model, governor=governor, breaker=breaker)
-    producer = Producer(provider, buffer, log, plan, model=structural(catalog), seed=seed)
+    producer = Producer(
+        provider, buffer, log, plan, model=structural(catalog), seed=seed, route=route
+    )
     scheduler = Scheduler(
         daw,
         clock,
@@ -237,7 +264,7 @@ def rehearse(
 
     loop = asyncio.new_event_loop()
     shot: asyncio.Task[bool] | None = None
-    scheduler.begin(form, endings=endings_for(form))
+    scheduler.begin(form, endings=endings)
     while not scheduler.finished and beat < 20_000:
         if shot is None or shot.done():
             index = producer._next_wanted()
@@ -284,7 +311,25 @@ def main() -> int:
     parser.add_argument(
         "--network-back-at-s", type=float, default=float("inf"), help="and when it returns"
     )
+    parser.add_argument("--setlist", type=Path, help="a baked setlist: rehearse one of its songs")
+    parser.add_argument("--song", type=int, default=1, help="which song of --setlist, from 1")
     args = parser.parse_args()
+
+    baked: Song | None = None
+    if args.setlist is not None:
+        try:
+            setlist: Setlist = load_setlist(args.setlist)
+        except SetlistError as exc:
+            sys.stderr.write(f"{exc}\n")
+            return 1
+        if not 1 <= args.song <= len(setlist.songs) or setlist.bpm != BPM:
+            sys.stderr.write(
+                f"--song {args.song}: {setlist.name} has songs 1 to {len(setlist.songs)}, "
+                f"baked at {setlist.bpm:g} BPM; the rehearsal plays at {BPM:g}\n"
+            )
+            return 1
+        baked = setlist.songs[args.song - 1]
+        args.seconds = baked.total_seconds()
 
     runs = conducted_runs(load_events(args.log), args.runs) if args.conduct != "none" else []
     if args.conduct != "none" and not runs:
@@ -296,13 +341,23 @@ def main() -> int:
         None if args.network_lost_at_s is None else (args.network_lost_at_s, args.network_back_at_s)
     )
     log, calls = rehearse(
-        args.seconds, args.seed, strikes, latency_beats=args.latency_beats, offline=offline
+        args.seconds,
+        args.seed,
+        strikes,
+        latency_beats=args.latency_beats,
+        offline=offline,
+        baked=baked,
     )
 
     arrived = sum(len(controls) for controls in strikes.values())
+    source = (
+        f"song {args.song} of {args.setlist}, from its takes"
+        if baked is not None
+        else f"seed {args.seed}, a model {args.latency_beats} beats slow"
+    )
     sys.stderr.write(
-        f"rehearsed {args.seconds:g}s, seed {args.seed}, conducted: {args.conduct} "
-        f"({arrived} controls from {len(runs)} runs), a model {args.latency_beats} beats slow\n"
+        f"rehearsed {args.seconds:.0f}s, {source}, conducted: {args.conduct} "
+        f"({arrived} controls from {len(runs)} runs)\n"
     )
     sys.stderr.write(render_checks(performance_checks(log.events), model_share(log.events)))
     sys.stderr.write(f"  {calls} calls to the model\n")

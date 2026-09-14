@@ -7,6 +7,7 @@
     uv run python scripts/jam.py --generate --provider cassette:path.jsonl   # no network
     uv run python scripts/jam.py --plain              # no transitions, no climax: Phase 3
     uv run python scripts/jam.py --controller minilab # log every pad and knob (ADR-021)
+    uv run python scripts/jam.py --setlist setlists/first.json --song 2   # from disk (ADR-024)
 
 This is Phase 2's exit criterion as a command. It arranges a form, generates every
 section with the deterministic engines, writes them into alternating scenes and fires
@@ -51,6 +52,12 @@ cue took to land, and why any was declined.
 latency and staleness, each with the numbers it was decided on. The spend is written into
 the log as `session_ended`, so the same verdict can be read again later.
 
+**With `--setlist`, a baked song plays from disk** (ADR-024). The song's stored form, endings
+and seed replace the flags, and the model's takes answer through `BakedProvider`, with no
+network and no key, so it plays the same with the Wi-Fi off. The producer asks only for the
+briefings the bake holds; a jump or a knob that moves the song elsewhere gets the floor, as a
+missed call does live. Nothing printed while it plays says who wrote a section.
+
 `--dry-run` prints the form and exits without opening a socket, which makes it the
 cheapest way to see what a seed produces. `--provider cassette:<path>` replays a recording
 instead of calling out, so the whole generated path can be exercised against a real Live
@@ -69,7 +76,16 @@ import time
 from collections import Counter
 from pathlib import Path
 
-from garagem.agents import Producer, deadline_for, structural, worth_asking
+from garagem.agents import (
+    Producer,
+    Route,
+    by_id,
+    deadline_for,
+    everything,
+    only,
+    structural,
+    worth_asking,
+)
 from garagem.control import (
     ControllerPort,
     ControllerSpec,
@@ -97,6 +113,7 @@ from garagem.engines import Ending, SongBrief, arrange, endings_for, with_climax
 from garagem.engines.arranger import CHORUS
 from garagem.llm import (
     AnthropicAdapter,
+    BakedProvider,
     BreakerPolicy,
     CassetteProvider,
     CircuitBreaker,
@@ -111,6 +128,15 @@ from garagem.llm import (
     prices_of,
 )
 from garagem.obs import EventLog, model_share, performance_checks, render_checks
+from garagem.setlist import (
+    Setlist,
+    SetlistError,
+    Song,
+    answers,
+    briefings,
+    drifted,
+    load_setlist,
+)
 from garagem.transport import (
     BAR_TIMEOUT_S,
     BarClock,
@@ -182,6 +208,24 @@ def build_provider(
         governor=Governor(budget.fuse(prices_of(catalog))),
         breaker=CircuitBreaker(BreakerPolicy()),
     )
+
+
+def build_setlist_provider(
+    setlist: Setlist, song: Song, catalog: list[ModelSpec], budget: SessionBudget
+) -> LLMProvider:
+    """The song's takes behind the same guards as a model: nothing here reaches a network."""
+    return GuardedProvider(
+        BakedProvider(answers(song), name=setlist.name),
+        governor=Governor(budget.fuse(prices_of(catalog))),
+        breaker=CircuitBreaker(BreakerPolicy()),
+    )
+
+
+def pick_song(setlist: Setlist, number: int) -> Song | str:
+    """The song `--song` names, counting from 1, or why there is none."""
+    if not 1 <= number <= len(setlist.songs):
+        return f"--song {number}: {setlist.name} has songs 1 to {len(setlist.songs)}"
+    return setlist.songs[number - 1]
 
 
 def spend_of(provider: LLMProvider | None, budget: SessionBudget | None) -> dict[str, str | bool]:
@@ -353,6 +397,23 @@ def plan(
     return form, endings_for(form)
 
 
+def render_setlist(setlist: Setlist, song: Song, number: int) -> str:
+    """What is about to play, and nothing about which of its sections the model wrote."""
+    lines = [
+        f"playing {song.title}, song {number} of {len(setlist.songs)} of {setlist.name}, "
+        f"from disk: no network"
+    ]
+    if setlist.provider == "fake":
+        lines.append("this is a fake bake: every take is the floor's own music")
+    changed = drifted(song)
+    if changed:
+        lines.append(
+            f"{len(changed)} take(s) now play differently from when they were baked; "
+            "the code that realises them has changed since"
+        )
+    return "\n".join(lines) + "\n"
+
+
 def render_form(form: tuple[Section, ...], endings: tuple[Ending, ...] | None = None) -> str:
     lines = [
         f"{index:>3}  {section.name:<8} {section.bars:>2} bars  dyn={section.dyn} "
@@ -426,13 +487,50 @@ def main() -> int:
         help="listen to the controller in --controller-spec and log every cue it sends.",
     )
     parser.add_argument("--controller-spec", type=Path, default=DEFAULT_CONTROLLER)
+    parser.add_argument(
+        "--setlist",
+        type=Path,
+        help="a baked setlist (setlists/<name>.json): play a song from disk, with no network",
+    )
+    parser.add_argument("--song", type=int, default=1, help="which song of --setlist, from 1")
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--budget", type=Path, default=DEFAULT_BUDGET)
     args = parser.parse_args()
 
     spec = load_session(args.session)
-    brief = brief_of(spec, args.seconds, Feel(args.feel), args.key, args.scale)
-    form, endings = plan(brief, args.seed, plain=args.plain)
+    setlist: Setlist | None = None
+    song: Song | None = None
+    form: tuple[Section, ...]
+    endings: tuple[Ending, ...] | None
+    seed: int = args.seed
+    seconds: float = args.seconds
+    if args.setlist is not None:
+        if args.generate or args.plain or args.provider:
+            sys.stderr.write(
+                "--setlist plays a baked song: it takes no --generate, --plain or --provider\n"
+            )
+            return 1
+        try:
+            setlist = load_setlist(args.setlist)
+        except SetlistError as exc:
+            sys.stderr.write(f"{exc}\n")
+            return 1
+        picked = pick_song(setlist, args.song)
+        if isinstance(picked, str):
+            sys.stderr.write(f"{picked}\n")
+            return 1
+        song = picked
+        if setlist.bpm != spec.tempo_bpm:
+            sys.stderr.write(
+                f"{args.setlist} was baked at {setlist.bpm:g} BPM and the Set is at "
+                f"{spec.tempo_bpm:g}. Bake it again, or set session.toml's tempo back.\n"
+            )
+            return 1
+        form, endings = song.form, song.endings
+        seed, seconds = song.seed, song.total_seconds()
+    else:
+        brief = brief_of(spec, args.seconds, Feel(args.feel), args.key, args.scale)
+        form, endings = plan(brief, args.seed, plain=args.plain)
 
     controls: ControllerSpec | None = None
     if args.controller is not None:
@@ -456,7 +554,14 @@ def main() -> int:
     provider: LLMProvider | None = None
     model: ModelSpec | None = None
     budget: SessionBudget | None = None
-    if args.generate:
+    route: Route = everything
+    if setlist is not None and song is not None:
+        catalog = load_catalog(args.catalog)
+        budget = load_budget(args.budget)
+        model = by_id(catalog, setlist.model)
+        provider = build_setlist_provider(setlist, song, catalog, budget)
+        route = only(briefings(song))
+    elif args.generate:
         catalog = load_catalog(args.catalog)
         budget = load_budget(args.budget)
         model = structural(catalog)
@@ -513,11 +618,26 @@ def main() -> int:
                 "end and the knobs act from the next section that can still change\n"
             )
         if provider is not None and model is not None:
-            sys.stderr.write(f"generating with {model.id}\n")
-            producer = Producer(provider, buffer, log, shared, model=model, seed=args.seed)
+            if setlist is not None and song is not None:
+                sys.stderr.write(render_setlist(setlist, song, args.song))
+                log.record(
+                    "setlist_loaded",
+                    0.0,
+                    setlist=setlist.name,
+                    provider=setlist.provider,
+                    model=setlist.model,
+                    song=args.song,
+                    title=song.title,
+                    takes=len(song.playable()),
+                )
+            else:
+                sys.stderr.write(f"generating with {model.id}\n")
+            producer = Producer(provider, buffer, log, shared, model=model, seed=seed, route=route)
             producer.start()
             waited = prime(buffer, form[0])
-            if buffer.take(0) is not None:
+            if setlist is not None:
+                pass  # Nothing about who wrote the first section: curation listens blind.
+            elif buffer.take(0) is not None:
                 sys.stderr.write(f"first section ready in {waited:.1f}s\n")
             elif worth_asking(form[0]):
                 sys.stderr.write(
@@ -538,7 +658,7 @@ def main() -> int:
             buffer,
             tracks,
             log,
-            seed=args.seed,
+            seed=seed,
             cues=cues,
             candidates=jumps,
             plan=shared,
@@ -578,8 +698,8 @@ def main() -> int:
         daw.close()
         if controller is not None:
             sys.stderr.write(render_cues(log))
-        if scheduler is not None and args.generate:
-            checks = performance_checks(log.events, minimum_seconds=args.seconds)
+        if scheduler is not None and (args.generate or setlist is not None):
+            checks = performance_checks(log.events, minimum_seconds=seconds)
             sys.stderr.write(render_checks(checks, model_share(log.events)))
         sys.stderr.write(f"{len(log)} events -> {args.log}\n")
 

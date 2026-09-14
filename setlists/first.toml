@@ -1,0 +1,38 @@
+# A setlist before it is baked: the songs, in the order they are played (ADR-024).
+#
+#     uv run python scripts/bake_setlist.py setlists/first.toml          # the estimate
+#     uv run python scripts/bake_setlist.py setlists/first.toml --yes    # bakes first.json
+#
+# A proposal for Phase 5's ten-minute sessions, and a musical choice to argue with by ear:
+# three songs of at least 200 s each, one per feel the band plays most differently.
+#
+# `key` is a pitch class (0 is C, 4 is E, 9 is A), as `jam.py --key` takes it. The tempo is
+# the Set's, from `session.toml`. `seed` decides the form and the floor's music; change it and
+# the song is a different song.
+
+name = "first"
+
+# The song Fabiano first approved, in Phase 2: E minor, straight eighths, seed 7.
+[[song]]
+title = "Seven"
+key = 4
+scale = "minor"
+feel = "straight8"
+seconds = 200
+seed = 7
+
+[[song]]
+title = "Swing low"
+key = 9
+scale = "minor"
+feel = "shuffle"
+seconds = 200
+seed = 11
+
+[[song]]
+title = "Half light"
+key = 7
+scale = "major"
+feel = "halftime"
+seconds = 200
+seed = 23

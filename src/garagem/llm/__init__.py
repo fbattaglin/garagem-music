@@ -1,6 +1,7 @@
 """LLMProvider port, adapters, governor and circuit breaker."""
 
 from garagem.llm.anthropic import AnthropicAdapter, AnthropicSettings
+from garagem.llm.baked import BakedProvider
 from garagem.llm.breaker import (
     BreakerPolicy,
     BreakerSnapshot,
@@ -59,6 +60,7 @@ __all__ = [
     "EVENT_ADAPTER",
     "AnthropicAdapter",
     "AnthropicSettings",
+    "BakedProvider",
     "BreakerPolicy",
     "BreakerSnapshot",
     "BreakerState",

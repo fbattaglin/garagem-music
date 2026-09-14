@@ -34,6 +34,11 @@ written to a file is in English.
 - `uv run python scripts/rehearse_session.py` — plays an 8-minute generated, conducted session
   offline and predicts its cost and the model's share; `--network-lost-at-s` rehearses the
   chaos test. No network, no Live, no money.
+- `uv run python scripts/bake_setlist.py setlists/<name>.toml` — bakes a setlist: the model
+  writes each song's sections once into `<name>.json` (ADR-024). Estimates and stops unless
+  `--yes`; spends real money. `--fake` bakes the floor's own DSL, free and offline.
+- `uv run python scripts/jam.py --setlist setlists/<name>.json --song N` — plays a baked song
+  from disk: no network, no key.
 - `uv run python scripts/audition_shuffle.py` — the five-minute blind check of the shuffle fix
   (ADR-024). `--table` shows the takes and the five chosen; the run needs Terminal and Live.
   No model call.
@@ -55,7 +60,9 @@ Run `ruff` and `mypy` before any commit.
 - `src/garagem/transport/` — BarClock, ScoreBuffer, CueQueue, clip-ahead scheduler
 - `src/garagem/control/` — `ControllerPort` + MiniLab 3 adapter (`mido`) + fake. Infrastructure;
   never imported by `transport/` or the pure layers (ADR-021, ADR-022)
-- `src/garagem/setlist/` — online pre-production, offline playback
+- `src/garagem/setlist/` — online pre-production, offline playback. The format only; never
+  imports `llm/`, `daw/` or `transport/` (ADR-024)
+- `setlists/` — setlist specs (`.toml`, written by hand) and their bakes (`.json`)
 - `src/garagem/obs/` — JSONL event log, metrics, latency rig, TUI
 - `session.toml` — "Set as Code": the Live Set the bootstrap validates against (ADR-013)
 - `controller.toml` — "Controller as Code": which pad and knob asks the band for what.
