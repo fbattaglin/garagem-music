@@ -105,15 +105,23 @@ at **2197 passed, 27 skipped**; `ruff` and `mypy` clean.
 - **Rehearsed on the real bake:** a keep and a veto reached their takes, and a veto on the intro
   counted without changing anything.
 
+**The first curation is applied, and the knobs are decided** (`phase-5-findings.md` §7).
+- **Song 1, conducted with pads and knobs: 13 marks.** The 5 that fell on takes vetoed one groove
+  and kept two. 7 of the 8 struck after the knobs moved fell on the floor's music.
+- **Fabiano chose that a knob moves the briefing and the take keeps playing.** Built as
+  `setlist.reachable`. In a knob-conducted rehearsal, sections from the setlist go from 3 to 7 of
+  16.
+- **The rest is the scheduler rewriting the next section in the tick a knob moves**, which is
+  Stage 5's approved live timing. It is left as it is.
+- Suite at **2201 passed, 27 skipped**.
+
 Next, in order:
 
-1. **Fabiano plays the setlist with the pads and marks what stands out**, then curates:
-   `uv run python scripts/curate_setlist.py setlists/first.json`. Pads only, until the knobs are
-   decided.
-2. **Decide what a knob does to a baked song** (§4), before the Wi-Fi-off session.
-3. **Voice through `garagem-mcp`.** A spike of the voice path first, and the `mcp` dependency is
+1. **More curation, as Fabiano plays.** Songs 2 and 3 are unmarked. The vetoed verse of song 1
+   plays as the floor until `bake_setlist.py setlists/first.toml --rebake-vetoed --yes`.
+2. **Voice through `garagem-mcp`.** A spike of the voice path first, and the `mcp` dependency is
    asked for before it is added.
-4. **The two ten-minute sessions, then the gate.**
+3. **The two ten-minute sessions, then the gate.**
 
 About five minutes of dedicated listening in the whole phase, and under US$0.50 of model calls.
 

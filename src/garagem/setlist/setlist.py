@@ -47,12 +47,26 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 
 from garagem.domain import Feel, Section, SectionScore
 from garagem.dsl import brief, parse_text, realise
-from garagem.engines import Ending, SongBrief, arrange, completed, endings_for, with_climax
+from garagem.engines import (
+    Ending,
+    SongBrief,
+    arrange,
+    completed,
+    density_offset,
+    endings_for,
+    shifted,
+    tension_offset,
+    with_climax,
+)
+from garagem.engines.arranger import MACRO_DYN_RANGE, MACRO_TENSION_RANGE
 from garagem.theory import repair
 
 FROZEN = ConfigDict(frozen=True, extra="forbid")
 FORMAT: Final = 1
 DIGEST_CHARS: Final = 16
+# Knob positions sampled to find every offset the knobs can reach. Far finer than a MiniLab's
+# 128 steps, and the offsets are steps, so nothing between two samples is missed.
+KNOB_STEPS: Final = 1000
 
 
 class SetlistError(ValueError):
@@ -227,14 +241,61 @@ def save_setlist(setlist: Setlist, path: Path) -> None:
 # --------------------------------------------------------------------------- at playback
 
 
+def _offsets() -> tuple[tuple[int, float], ...]:
+    """Every (dyn, tension) offset the two knobs can put the plan at, read off the knobs' own
+    mapping (`engines.density_offset`, `engines.tension_offset`) rather than restated."""
+    positions = [step / KNOB_STEPS for step in range(KNOB_STEPS + 1)]
+    return tuple(
+        sorted(
+            {(density_offset(d), tension_offset(t)) for d in positions for t in positions},
+            key=lambda offset: (_travel(offset), offset),
+        )
+    )
+
+
+def _travel(offset: tuple[int, float]) -> float:
+    """How far the knobs are from the middle, as a fraction of their travel."""
+    dyn, tension = offset
+    return abs(dyn) / MACRO_DYN_RANGE + abs(tension) / MACRO_TENSION_RANGE
+
+
+def reachable(song: Song) -> dict[Section, Take]:
+    """Every briefing the knobs can move a playable take to, and the take that answers it.
+
+    **A knob moves the briefing, and the take keeps playing** (Fabiano, 2026-09-13). The model
+    wrote the groove for the plan; a knob asks for more or less density and tension, which the
+    system composes over any groove (`dsl/realise.py`). So a moved briefing is answered by the
+    take it was moved from, and realised under the moved briefing. Without this, the first knob
+    step sent the rest of a baked song to the floor (`phase-5-findings.md` §4).
+
+    Where two takes can reach one briefing, the take that needs the knobs moved least answers
+    it, so an exact briefing always gets its own take. Ties go to the order the song asks.
+    """
+    best: dict[Section, tuple[float, int, Take]] = {}
+    for order, take in enumerate(song.playable()):
+        for offset in OFFSETS:
+            moved = shifted(take.briefing, *offset)
+            rank = (_travel(offset), order)
+            if moved not in best or rank < best[moved][:2]:
+                best[moved] = (*rank, take)
+    return {section: take for section, (_, _, take) in best.items()}
+
+
 def answers(song: Song) -> dict[str, str]:
-    """Briefing text, as today's prompt words it, to the DSL baked for it."""
-    return {brief(take.briefing): take.dsl for take in song.playable()}
+    """Briefing text, as today's prompt words it, to the DSL baked for it, knobs included.
+
+    The take is served as written. Under a moved briefing its `SEC` echo disagrees on `dyn` or
+    `tension`, the parser counts that as `section_mismatch` and plays the briefing, which is
+    what ADR-011 has always done with an echo. The text stays the model's, so curation still
+    finds the take a mark fell on.
+    """
+    return {brief(section): take.dsl for section, take in reachable(song).items()}
 
 
 def briefings(song: Song) -> frozenset[Section]:
-    """The briefings a performance of this song may ask for."""
-    return frozenset(take.briefing for take in song.playable())
+    """The briefings a performance of this song may ask for: its takes, and where knobs move
+    them."""
+    return frozenset(reachable(song))
 
 
 def digest(score: SectionScore) -> str:
@@ -262,3 +323,6 @@ def drifted(song: Song) -> tuple[int, ...]:
         if score is None or digest(score) != take.digest:
             changed.append(take.section)
     return tuple(changed)
+
+
+OFFSETS: Final = _offsets()

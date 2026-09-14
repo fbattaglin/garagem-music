@@ -182,8 +182,9 @@ def test_a_bake_of_another_format_is_refused(tmp_path: Path) -> None:
 def test_answers_are_keyed_by_the_briefing_the_prompt_sends() -> None:
     song = a_song()
     held = answers(song)
-    assert set(held) == {brief(take.briefing) for take in song.takes}
-    assert briefings(song) == {take.briefing for take in song.takes}
+    for take in song.takes:
+        assert held[brief(take.briefing)] == take.dsl
+        assert take.briefing in briefings(song)
 
 
 def test_a_vetoed_take_does_not_play() -> None:
@@ -205,3 +206,54 @@ def test_a_take_whose_notes_changed_is_reported_as_drifted() -> None:
     stale = song.takes[0].model_copy(update={"digest": "0" * 16})
     song = a_song(takes=(stale, *song.takes[1:]))
     assert drifted(song) == (stale.section,)
+
+
+# ------------------------------------------------------------------------------- knobs
+
+
+def test_a_knob_moved_briefing_is_answered_by_the_take_it_was_moved_from() -> None:
+    """Fabiano, 2026-09-13: a knob moves the briefing and the model's take keeps playing."""
+    from garagem.engines import shifted
+
+    song = a_song()
+    take = song.takes[0]
+    moved = shifted(take.briefing, 1, 0.1)
+    assert moved != take.briefing
+    assert moved in briefings(song)
+    assert answers(song)[brief(moved)] == take.dsl
+
+
+def test_an_exact_briefing_always_gets_its_own_take() -> None:
+    from garagem.setlist.setlist import reachable
+
+    song = a_song()
+    held = reachable(song)
+    for take in song.takes:
+        assert held[take.briefing] == take
+
+
+def test_a_vetoed_take_answers_no_knob_either() -> None:
+    from garagem.engines import shifted
+
+    song = a_song()
+    vetoed = song.takes[0].model_copy(update={"status": TakeStatus.VETOED})
+    song = a_song(takes=(vetoed, *song.takes[1:]))
+    assert all(
+        answers(song).get(brief(shifted(vetoed.briefing, dyn, 0.0))) != vetoed.dsl
+        for dyn in (-2, -1, 0, 1, 2)
+    )
+
+
+def test_a_take_realised_under_a_moved_briefing_plays_the_moved_dynamics() -> None:
+    """The groove is the take's; the loudness is the knob's."""
+    from garagem.engines import shifted
+
+    song = a_song()
+    take = song.takes[0]
+    louder = shifted(take.briefing, 2, 0.0)
+    as_baked = realise(parse_text(take.dsl, take.briefing), take.seed)
+    moved = realise(parse_text(take.dsl, louder), take.seed)
+    assert moved.section == louder
+    loud = max(n.velocity for part in moved.parts for n in part.notes)
+    soft = max(n.velocity for part in as_baked.parts for n in part.notes)
+    assert loud > soft

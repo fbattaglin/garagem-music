@@ -421,3 +421,63 @@ Every mark reached the take that was playing.
    costs about $0.004 per vetoed briefing.
 
 Suite: **2197 passed, 27 skipped**; `ruff` and `mypy` clean.
+
+## 7. The first curation, and what a knob does to a baked song
+
+### The session, 2026-09-13
+
+Fabiano played song 1 of `setlists/first.json` from the MiniLab with every pad and both knobs, and
+struck 13 marks. `curate_setlist.py` applied them.
+
+| Stretch of the song | Marks | On takes | On the floor's music |
+|---|---|---|---|
+| Before the knobs first moved the plan (bars 0–41) | 5 | 4 | 1, the intro |
+| After | 8 | 1 | 7 |
+
+- **The five marks on takes became three decisions.** The verse's take is vetoed, and the
+  chorus's and the bridge's takes are kept.
+- **A groove heard twice was marked the same way twice.** The verse take was vetoed at bars 9 and
+  45, and the chorus take kept at bars 15 and 33. This is described, not tested.
+- **After the knobs moved, the rest of the song was the floor's.** Seven of eight marks landed
+  where no take was playing. This is §4's finding, met in use.
+- **The report's "218 s … NOT met", with 214 s played:** the two jumps to the chorus cut bars.
+  The song played to its end with 0 beats lost.
+- **Applying the log twice changes nothing**, and the file changed only in the three statuses and
+  the new `retired` field.
+
+### Decided by Fabiano: a knob moves the briefing, and the take keeps playing
+
+Asked right after the session, he chose the first of §4's three answers.
+
+**Built** (`setlist.reachable`):
+- Every briefing the knobs can move a take to is answered by that take, and realised under the
+  moved briefing. The model's groove plays with the system's density and tension.
+- The offsets are read off `density_offset` and `tension_offset`, not restated: 5 steps of `dyn`
+  by 13 of `tension`.
+- Where two takes can reach one briefing, the one needing less knob travel answers. So an exact
+  briefing always gets its own take, and a vetoed take answers nothing.
+- The take is served as written. Its `SEC` echo then disagrees on `dyn` or `tension`, and the
+  parser counts `section_mismatch` and plays the briefing, as ADR-011 always has. Because the text
+  stays the model's, curation still finds the take a mark fell on.
+
+**Rehearsed** on `first.fake.json` with the last three conducted runs. The replay now includes
+this session, so the pads column differs from §4's.
+
+| Song | Nobody | Pads | Knobs, before → after | Pads and knobs, before → after |
+|---|---|---|---|---|
+| 1 | 14 of 16 | 13 of 16 | 3 → 7 of 16 | 2 → 6 of 16 |
+| 2 | 14 of 16 | 11 of 16 | 3 → 7 of 16 | 2 → 5 of 16 |
+| 3 | 14 of 16 | 13 of 16 | 3 → 7 of 16 | 2 → 6 of 16 |
+
+**What still sends sections to the floor under the knobs is the scheduler, not the setlist.**
+- Traced in song 1's knob rehearsal: 6 of its 9 floor sections were written in the bar a knob
+  moved the plan. Two more are the intro and the outro, never asked.
+- `Scheduler._replan` rewrites the next section at once, in the same tick. That is before any
+  answer can reach the buffer, however instant: a take from disk arrives a moment too late for
+  that one section.
+- This is Stage 5's live timing, approved by ear: *"the knobs move every section still to come,"*
+  and the next one is rewritten from the floor. It is not changed here.
+- A setlist-only delay of one tick before that rewrite would let the take arrive, and is recorded
+  as an option. Nobody has asked for it.
+
+Suite: **2201 passed, 27 skipped**; `ruff` and `mypy` clean.
