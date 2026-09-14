@@ -31,6 +31,9 @@ written to a file is in English.
   control. Read-only: opens inputs, never an output.
 - `uv run python scripts/spike_cues.py` — asks the real Set how clip launches, legato and
   track stops behave (ADR-022). Changes the Set and puts it back; refuses if it is playing.
+- `uv run python scripts/spike_voice.py` — a stand-in MCP listener, and the command that starts a
+  locked-down Claude Code conductor session with Portuguese dictation. `--report` reads how long a
+  spoken cue took to arrive. Changes nothing, needs no Live; standard library only.
 - `uv run python scripts/rehearse_session.py` — plays an 8-minute generated, conducted session
   offline and predicts its cost and the model's share; `--network-lost-at-s` rehearses the
   chaos test. No network, no Live, no money.
