@@ -1512,7 +1512,7 @@
           "output_tokens": 227,
           "cost_usd": "0.003408",
           "digest": "a69a31378af4708e",
-          "status": "unmarked"
+          "status": "kept"
         }
       ],
       "missed": [],
@@ -2058,7 +2058,7 @@
           "output_tokens": 194,
           "cost_usd": "0.003063",
           "digest": "ccb179d58ae44d6a",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 2,
