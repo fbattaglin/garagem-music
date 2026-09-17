@@ -25,6 +25,9 @@
     threshold intact; when the model is worth calling opens Phase 5.
   - `ADR-024-the-model-writes-fabiano-chooses.md` — the floor plays live; the model's takes
     reach the stage through setlists curated with KEEP/VETO.
+  - `ADR-025-the-model-composes-offline.md` — the model composes offline and live generation is
+    frozen; real instruments before more listening; voice out of Phase 5; Phase 6 is the
+    songwriter.
 - `phase-0-findings.md` … `phase-5-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 

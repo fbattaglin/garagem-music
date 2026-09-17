@@ -499,3 +499,24 @@ argued about after a session has already been played.
 **What this does not decide.** Which key `voice:pushToTalk` is bound to, and whether the MiniLab
 should be made to send it (§4's spike raised, and did not resolve, whether a pad could stand in
 for `Space`). Both stay open for when Stage 4 is built.
+
+## 9. A knob-served take echoes the briefing it answers
+
+Found in the conducted run of songs 2 and 3, fixed on 2026-09-16.
+
+- **The run's log held 33 `schema_violation` rows, every one a `section_mismatch` on `dyn` or
+  `tension`.** Each was a take served under a briefing a knob had moved (§7). This is designed
+  behaviour, but it was counted as a violation.
+- **The fix:** `setlist.served` renders the `SEC` line for the briefing the take answers. The rest
+  of the text stays the model's.
+  - Curation now joins a mark to its take on `setlist.body`, the text without that line.
+  - So marks from logs written before the fix still find their takes.
+- **Rehearsed** on `setlists/first.json` with the last three conducted runs.
+
+  | Song | Mismatches before | After | Sections from takes |
+  |---|---|---|---|
+  | 1 | 20 | 0 | 6 of 17 |
+  | 2 | 25 | 0 | 9 of 17 |
+  | 3 | 35 | 0 | 10 of 17 |
+
+  The share of sections from takes is unchanged, and nothing that plays changed.

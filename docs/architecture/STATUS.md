@@ -1,131 +1,87 @@
 # Roadmap status
 
-**Current phase: 5 — Human in the loop and Setlist Mode.** The model writes, Fabiano chooses
-([ADR-024](ADR-024-the-model-writes-fabiano-chooses.md))
+**Current phase: 5 — Setlist Mode, curated, in the band's own sound.** The model composes
+offline, and the floor and the curated setlist play
+([ADR-024](ADR-024-the-model-writes-fabiano-chooses.md),
+[ADR-025](ADR-025-the-model-composes-offline.md)).
 
 ## Phase 5 exit criteria
 
 ADR-000 §7, amended by [ADR-021](ADR-021-the-minilab-joins-phase-4.md),
-[ADR-023](ADR-023-the-second-ab-waiver.md) and
-[ADR-024](ADR-024-the-model-writes-fabiano-chooses.md):
+[ADR-023](ADR-023-the-second-ab-waiver.md), [ADR-024](ADR-024-the-model-writes-fabiano-chooses.md)
+and [ADR-025](ADR-025-the-model-composes-offline.md):
 
 > **Exit criterion:** a 10-minute session driven only by the MiniLab and by voice; and a
 > 10-minute session **with the Wi-Fi off** using a pre-baked setlist.
 
-- **ADR-021** moved the MiniLab reading and its first two macros, tension and density, into
-  Phase 4.
-- **ADR-023** put a question ahead of the rest: **when is the model worth calling at all?**
-  Three blind A/B runs came out at parity, 18 of 36.
-- **ADR-024 answers it, agreed with Fabiano on 2026-09-13 before anything was measured.**
-  - **The floor stays the live default.** The model's material reaches the stage through baked
-    setlists, and Fabiano curates them with KEEP and VETO while he plays, blind to who wrote
-    each section.
-  - **No further model-against-floor A/B**, at section or song level. The A/B's record below
-    stands, with its threshold unmoved.
-  - **The six remaining macros are deferred** out of this phase.
-  - **The Wi-Fi-off criterion is sharpened**, because the floor alone already met it
-    (`phase-5-findings.md` §1).
-- **Listening is kept short.** Fabiano's listening time is the scarce resource, so the phase takes
-  its evidence from sessions he plays, and asks for one five-minute test.
+- **ADR-021** moved the MiniLab and its first two macros into Phase 4.
+- **ADR-024** decided when the model is worth calling. The floor plays live, and the model's
+  takes reach the stage through setlists Fabiano curates with KEEP and VETO, blind to who wrote
+  them. No further model-against-floor A/B is run, and the six remaining macros are deferred.
+- **ADR-025, after a review on 2026-09-16:**
+  - the voice session leaves the criterion;
+  - the band's instruments replace Drift before the phase closes;
+  - the Wi-Fi-off session is the setlist's songs played back to back;
+  - a musical change passes on a short listen, with the verdict quoted.
 
 - [ ] **When the model is worth calling: decided and applied** (ADR-024)
-      - The decision is written down. — **met 2026-09-13**, ADR-024 committed before
-        anything was measured.
-      - The shuffle double swing (`phase-4-findings.md` §16) has its five-minute blind check,
-        pre-registered in `phase-5-findings.md` before listening, and its consequence applied.
-        The fix is applied unless the as-written side is preferred in 4 or more of 5.
-        — **met 2026-09-13** (`phase-5-findings.md` §3): the take as written was preferred in
-        0 of 5, "cleaner, less messy" in 4. Straightening is on for every model take, and the 8
-        shuffle regression goldens were regenerated.
+      - The decision is written down. — **met 2026-09-13**, ADR-024.
+      - The shuffle double swing fixed after a five-minute blind check. — **met 2026-09-13**
+        (`phase-5-findings.md` §3): the take as written preferred in 0 of 5.
       - The setlist the Wi-Fi-off session plays was curated with Fabiano's KEEP and VETO, from
-        sessions he played.
+        sessions he played. — *under way:* all three songs have been played and curated
+        (§7, and songs 2 and 3 on 2026-09-16).
       - KEEP and VETO counts per author are reported at the gate, from the logs. They decide
         nothing further (ADR-019).
-- [ ] **A 10-minute session driven only by the MiniLab and by voice**
-      - *Log:* at least 600 s continuous, 0 beats lost, and every pad bar cue landing one bar
-        after the pad.
-      - *Log:* at least 5 voice commands applied, each logged from its tool call to
-        `cue_received`, with the latency reported.
-      - *Log:* voice drives boundary cues, the two macros and KEEP/VETO. Bar cues stay on the
-        pads.
-      - *Self-reported:* no keyboard or mouse during the session, **except the push-to-talk
-        key itself** — holding or tapping it to speak is part of dictating, not typing a
-        command, decided by Fabiano on 2026-09-16 (`phase-5-findings.md` §8).
-      - *By ear:* the verdict recorded verbatim.
+- [ ] **The band plays on its own instruments** (ADR-025)
+      - The Set, `garagem-band.als`, has a Drum Rack kit and sampled instruments, and
+        `bootstrap_set.py` and `pytest -m live` pass against it.
+      - *By ear:* the first song heard in the new sound, the verdict quoted.
 - [ ] **A 10-minute session with the Wi-Fi off, played from the curated setlist**
-      - *Log:* at least 600 s, 0 beats lost, and no network provider constructed. The network
-        check reads zero calls.
-      - *Log:* the share of sections played from the setlist's takes is at least a number fixed
-        with Fabiano before the session, from an offline rehearsal. The floor alone cannot meet
-        this line.
-      - *Log:* conducted from the MiniLab.
-      - *By ear:* the verdict recorded verbatim.
+      - The setlist's three songs, back to back, as three `jam.py --setlist` runs from the
+        MiniLab (ADR-025).
+      - *Log:* at least 600 s in total, 0 beats lost in each run, $0 spent and no adapter built.
+      - *Log:* at least N sections from the setlist's takes. N is fixed with Fabiano before the
+        session, from `rehearse_session.py --setlist`. The floor alone cannot meet this line.
+      - *By ear:* the verdict quoted.
 
 ### Where the phase actually is
 
-**Stage 0 is done: the plan is written.** ADR-024, these criteria and `phase-5-findings.md` §1,
-agreed before anything was measured, baked or heard.
-
-**Stage 1 is done.** Suite at **2141 passed, 27 skipped** (all live-marked); `ruff` and `mypy`
-clean.
-- **The live event log keeps the model's DSL.** Every `section_parsed`, and every refusal after
-  a parse (stale, too late, irreparable, nothing playable), carries the text the model wrote.
-- **Model shuffles are straightened.** Under a shuffle, `dsl/realise.py` moves the model's
-  attacks between the eighths onto them (`straightened`), by default. The floor never passes
-  through it.
-- **Fabiano's blind check preferred the straightened side in 5 of 5 pairs** (`phase-5-findings.md`
-  §3), against a veto pre-registered at 4 of 5 for the take as written. Four of the five reasons
-  were "cleaner, less messy".
-- **Two things found on the way, neither acted on** (§2). The floor's loudest shuffle pushes its
-  kick with the figure the model put on its hat. And every A/B pair played at the Set's 132 BPM,
-  whatever its briefing's tempo.
-
-**Stage 2 is built: a setlist is baked once and played from disk** (`phase-5-findings.md` §4).
-Suite at **2176 passed, 27 skipped**; `ruff` and `mypy` clean. Nothing has been spent.
-- **`scripts/bake_setlist.py`** bakes `setlists/<name>.toml` into `<name>.json`. It stops unless
-  `--yes`, and `--fake` bakes the floor's own DSL for free.
-- **`jam.py --setlist <file> --song N`** plays a song with no network, no adapter and no key. The
-  producer asks only for the briefings the bake holds, and the floor plays the rest.
-- **`rehearse_session.py --setlist`** predicts how much of a song the setlist serves.
-- **One take per briefing** (ADR-000's P6). `setlists/first.toml`, three songs and about eleven
-  minutes, asks 18 calls, about $0.06 expected.
-- **The rehearsal found what knobs do to a baked song.** A knob turn that changes an offset moves
-  every briefing still to come off the bake, so the floor plays the rest: 2 or 3 sections of 16 or 18 from the setlist.
-  What a knob should do from disk is open, and is decided before the Wi-Fi-off session.
-
-**The first real bake and its playback are done** (`phase-5-findings.md` §5). 18 of 18 takes
-for $0.064, and all three songs played from disk in the real Set, 220 s each, with 0 beats lost.
-
-**Stage 3 is built: keep and veto, and curation from the log** (`phase-5-findings.md` §6). Suite
-at **2197 passed, 27 skipped**; `ruff` and `mypy` clean.
-- **Pads 4 and 7 keep and veto the section playing.** Nothing sounds different. That was
-  Fabiano's choice before building.
-- **`scripts/curate_setlist.py` writes the marks into the setlist.** Each mark is joined offline
-  to the take it fell on, and the last word on a take wins.
-- **`bake_setlist.py --rebake-vetoed` asks again for vetoed briefings** and keeps the old takes as
-  retired.
-- **Rehearsed on the real bake:** a keep and a veto reached their takes, and a veto on the intro
-  counted without changing anything.
-
-**The first curation is applied, and the knobs are decided** (`phase-5-findings.md` §7).
-- **Song 1, conducted with pads and knobs: 13 marks.** The 5 that fell on takes vetoed one groove
-  and kept two. 7 of the 8 struck after the knobs moved fell on the floor's music.
-- **Fabiano chose that a knob moves the briefing and the take keeps playing.** Built as
-  `setlist.reachable`. In a knob-conducted rehearsal, sections from the setlist go from 3 to 7 of
-  16.
-- **The rest is the scheduler rewriting the next section in the tick a knob moves**, which is
-  Stage 5's approved live timing. It is left as it is.
-- Suite at **2201 passed, 27 skipped**.
+- **Stage 0, the plan:** ADR-024, agreed before anything was measured.
+- **Stage 1, done:**
+  - the live log keeps the model's DSL;
+  - model shuffles are straightened, preferred in 5 of 5 blind pairs (§3).
+- **Stage 2, done:** a setlist is baked once and played from disk (§4, §5).
+  - `setlists/first.json`: 18 of 18 takes for $0.064.
+  - All three songs played in the real Set, 220 s each, with 0 beats lost.
+- **Stage 3, done:** pads 4 and 7 keep and veto, `curate_setlist.py` writes the marks, and
+  `bake_setlist.py --rebake-vetoed` asks again (§6).
+- **The knobs, decided** (§7): a knob moves the briefing and the take keeps playing
+  (`setlist.reachable`).
+  - Since 2026-09-16, a knob-served take echoes the briefing it answers, so it is no longer
+    logged as a `section_mismatch`.
+  - Rehearsed with the last three conducted runs: 20, 25 and 35 mismatches per song down to 0,
+    with 6, 9 and 10 of 17 sections from takes.
+- **Curation so far:**
+  - song 1: two takes kept, one vetoed;
+  - songs 2 and 3: one kept each.
+  - The vetoed verse plays as the floor. It is not re-baked, because Phase 6 replaces the bake's
+    notation.
+- **Stage 4, the voice spike, is parked** (ADR-025). `scripts/spike_voice.py` stays.
+- **The review, 2026-09-16:** ADR-025.
+- Suite at **2211 passed, 27 skipped**; `ruff` and `mypy` clean.
 
 Next, in order:
 
-1. **More curation, as Fabiano plays.** Songs 2 and 3 are unmarked. The vetoed verse of song 1
-   plays as the floor until `bake_setlist.py setlists/first.toml --rebake-vetoed --yes`.
-2. **Voice through `garagem-mcp`.** A spike of the voice path first, and the `mcp` dependency is
-   asked for before it is added.
-3. **The two ten-minute sessions, then the gate.**
-
-About five minutes of dedicated listening in the whole phase, and under US$0.50 of model calls.
+1. **The band's instruments.**
+   - Fabiano saves the Set as `garagem-band.als` and loads a Drum Rack kit and sampled bass,
+     keys and guitar.
+   - The drum pads are checked against the notes in `theory/percussion.py`.
+   - `session.toml` is updated, and the bootstrap and the live tests are run.
+2. **A five-minute listen:** the opening of song 1 in the old Set, then the whole song in the new
+   one, with the pads. The verdict is quoted.
+3. **The Phase 5 report:** `jam.py --setlist` prints Phase 5's lines, not Phase 4's.
+4. **N fixed from a rehearsal**, then the Wi-Fi-off session, then the gate.
 
 ## Phase 4 — closed with one waiver
 
@@ -751,7 +707,8 @@ section deadline — 16 calls, total time p50 4.29 s and max 4.52 s, a margin of
 
 ## Following phases
 
-6. Timbre, mixing and the asset bakery
+6. The songwriter: the model composes whole songs offline, with pitched material
+   ([ADR-025](ADR-025-the-model-composes-offline.md))
 7. Extensions: a local symbolic engine, a listening loop, microtiming, jazz
 
 Details and criteria for each phase: `ADR-000-baseline.md`, section 7.

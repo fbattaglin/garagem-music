@@ -31,9 +31,10 @@ written to a file is in English.
   control. Read-only: opens inputs, never an output.
 - `uv run python scripts/spike_cues.py` — asks the real Set how clip launches, legato and
   track stops behave (ADR-022). Changes the Set and puts it back; refuses if it is playing.
-- `uv run python scripts/spike_voice.py` — a stand-in MCP listener, and the command that starts a
-  locked-down Claude Code conductor session with Portuguese dictation. `--report` reads how long a
-  spoken cue took to arrive. Changes nothing, needs no Live; standard library only.
+- `uv run python scripts/spike_voice.py` — parked by ADR-025. A stand-in MCP listener, and the
+  command that starts a locked-down Claude Code conductor session with Portuguese dictation.
+  `--report` reads how long a spoken cue took to arrive. Changes nothing, needs no Live;
+  standard library only.
 - `uv run python scripts/rehearse_session.py` — plays an 8-minute generated, conducted session
   offline and predicts its cost and the model's share; `--network-lost-at-s` rehearses the
   chaos test. No network, no Live, no money.
@@ -97,3 +98,9 @@ Run `ruff` and `mypy` before any commit.
 - Every agent decision, fallback and human veto becomes an event in the JSONL event log
 - Network tests use cassettes in `cassettes/`. A test that makes a real call is a bug.
 - Ask before adding a new dependency; the project is deliberately lean
+- **A musical change passes on a short listen** (ADR-025). Fabiano hears it in a session he plays
+  anyway, and his verdict is quoted in the findings. Pre-registration and thresholds are for
+  decisions that cost money or are hard to reverse. A findings section fits on a screen. No
+  metric is a target (ADR-019).
+- **Live generation is frozen** (ADR-025). `jam.py --generate` stays working and tested; new
+  model work goes into the offline bake.

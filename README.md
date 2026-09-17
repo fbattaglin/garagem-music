@@ -1,10 +1,10 @@
 # GARAGEM
 
-**A rock band that composes while it plays.** GARAGEM writes a four-piece arrangement
-(drums, bass, guitar and keys) section by section and performs it live in Ableton Live. A
-language model writes the grooves, and deterministic engines write the song around them. A
-musician conducts the band from a MIDI controller. When the network fails, the band keeps
-playing.
+**A rock band with a songwriter and a conductor.** GARAGEM performs a four-piece arrangement
+(drums, bass, guitar and keys) section by section, live in Ableton Live. Deterministic engines
+play the song and compose its form. A language model writes songs ahead of the show, and a
+musician curates them and conducts the band from a MIDI controller. On stage no network is
+needed.
 
 [![CI](https://github.com/fbattaglin/garagem-music/actions/workflows/ci.yml/badge.svg)](https://github.com/fbattaglin/garagem-music/actions/workflows/ci.yml)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
@@ -27,15 +27,18 @@ playing.
 
 ## What it does
 
-- **Generates music live.** Each section of a song is written just before it is needed and
-  launched on the bar by Live's own transport, through
+- **Plays live, on the bar.** Each section of a song is written into Live just before it is
+  needed and launched by Live's own transport, through
   [AbletonOSC](https://github.com/ideoforms/AbletonOSC).
-- **Splits the work by strength.** A frontier model (Anthropic Claude; a Google Gemini
-  adapter is included) writes each section's groove in a compact text notation. Deterministic
-  engines compose the form: arrangement, builds, stops, fills and the final chord.
-- **Never falls silent.** Every model call has a local, seeded counterpart, called the
-  *floor*. A late answer, a dropped connection or an open circuit breaker changes who wrote
-  the next section, never whether it plays.
+- **Splits the work by strength.** Deterministic engines, called the *floor*, play every
+  section and compose the form: arrangement, builds, stops, fills and the final chord. A
+  frontier model (Anthropic Claude) writes songs ahead of time into a *setlist*, which plays
+  from disk with no network.
+- **Takes curation while it plays.** Two pads keep or veto the section sounding, blind to who
+  wrote it, and the marks are written back into the setlist.
+- **Never falls silent.** Whatever the setlist does not hold, the floor plays. The model can
+  still write live (`--generate`), and then a late answer or a dropped connection changes who
+  wrote the next section, never whether it plays.
 - **Takes direction from a human.** Pads on an Arturia MiniLab 3 cue the band on the next bar,
   and knobs shape the energy and tension of the sections still to come.
 - **Measures itself.** Every decision, fallback, cue and write goes into a JSONL event log
@@ -156,8 +159,9 @@ uv run python scripts/probe_live.py            # read-only walk of every OSC add
 ```bash
 uv run python scripts/jam.py --dry-run                       # print the song's form; touch nothing
 uv run python scripts/jam.py --seconds 180 --seed 7          # the deterministic band, no network
-uv run python scripts/jam.py --generate --seconds 480        # the model writes the grooves
-uv run python scripts/jam.py --generate --controller minilab # ...and you conduct
+uv run python scripts/jam.py --setlist setlists/first.json --song 1 --controller minilab
+                                                             # a baked song, conducted; no network
+uv run python scripts/jam.py --generate --seconds 480        # the model writes live (frozen, ADR-025)
 ```
 
 A generated performance is bounded by the budget governor, set in
@@ -179,8 +183,10 @@ from the hardware by `scripts/probe_minilab.py`, not taken from a manual.
 | Pad 1: stop | hits the downbeat and cuts, then the drummer picks the song back up | next bar |
 | Pad 2: fill | the drummer runs down the toms | next bar |
 | Pad 3: drums and bass | guitar and keys drop out until the section ends | next bar |
+| Pad 4: keep | marks the section sounding to stay in the setlist; nothing changes in the sound | curated after the song |
 | Pad 5: chorus now | the band cuts to the chorus | next bar |
 | Pad 6: next, bridge | the next section becomes a bridge | next section that can still change |
+| Pad 7: veto | marks the section sounding to leave the setlist; nothing changes in the sound | curated after the song |
 | Pad 8: end | the song finishes through an outro and a final chord | next section that can still change |
 | Knob 1: density | sparser grooves to the left, busier to the right | sections not yet written |
 | Knob 2: tension | harder fills, walking bass and more lift to the right | sections not yet written |
@@ -253,8 +259,8 @@ evidence, or when a criterion is explicitly waived in an ADR with its threshold 
 | 2 | Clock, buffer and deterministic engine | Closed · 2026-08-30 |
 | 3 | First structural generation, one call per section | Closed · 2026-09-01 · one waiver ([ADR-018](docs/architecture/ADR-018-the-ab-waiver.md)) |
 | 4 | The full band and the tactical layer, conducted from the MiniLab | Closed · 2026-09-13 · one waiver ([ADR-023](docs/architecture/ADR-023-the-second-ab-waiver.md)) |
-| 5 | When the model is worth calling; Setlist Mode for offline shows; voice control | **Current** |
-| 6 | Timbre, mixing and an offline asset bakery | Planned |
+| 5 | Setlist Mode for offline shows, curated with keep and veto, on the band's own instruments | **Current** |
+| 6 | The songwriter: whole songs composed offline, with riffs, bass lines and a lead voice | Planned ([ADR-025](docs/architecture/ADR-025-the-model-composes-offline.md)) |
 
 **One finding shapes what comes next.** In the last three blind listening tests, 36 pairs in
 all, sections written by the model and by the deterministic floor were preferred equally, 18 to
@@ -262,8 +268,19 @@ all, sections written by the model and by the deterministic floor were preferred
 floor is an instrument in its own right, not a fallback. So in Phase 5 the floor plays live,
 and the model writes songs ahead of time that the listener curates while playing, keeping or
 vetoing each section without knowing who wrote it
-([ADR-024](docs/architecture/ADR-024-the-model-writes-fabiano-chooses.md)). The current phase
-and its evidence are tracked in [`docs/architecture/STATUS.md`](docs/architecture/STATUS.md).
+([ADR-024](docs/architecture/ADR-024-the-model-writes-fabiano-chooses.md)).
+
+**A review on 2026-09-16 found why the result was parity**
+([ADR-025](docs/architecture/ADR-025-the-model-composes-offline.md)). To fit a live deadline,
+the notation had narrowed the model to picking one-bar rhythms from the floor's own
+vocabulary.
+- **Live generation is frozen.**
+- **The band gets real instruments.**
+- **Phase 6 gives the model room:** whole songs composed offline, with riffs, bass lines and a
+  lead voice.
+
+The current phase and its evidence are tracked in
+[`docs/architecture/STATUS.md`](docs/architecture/STATUS.md).
 
 ## Documentation
 

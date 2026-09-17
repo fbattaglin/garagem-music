@@ -291,6 +291,7 @@ Cache hits cost 10% of base input at Anthropic; the Batch API gives a further 50
 | [ADR-022](ADR-022-a-cue-costs-a-fire-never-a-write.md) | **A cue costs a fire, never a write**: candidates, legato variants, re-plan, explicit precedence | **New** — extends ADR-001 to human cues |
 | [ADR-023](ADR-023-the-second-ab-waiver.md) | **The blind A/B is waived a second time**, threshold intact; when the model is worth calling opens Phase 5 | **New** — waives §7's A/B clause again; amends §7's Phase 5 |
 | [ADR-024](ADR-024-the-model-writes-fabiano-chooses.md) | **The model writes, Fabiano chooses**: the floor plays live, the model's takes reach the stage through setlists curated with KEEP/VETO | **New** — answers ADR-023's question; amends §7's Phase 5 and ADR-021 §3 |
+| [ADR-025](ADR-025-the-model-composes-offline.md) | **The model composes offline, and the band gets its sound**: live generation frozen, instruments before more listening, voice out of Phase 5, Phase 6 becomes the songwriter | **New** — amends §7's Phases 5 and 6 and ADR-024 §6 |
 
 ADR-001 is written down in [`ADR-001-clip-ahead-and-quantised-launch.md`](ADR-001-clip-ahead-and-quantised-launch.md).
 
@@ -397,9 +398,26 @@ No further model-against-floor A/B is run. The six macros are deferred out of th
 Wi-Fi-off session must play a stated share of its sections from the setlist's takes, because
 the floor alone already plays offline.
 
+**Amended by [ADR-025](ADR-025-the-model-composes-offline.md)**, decided on 2026-09-16 after a
+review of Phases 0 to 5:
+- voice leaves the exit criterion;
+- the band's instruments replace Drift before the phase closes;
+- the Wi-Fi-off session is the curated setlist's songs played back to back, at least 600 s in
+  all, with a share of sections from takes fixed before it runs.
+
 ### **Phase 6 — Timbre, mixing and the asset bakery** · ~2 weeks
 
 A sound design agent via LOM device parameters; a mixing agent (gains, pan, sends, dynamics between sections); background audio asset generation using the **Batch API** (50% discount, 24 h SLA — perfect for overnight work scheduled by OpenClaw's heartbeat); replacing `DLSMusicDevice` with Live Suite instruments.
+
+**Superseded by [ADR-025](ADR-025-the-model-composes-offline.md): Phase 6 is the songwriter.**
+- The instruments move into Phase 5.
+- The sound design agent, the mixing agent and the asset bakery leave the roadmap until
+  something asks for them.
+- The phase builds a notation for the bake only, with pitched material: bass lines, riffs, a
+  lead voice, bars that vary within a phrase, and a motif the chorus brings back.
+- The model writes a whole song in context with no deadline, and density and tension move out
+  of the take.
+- Its criteria are written when it is planned.
 
 ### **Phase 7+ — Extensions**
 
