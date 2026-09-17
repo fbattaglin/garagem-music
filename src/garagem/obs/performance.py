@@ -1,4 +1,4 @@
-"""Phase 4's exit criteria, read back from one performance's event log. Pure.
+"""A performance's exit criteria, read back from its own event log. Pure.
 
 Stage 6's paid session is judged by what its log says, and a judgement made by reading
 a thousand lines by eye is a judgement nobody can repeat. Each criterion is a function of
@@ -29,6 +29,10 @@ from garagem.obs.events import FROZEN, Event
 
 BEATS_PER_BAR: Final = 4
 EIGHT_MINUTES_S: Final = 480.0
+# Phase 5's Wi-Fi-off session: the setlist's songs, one after another (ADR-025).
+SETLIST_SESSION_S: Final = 600.0
+# What `setlist_loaded` says answered the producer: takes read from disk, never a network.
+BAKED: Final = "baked"
 # A scheduler fallback that means a section boundary went by without its section.
 UNHANDLED: Final = frozenset({"not_written", "repeated_too_long"})
 # A call the network lost, or one the breaker refused because the network had been lost.
@@ -97,15 +101,79 @@ def model_share(events: Sequence[Event]) -> tuple[int, int]:
     return sum(1 for _, who in played if who == "model"), len(played)
 
 
-def render_checks(checks: Sequence[Check], share: tuple[int, int] | None = None) -> str:
-    lines = ["Phase 4, read from this performance's log:"]
+def render_checks(
+    checks: Sequence[Check],
+    share: tuple[int, int] | None = None,
+    *,
+    phase: str = "Phase 4",
+    wrote: str = "the model wrote",
+) -> str:
+    lines = [f"{phase}, read from this performance's log:"]
     lines.extend(
         f"  [{'met' if check.met else 'NOT met'}] {check.criterion} — {check.evidence}"
         for check in checks
     )
     if share is not None and share[1]:
-        lines.append(f"  the model wrote {share[0]} of the {share[1]} sections that played")
+        lines.append(f"  {wrote} {share[0]} of the {share[1]} sections that played")
     return "\n".join(lines) + "\n"
+
+
+# --------------------------------------------------------------- Phase 5: from a setlist
+
+
+def setlist_checks(
+    events: Sequence[Event], *, minimum_seconds: float, share_floor: int | None = None
+) -> tuple[Check, ...]:
+    """One song played from a setlist, against Phase 5's criteria (ADR-024, ADR-025).
+
+    Phase 4's report asks what a generated session answers — deadlines, spend, staleness —
+    and a song from disk makes no call to have any of that. What it has to show instead is
+    that it played to its end, that nothing could have reached a network, and how much of it
+    came from the setlist rather than from the floor.
+    """
+    ended = _last(events, "session_ended")
+    checks = [_continuous(events, ended, minimum_seconds), _offline(events, ended)]
+    if any(event.kind == "cue_received" for event in events):
+        checks.append(_next_bar(events))
+    if share_floor is not None:
+        checks.append(_from_the_setlist(events, share_floor))
+    return tuple(checks)
+
+
+def setlist_session_checks(
+    events: Sequence[Event],
+    *,
+    minimum_seconds: float = SETLIST_SESSION_S,
+    share_floor: int | None = None,
+) -> tuple[Check, ...]:
+    """The Wi-Fi-off session: the setlist's songs played one after another (ADR-025).
+
+    A session is the log's **trailing run of setlist songs** — every performance after the
+    last one that was not played from a setlist. Each song is its own `jam.py` run, so the
+    length that matters is their sum, and a run that stopped early or lost a beat fails the
+    whole session rather than only itself.
+    """
+    played = _trailing_setlist_runs(events)
+    checks = [_together(played, minimum_seconds), _offline_together(played)]
+    if any(event.kind == "cue_received" for run in played for event in run):
+        checks.append(_conducted(played))
+    if share_floor is not None:
+        checks.append(_from_the_setlist([event for run in played for event in run], share_floor))
+    return tuple(checks)
+
+
+def runs(events: Sequence[Event]) -> tuple[tuple[Event, ...], ...]:
+    """The log split into performances. Each ends at its own `session_ended`."""
+    split: list[tuple[Event, ...]] = []
+    current: list[Event] = []
+    for event in events:
+        current.append(event)
+        if event.kind == "session_ended":
+            split.append(tuple(current))
+            current = []
+    if current:
+        split.append(tuple(current))
+    return tuple(split)
 
 
 # ------------------------------------------------------------------------------ criteria
@@ -261,6 +329,96 @@ def _network(events: Sequence[Event], ended: Event | None) -> Check:
     )
     met = finished and not beats_lost and not unhandled and not _unanswered(events)
     return Check(criterion=criterion, met=met, evidence=evidence)
+
+
+def _offline(events: Sequence[Event], ended: Event | None) -> Check:
+    """Nothing that could reach a network was built, and nothing was spent."""
+    criterion = "no network: the takes came from disk, and nothing was spent"
+    loaded = [event for event in events if event.kind == "setlist_loaded"]
+    from_disk = bool(loaded) and all(event.detail.get("serving") == BAKED for event in loaded)
+    spent = Decimal(str(ended.detail.get("spent_usd", "0"))) if ended is not None else None
+    lost = sum(1 for event in events if _lost_to_the_network(event))
+    evidence = (
+        f"{len(loaded)} song(s) from a setlist, "
+        f"{'served from disk' if from_disk else 'NOT served from disk'}, "
+        f"${spent if spent is not None else '?'} spent, {lost} calls lost to a network"
+    )
+    return Check(criterion=criterion, met=from_disk and spent == 0 and not lost, evidence=evidence)
+
+
+def _from_the_setlist(events: Sequence[Event], floor: int) -> Check:
+    """How much of what played came from the setlist's takes, against a line fixed before."""
+    criterion = f"at least {floor} sections played from the setlist's takes"
+    from_takes, played = model_share(events)
+    return Check(
+        criterion=criterion,
+        met=from_takes >= floor,
+        evidence=f"{from_takes} of {played} sections played came from a take",
+    )
+
+
+def _together(played: Sequence[Sequence[Event]], minimum_seconds: float) -> Check:
+    criterion = f"{minimum_seconds:.0f} s of setlist, in songs played one after another"
+    if not played:
+        return Check(criterion=criterion, met=False, evidence="no song from a setlist in the log")
+    seconds = 0.0
+    lost = 0
+    stopped: list[int] = []
+    for number, run in enumerate(played, start=1):
+        ended = _last(run, "session_ended")
+        fires = [event for event in run if event.kind == "scene_fired"]
+        lost += sum(1 for event in run if event.kind == "beat_lost")
+        if ended is None or not fires:
+            stopped.append(number)
+            continue
+        if not bool(ended.detail["finished"]):
+            stopped.append(number)
+        seconds += (ended.at_beats - fires[0].at_beats) * 60.0 / float(str(ended.detail["bpm"]))
+    evidence = f"{len(played)} songs, {seconds:.0f} s in all, {lost} beats lost" + (
+        f", stopped early: {stopped}" if stopped else ", each played to its end"
+    )
+    return Check(
+        criterion=criterion,
+        met=seconds >= minimum_seconds and not lost and not stopped,
+        evidence=evidence,
+    )
+
+
+def _offline_together(played: Sequence[Sequence[Event]]) -> Check:
+    checks = [_offline(run, _last(run, "session_ended")) for run in played]
+    criterion = "no network: every song came from disk, and nothing was spent"
+    if not checks:
+        return Check(criterion=criterion, met=False, evidence="no song from a setlist in the log")
+    return Check(
+        criterion=criterion,
+        met=all(check.met for check in checks),
+        evidence="; ".join(check.evidence for check in checks),
+    )
+
+
+def _conducted(played: Sequence[Sequence[Event]]) -> Check:
+    controls = Counter(
+        str(event.detail.get("cue"))
+        for run in played
+        for event in run
+        if event.kind == "cue_received"
+    )
+    songs = sum(1 for run in played if any(event.kind == "cue_received" for event in run))
+    return Check(
+        criterion="conducted from the MiniLab",
+        met=songs == len(played),
+        evidence=f"{sum(controls.values())} controls in {songs} of {len(played)} songs",
+    )
+
+
+def _trailing_setlist_runs(events: Sequence[Event]) -> tuple[tuple[Event, ...], ...]:
+    played: list[tuple[Event, ...]] = []
+    for run in runs(events):
+        if any(event.kind == "setlist_loaded" for event in run):
+            played.append(run)
+        elif any(event.kind == "scene_fired" for event in run):
+            played = []
+    return tuple(played)
 
 
 # ------------------------------------------------------------------------------- helpers

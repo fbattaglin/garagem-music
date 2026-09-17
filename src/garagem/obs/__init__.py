@@ -24,7 +24,15 @@ from garagem.obs.latency import (
     render_report,
     summarise,
 )
-from garagem.obs.performance import Check, model_share, performance_checks, render_checks
+from garagem.obs.performance import (
+    Check,
+    model_share,
+    performance_checks,
+    render_checks,
+    runs,
+    setlist_checks,
+    setlist_session_checks,
+)
 from garagem.obs.sections import (
     APPROVAL_TARGET,
     CONFORMANCE_TARGET,
@@ -68,5 +76,8 @@ __all__ = [
     "rate_of",
     "render_checks",
     "render_report",
+    "runs",
+    "setlist_checks",
+    "setlist_session_checks",
     "summarise",
 ]

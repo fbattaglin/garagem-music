@@ -7,7 +7,16 @@ if it does.
 
 from __future__ import annotations
 
-from garagem.obs import Check, Event, model_share, performance_checks, render_checks
+from garagem.obs import (
+    Check,
+    Event,
+    model_share,
+    performance_checks,
+    render_checks,
+    runs,
+    setlist_checks,
+    setlist_session_checks,
+)
 
 BPM = 132.0
 EIGHT_MINUTES_BEATS = 480 * BPM / 60
@@ -304,3 +313,132 @@ def test_a_boundary_without_its_section_after_the_network_went_is_not_met() -> N
     found = check(performance_checks(log), "the network died")
     assert not found.met
     assert found.evidence.startswith("lost at bar 20, not back by the end.")
+
+
+# ------------------------------------------------------- Phase 5: a song from a setlist
+
+
+def loaded(song: int = 1, *, serving: str = "baked") -> Event:
+    return e("setlist_loaded", 0.0, setlist="first", song=song, title="Seven", serving=serving)
+
+
+def a_song_from_disk(
+    song: int = 1, *, beats: float = 220 * BPM / 60, serving: str = "baked", takes: int = 2
+) -> list[Event]:
+    """One `jam.py --setlist` run: takes out of the buffer, the floor for the rest."""
+    log: list[Event] = [loaded(song, serving=serving)]
+    for section in range(4):
+        if section < takes:
+            log.append(e("section_generated", float(section), section=section, source="buffer"))
+        else:
+            log.append(
+                e("fallback", float(section), section=section, seed=section, reason="not_in_buffer")
+            )
+        log.append(e("section_written", float(section), section=section, seed=section))
+        log.append(e("scene_fired", float(section) * 32.0, section=section, slack_bars=1))
+    log.append(ended(at=beats, spend={"spent_usd": "0.0000"}))
+    return log
+
+
+def test_a_song_from_disk_meets_phase_fives_lines() -> None:
+    checks = setlist_checks(a_song_from_disk(), minimum_seconds=218.0, share_floor=2)
+    assert all(check.met for check in checks), [c for c in checks if not c.met]
+    assert "2 of 4 sections played came from a take" in check(checks, "at least 2").evidence
+
+
+def test_a_song_that_spent_money_is_not_offline() -> None:
+    log = a_song_from_disk()
+    log[-1] = ended(at=220 * BPM / 60, spend={"spent_usd": "0.0035"})
+    assert not check(setlist_checks(log, minimum_seconds=218.0), "no network").met
+
+
+def test_a_song_served_by_an_adapter_is_not_offline() -> None:
+    log = a_song_from_disk(serving="anthropic")
+    assert not check(setlist_checks(log, minimum_seconds=218.0), "no network").met
+
+
+def test_a_call_lost_to_a_network_is_not_offline() -> None:
+    log = a_song_from_disk()
+    log.insert(2, e("fallback", 8.0, section=1, reason="ProviderUnavailableError"))
+    assert not check(setlist_checks(log, minimum_seconds=218.0), "no network").met
+
+
+def test_too_little_of_the_song_from_the_setlist_is_not_met() -> None:
+    checks = setlist_checks(a_song_from_disk(takes=1), minimum_seconds=218.0, share_floor=2)
+    assert not check(checks, "at least 2").met
+
+
+def test_a_setlist_song_is_not_judged_on_deadlines_or_spend() -> None:
+    """A song from disk makes no call, so Phase 4's model criteria say nothing about it."""
+    criteria = [c.criterion for c in setlist_checks(a_song_from_disk(), minimum_seconds=218.0)]
+    assert not any("deadline" in c or "budget" in c for c in criteria)
+
+
+# ------------------------------------------------------ Phase 5: the whole Wi-Fi-off session
+
+
+def a_session(songs: int = 3, **extra: object) -> list[Event]:
+    log: list[Event] = []
+    for song in range(1, songs + 1):
+        log.extend(a_song_from_disk(song, **extra))  # type: ignore[arg-type]
+    return log
+
+
+def test_three_songs_back_to_back_make_the_ten_minutes() -> None:
+    checks = setlist_session_checks(a_session(), share_floor=6)
+    assert all(check.met for check in checks), [c for c in checks if not c.met]
+    assert "3 songs, 660 s in all, 0 beats lost" in check(checks, "600 s of setlist").evidence
+
+
+def test_two_songs_are_not_ten_minutes() -> None:
+    assert not check(setlist_session_checks(a_session(2)), "600 s of setlist").met
+
+
+def test_a_song_that_stopped_early_fails_the_whole_session() -> None:
+    log = a_session()
+    log[-1] = ended(at=220 * BPM / 60, finished=False, spend={"spent_usd": "0.0000"})
+    assert not check(setlist_session_checks(log), "600 s of setlist").met
+
+
+def test_only_the_trailing_setlist_runs_count_as_the_session() -> None:
+    """An earlier generated run in the same log is another day's evidence, not this session."""
+    log = [e("scene_fired", 0.0, section=0), ended(spend=SPEND), *a_session()]
+    assert check(setlist_session_checks(log), "600 s of setlist").evidence.startswith("3 songs")
+    assert len(runs(log)) == 4
+
+
+def test_a_session_nobody_conducted_reports_no_minilab_line() -> None:
+    criteria = [c.criterion for c in setlist_session_checks(a_session())]
+    assert "conducted from the MiniLab" not in criteria
+
+
+def test_a_session_conducted_in_every_song_is_met() -> None:
+    log: list[Event] = []
+    for song in range(1, 4):
+        run = a_song_from_disk(song)
+        run.insert(1, e("cue_received", 4.0, cue="fill", family="bar"))
+        log.extend(run)
+    assert check(setlist_session_checks(log), "conducted").met
+
+
+def test_a_song_nobody_touched_breaks_the_conducted_line() -> None:
+    log: list[Event] = []
+    for song in range(1, 4):
+        run = a_song_from_disk(song)
+        if song != 3:
+            run.insert(1, e("cue_received", 4.0, cue="fill", family="bar"))
+        log.extend(run)
+    found = check(setlist_session_checks(log), "conducted")
+    assert not found.met
+    assert "in 2 of 3 songs" in found.evidence
+
+
+def test_the_report_says_which_phase_it_read() -> None:
+    printed = render_checks(
+        setlist_checks(a_song_from_disk(), minimum_seconds=218.0),
+        model_share(a_song_from_disk()),
+        phase="Phase 5",
+        wrote="from the setlist:",
+    )
+    assert printed.startswith("Phase 5, read from this performance's log:")
+    assert "from the setlist: 2 of the 4 sections that played" in printed

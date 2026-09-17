@@ -127,7 +127,13 @@ from garagem.llm import (
     load_catalog,
     prices_of,
 )
-from garagem.obs import EventLog, model_share, performance_checks, render_checks
+from garagem.obs import (
+    EventLog,
+    model_share,
+    performance_checks,
+    render_checks,
+    setlist_checks,
+)
 from garagem.setlist import (
     Setlist,
     SetlistError,
@@ -511,6 +517,12 @@ def main() -> int:
         help="a baked setlist (setlists/<name>.json): play a song from disk, with no network",
     )
     parser.add_argument("--song", type=int, default=1, help="which song of --setlist, from 1")
+    parser.add_argument(
+        "--share",
+        type=int,
+        help="with --setlist: how many sections must play from the setlist's takes (ADR-025). "
+        "Fixed from an offline rehearsal before the session, and reported at the end",
+    )
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--budget", type=Path, default=DEFAULT_BUDGET)
     args = parser.parse_args()
@@ -647,6 +659,9 @@ def main() -> int:
                     song=args.song,
                     title=song.title,
                     takes=len(song.playable()),
+                    # What answered the producer. No adapter was built and no key was read,
+                    # which is the Wi-Fi-off criterion's machine half (ADR-025).
+                    serving="baked",
                 )
             else:
                 sys.stderr.write(f"generating with {model.id}\n")
@@ -717,7 +732,16 @@ def main() -> int:
         daw.close()
         if controller is not None:
             sys.stderr.write(render_cues(log))
-        if scheduler is not None and (args.generate or setlist is not None):
+        if scheduler is not None and setlist is not None:
+            sys.stderr.write(
+                render_checks(
+                    setlist_checks(log.events, minimum_seconds=seconds, share_floor=args.share),
+                    model_share(log.events),
+                    phase="Phase 5",
+                    wrote="from the setlist:",
+                )
+            )
+        elif scheduler is not None and args.generate:
             checks = performance_checks(log.events, minimum_seconds=seconds)
             sys.stderr.write(render_checks(checks, model_share(log.events)))
         sys.stderr.write(f"{len(log)} events -> {args.log}\n")

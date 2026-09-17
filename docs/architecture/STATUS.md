@@ -86,7 +86,7 @@ and [ADR-025](ADR-025-the-model-composes-offline.md):
   - **The last chord now has a bar to ring in**, after he heard the ending as abrupt. One golden
     file moved, and he heard the result: *"O final ficou muito melhor."*
   - **Open, not acted on:** how the fill arrives. It is heard as fun but bolted on.
-- Suite at **2221 passed, 27 skipped**; `ruff` and `mypy` clean.
+- Suite at **2235 passed, 27 skipped**; `ruff` and `mypy` clean.
 
 Next, in order:
 
@@ -97,7 +97,9 @@ Next, in order:
    - `session.toml` is updated, and the bootstrap and the live tests are run.
 2. **A five-minute listen:** the opening of song 1 in the old Set, then the whole song in the new
    one, with the pads. The verdict is quoted.
-3. **The Phase 5 report:** `jam.py --setlist` prints Phase 5's lines, not Phase 4's.
+3. ~~**The Phase 5 report:** `jam.py --setlist` prints Phase 5's lines, not Phase 4's.~~
+   **Done 2026-09-17** (§11), per song and per session, with `--share N` for the line the
+   session is held to.
 4. **N fixed from a rehearsal**, then the Wi-Fi-off session, then the gate.
 
 ## Phase 4 — closed with one waiver

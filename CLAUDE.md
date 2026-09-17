@@ -42,7 +42,8 @@ written to a file is in English.
   writes each song's sections once into `<name>.json` (ADR-024). Estimates and stops unless
   `--yes`; spends real money. `--fake` bakes the floor's own DSL, free and offline.
 - `uv run python scripts/jam.py --setlist setlists/<name>.json --song N` — plays a baked song
-  from disk: no network, no key.
+  from disk: no network, no key. It reports Phase 5's criteria; `--share N` adds the line for how
+  many sections must come from the setlist's takes (ADR-025).
 - `uv run python scripts/curate_setlist.py setlists/<name>.json` — writes the keeps and vetoes
   struck on pads 4 and 7 into the setlist, from `bench/jam.jsonl`. `--dry-run` writes nothing.
 - `uv run python scripts/audition_shuffle.py` — the five-minute blind check of the shuffle fix

@@ -602,3 +602,29 @@ exactly that boundary, and `jam.py` stopped the transport on the beat the chord 
 Suite: **2221 passed, 27 skipped**; `ruff` and `mypy` clean.
 
 **Heard the same day:** *"O final ficou muito melhor."* — the ending is much better.
+
+## 11. Phase 5's report, read from the log
+
+Built on 2026-09-17. `phase-5-findings.md` §5 left this open: a song from a setlist was judged
+by Phase 4's criteria, which ask about deadlines, spend and stale sections that a song from disk
+never has.
+
+**Per song** (`obs.setlist_checks`, printed by `jam.py --setlist`):
+- it played to its end, with no beat lost;
+- **no network:** `setlist_loaded` now records `serving="baked"`, so the log says the takes
+  answered from disk; the spend is $0 and no call was lost to a network;
+- cues landed on the next bar, when anyone conducted;
+- **how much came from the setlist's takes**, against `--share N`, the line fixed before the
+  session from an offline rehearsal.
+
+**Per session** (`obs.setlist_session_checks`): the Wi-Fi-off session is three `jam.py` runs, so
+the length that matters is their sum. A session is the log's **trailing run of setlist songs** —
+every performance after the last one that was not played from a setlist — and a song that stopped
+early or lost a beat fails the whole session, not only itself.
+
+**Read against the log as it stands**, the three songs curated on 2026-09-16 and 2026-09-17 are
+not one session: an ordinary jam was played between them, so only the last counts, and its
+`setlist_loaded` predates `serving`, which the evidence says rather than assumes. The Wi-Fi-off
+session will be three runs with nothing between them.
+
+Suite: **2235 passed, 27 skipped**; `ruff` and `mypy` clean.
