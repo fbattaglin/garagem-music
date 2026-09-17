@@ -48,7 +48,9 @@ ADR-000 §7, amended by [ADR-021](ADR-021-the-minilab-joins-phase-4.md),
         `cue_received`, with the latency reported.
       - *Log:* voice drives boundary cues, the two macros and KEEP/VETO. Bar cues stay on the
         pads.
-      - *Self-reported:* no keyboard or mouse during the session.
+      - *Self-reported:* no keyboard or mouse during the session, **except the push-to-talk
+        key itself** — holding or tapping it to speak is part of dictating, not typing a
+        command, decided by Fabiano on 2026-09-16 (`phase-5-findings.md` §8).
       - *By ear:* the verdict recorded verbatim.
 - [ ] **A 10-minute session with the Wi-Fi off, played from the curated setlist**
       - *Log:* at least 600 s, 0 beats lost, and no network provider constructed. The network

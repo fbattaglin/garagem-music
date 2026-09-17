@@ -481,3 +481,21 @@ this session, so the pads column differs from §4's.
   as an option. Nobody has asked for it.
 
 Suite: **2201 passed, 27 skipped**; `ruff` and `mypy` clean.
+
+## 8. The push-to-talk key is not "keyboard", decided before Stage 4 is built
+
+The voice+MiniLab exit criterion self-reports *"no keyboard or mouse during the session"*
+(`STATUS.md`). Claude Code's own dictation (`/voice`), which `scripts/spike_voice.py` builds the
+Stage 4 spike around, needs a key held or tapped to start and stop recording — by default
+`Space`, rebindable in `~/.claude/keybindings.json`, never a bare letter in hold mode because
+hold detection relies on key-repeat.
+
+**Fabiano chose the reading on 2026-09-16, before Stage 4 is built or the exit session is run:**
+pressing the push-to-talk key is part of speaking, not typing a command. It carries no musical
+content of its own — the words do — the same way clearing your throat before a cue is not a
+cue. The criterion's line is amended to name the exception explicitly rather than leave it to be
+argued about after a session has already been played.
+
+**What this does not decide.** Which key `voice:pushToTalk` is bound to, and whether the MiniLab
+should be made to send it (§4's spike raised, and did not resolve, whether a pad could stand in
+for `Space`). Both stay open for when Stage 4 is built.
