@@ -323,6 +323,18 @@ class EndingRig(Rig):
             self.beat += 1
 
 
+def test_a_section_is_written_on_the_notes_this_set_answers_to() -> None:
+    """The music keeps the band's own vocabulary; only what reaches Live is moved."""
+    from garagem.theory.percussion import CLOSED_HAT
+
+    rig = Rig(pitches={Instrument.DRUMS: {CLOSED_HAT: 60}})
+    rig.play()
+    drums = rig.daw.read_notes(ClipAddress(track=TRACKS[Instrument.DRUMS], scene=0))
+    pitches = {note.pitch for note in drums}
+    assert 60 in pitches
+    assert CLOSED_HAT not in pitches
+
+
 def test_without_endings_every_section_is_written_as_generated() -> None:
     """Phase 3's scheduler, byte for byte: the log says nothing about endings at all."""
     rig = Rig()
@@ -879,7 +891,7 @@ VERSE_STOP, VERSE_FILL, VERSE_MAIN = 5, 7, 1
 class BarRig:
     """LONG with variant scenes, a chorus candidate and a cue queue, a beat at a time."""
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs: object) -> None:
         self.daw = FakeDawAdapter(scenes=8)
         self.clock = BarClock(self.daw)
         self.clock.start()
@@ -895,6 +907,7 @@ class BarRig:
             cues=self.queue,
             candidates={"chorus": 2},
             variants=VARIANT_SCENES,
+            **kwargs,  # type: ignore[arg-type]
         )
         self.sounding_at_write: list[tuple[int, int | None]] = []
         original = self.daw.write_notes
@@ -1048,6 +1061,19 @@ def test_the_fill_a_pad_fires_is_the_run_down_the_toms_the_audition_chose() -> N
     rig = BarRig().play()
     fill = rig.daw.read_notes(at(Instrument.DRUMS, VERSE_FILL))
     assert set(TOMS) <= {note.pitch for note in fill}
+
+
+def test_the_toms_reach_the_notes_this_set_keeps_them_on() -> None:
+    """ADR-025: the Dry Session Kit keeps a ride where the band writes its high tom."""
+    from garagem.theory.percussion import TOMS
+
+    # Far from any drum note, so a moved tom cannot be mistaken for one left in place.
+    moved = {written: written + 30 for written in TOMS}
+    rig = BarRig(pitches={Instrument.DRUMS: moved}).play()
+    fill = rig.daw.read_notes(at(Instrument.DRUMS, VERSE_FILL))
+    pitches = {note.pitch for note in fill}
+    assert set(moved.values()) <= pitches
+    assert not set(TOMS) & pitches
 
 
 # ---------------------------------------------------------- boundary cues and knobs (Stage 5)

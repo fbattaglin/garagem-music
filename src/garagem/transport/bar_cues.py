@@ -99,6 +99,7 @@ class BarCues:
         log: EventLog,
         beats: Callable[[], float],
         scenes: Mapping[str, Mapping[int, int]],
+        pitches: Mapping[Instrument, Mapping[int, int]] | None = None,
     ) -> None:
         self._daw = daw
         self._tracks = dict(tracks)
@@ -106,6 +107,8 @@ class BarCues:
         self._beats = beats
         # Variant kind -> main scene -> the scene its variant is written into.
         self._scenes = {kind: dict(pairs) for kind, pairs in scenes.items()}
+        # What this Set's instruments answer to (`transport.render.Pitches`).
+        self._pitches = {instrument: dict(m) for instrument, m in (pitches or {}).items()}
         self._written: dict[int, tuple[SectionScore, int]] = {}
         self._variants: dict[tuple[int, str], SectionScore] = {}
         self._ready: dict[tuple[int, str], set[Instrument]] = {}
@@ -295,7 +298,9 @@ class BarCues:
         at = ClipAddress(track=self._tracks[instrument], scene=scene)
         try:
             ensure_clip(self._daw, at, score.section.total_beats())
-            self._daw.write_notes(at, render_part(variant.part(instrument)))
+            self._daw.write_notes(
+                at, render_part(variant.part(instrument), pitches=self._pitches.get(instrument))
+            )
             self._daw.set_clip_legato(at, True)
         except DawError as error:
             self._log.record(

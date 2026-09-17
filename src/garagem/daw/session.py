@@ -47,6 +47,8 @@ KINDS: Final[tuple[str, ...]] = (
     "loop",
 )
 # The ones the LOM can repair. Everything else is a human's job (ADR-013).
+MAX_MIDI_NOTE: Final = 127
+
 FIXABLE_KINDS: Final[frozenset[str]] = frozenset(
     {"tempo", "quantization", "track_name", "armed", "loop"}
 )
@@ -63,6 +65,11 @@ class TrackSpec:
     # `None` means the Set may have it either way. The band's tracks declare `false`: an
     # armed MIDI track plays whatever the MiniLab sends, cue pads included (ADR-022).
     armed: bool | None = None
+    # Which note this Set's instrument answers to, for a note the band writes. A sampled
+    # kit lays its pieces out where its maker put them, and that is a property of the Set
+    # rather than of the music: `theory/percussion.py` stays the band's own vocabulary, and
+    # this table says where this kit keeps it. Empty means the two already agree.
+    pitches: tuple[tuple[int, int], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -145,6 +152,28 @@ def load_session(path: Path) -> SessionSpec:
     )
 
 
+def _pitches(path: Path, entry: dict[str, Any]) -> tuple[tuple[int, int], ...]:
+    """`pitches = { 50 = 47 }`: the band writes 50, this Set's instrument is sent 47."""
+    raw = entry.get("pitches", {})
+    if not isinstance(raw, dict):
+        raise SessionSpecError(f"{path}: track {entry.get('index')}: pitches must be a table")
+    pairs: list[tuple[int, int]] = []
+    for key, value in raw.items():
+        try:
+            written, played = int(key), int(value)
+        except (TypeError, ValueError) as exc:
+            raise SessionSpecError(
+                f"{path}: track {entry.get('index')}: pitches {key!r} = {value!r} is not two notes"
+            ) from exc
+        if not (0 <= written <= MAX_MIDI_NOTE and 0 <= played <= MAX_MIDI_NOTE):
+            raise SessionSpecError(
+                f"{path}: track {entry.get('index')}: pitches {written} = {played} is outside "
+                f"0..{MAX_MIDI_NOTE}"
+            )
+        pairs.append((written, played))
+    return tuple(pairs)
+
+
 def _tracks(path: Path, entries: Sequence[dict[str, Any]]) -> tuple[TrackSpec, ...]:
     if not entries:
         raise SessionSpecError(f"{path}: declares no [[track]]")
@@ -160,6 +189,7 @@ def _tracks(path: Path, entries: Sequence[dict[str, Any]]) -> tuple[TrackSpec, .
             role=str(entry.get("role", "")),
             instrument=str(entry.get("instrument", "")),
             armed=_armed(path, entry),
+            pitches=_pitches(path, entry),
         )
         for entry in entries
     )

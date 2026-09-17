@@ -98,3 +98,33 @@ def test_every_rendered_note_is_a_legal_midi_note() -> None:
     for notes in rendered.values():
         assert all(1 <= note.velocity <= 127 for note in notes)
         assert all(note.duration_beats > 0.0 for note in notes)
+
+
+# -------------------------------------------------------- what this Set answers to (ADR-025)
+
+
+def test_a_pitch_this_set_keeps_elsewhere_is_sent_where_the_kit_keeps_it() -> None:
+    """`session.toml`'s `pitches`: the band writes its own vocabulary, the Set gets the kit's."""
+    assert render_note(a_note(pitch=50), pitches={50: 47}).pitch == 47
+    assert render_note(a_note(pitch=38), pitches={50: 47}).pitch == 38
+
+
+def test_a_pitch_moves_once_and_never_down_a_chain() -> None:
+    """The Dry Session Kit's toms move 50 to 47 and 47 to 45. A 50 must not land on 45."""
+    moved = {50: 47, 47: 45, 45: 43, 43: 41}
+    part = Part(
+        instrument=Instrument.DRUMS,
+        notes=tuple(
+            a_note(pitch=pitch, start_beats=index * 0.25)
+            for index, pitch in enumerate((50, 47, 45, 43))
+        ),
+    )
+    assert [note.pitch for note in render_part(part, pitches=moved)] == [47, 45, 43, 41]
+
+
+def test_only_the_instrument_it_is_declared_for_is_moved() -> None:
+    score = play_section(SECTION, seed=7)
+    rendered = render_score(score, pitches={Instrument.DRUMS: {50: 47}})
+    plain = render_score(score)
+    assert rendered[Instrument.BASS] == plain[Instrument.BASS]
+    assert all(note.pitch != 50 for note in rendered[Instrument.DRUMS])

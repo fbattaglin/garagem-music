@@ -10,9 +10,10 @@
 #
 # Ableton Live 12 Lite caps a Set at 8 tracks. Four is what Phase 1 needs.
 # `instrument` is informational: it tells the human which device to drop in. The check
-# is only that *some* device is present. Drift is the choice because it is simple and
-# CPU-light, and Phase 1 is about timing rather than timbre — not because anything
-# else is unavailable. Live's Core Library ships inside the app bundle.
+# is only that *some* device is present. Phase 1 played everything on Drift, because that
+# phase was about timing rather than timbre (ADR-013); ADR-025 gave the band its own
+# instruments, all of them Core Library presets built from Drum Rack and Simpler, which
+# every edition of Live can load.
 #
 # `armed = false` on every band track (ADR-022). An armed MIDI track plays whatever the
 # MiniLab sends, so a cue pad pressed during a jam would sound a note inside the band.
@@ -35,28 +36,33 @@ loop = false
 index = 0
 name = "DRUMS"
 role = "drums"
-instrument = "Drift"
+instrument = "Dry Session Kit"
 armed = false
+# Where this kit keeps the toms. The band writes the General MIDI notes in
+# `theory/percussion.py`; the Dry Session Kit lays its four toms one piece lower and keeps a
+# ride where the band writes its high tom, so the run down the toms would start on the ride.
+# Read off the kit's own pads, not guessed. An empty table means the two already agree.
+pitches = { 50 = 47, 47 = 45, 45 = 43, 43 = 41 }
 
 [[track]]
 index = 1
 name = "BASS"
 role = "bass"
-instrument = "Drift"
+instrument = "Electric Bass Raw"
 armed = false
 
 [[track]]
 index = 2
 name = "GTR"
 role = "guitar"
-instrument = "Drift"
+instrument = "Guitar Electric Muted"
 armed = false
 
 [[track]]
 index = 3
 name = "KEYS"
 role = "keys"
-instrument = "Drift"
+instrument = "Grand Piano"
 armed = false
 
 # Two scenes minimum: ADR-001 writes into the one that is not playing, so with a single

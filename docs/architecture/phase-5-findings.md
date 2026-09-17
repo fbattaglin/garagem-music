@@ -520,3 +520,30 @@ Found in the conducted run of songs 2 and 3, fixed on 2026-09-16.
   | 3 | 35 | 0 | 10 of 17 |
 
   The share of sections from takes is unchanged, and nothing that plays changed.
+
+## 10. The band's own instruments
+
+Loaded by Fabiano on 2026-09-17, in `garagem-band.als`. ADR-025 pulled this forward from
+Phase 6. Every preset is Core Library, built from Drum Rack and Simpler, which every edition
+of Live can load — this machine runs Live 12 Lite.
+
+| Track | Was | Is |
+|---|---|---|
+| DRUMS | Drift | Dry Session Kit |
+| BASS | Drift | Electric Bass Raw |
+| GTR | Drift | Guitar Electric Muted |
+| KEYS | Drift | Grand Piano |
+
+**The kit keeps its toms a piece lower than the band writes them.** Read off the kit's own
+pads, not guessed: kick 36, snare 38 and the three hats at 42, 44 and 46 agree with
+`theory/percussion.py`, and 49 is a crash. But the kit's toms sit at 41, 43, 45 and 47, and
+50 — where the band writes its high tom — is the ride. The run down the toms the blind
+audition chose (`phase-4-findings.md` §10) would have started on the ride.
+
+**So the Set says where this kit keeps them.** `session.toml`'s new `pitches` table maps what
+the band writes to what the instrument is sent, per track, and `transport/render.py` applies it
+on the way out. The music keeps its own vocabulary: nothing above the renderer knows, and no
+golden file moves.
+
+**Checked:** `bootstrap_set.py` says the Set matches, and `uv run pytest -m live` passes 27 of
+27 against it, audio included.

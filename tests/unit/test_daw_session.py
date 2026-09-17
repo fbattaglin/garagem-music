@@ -407,3 +407,26 @@ def test_the_report_says_who_fixes_each_line_and_how() -> None:
     assert "fix: [tempo]" in report
     assert "HUMAN: [no_instrument]" in report
     assert "Instruments -> Drift" in report
+
+
+def test_a_track_says_which_notes_its_instrument_answers_to(tmp_path: Path) -> None:
+    """ADR-025: a sampled kit's layout is a property of the Set, not of the music."""
+    body = SPEC_TOML.replace(
+        'name = "DRUMS"\ninstrument = "Drift"',
+        'name = "DRUMS"\ninstrument = "Dry Session Kit"\npitches = { 50 = 47, 47 = 45 }',
+    )
+    spec = load_session(a_spec(tmp_path, body))
+    assert spec.tracks[0].pitches == ((50, 47), (47, 45))
+    assert spec.tracks[1].pitches == ()
+
+
+def test_a_pitch_outside_midi_is_refused(tmp_path: Path) -> None:
+    body = SPEC_TOML.replace('name = "DRUMS"', 'name = "DRUMS"\npitches = { 50 = 200 }')
+    with pytest.raises(SessionSpecError, match=r"0\.\.127"):
+        load_session(a_spec(tmp_path, body))
+
+
+def test_the_shipped_set_declares_the_kits_toms() -> None:
+    """The Dry Session Kit keeps a ride where the band writes its high tom."""
+    drums = load_session(SHIPPED).tracks[0]
+    assert dict(drums.pitches) == {50: 47, 47: 45, 45: 43, 43: 41}

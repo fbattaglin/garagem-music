@@ -385,6 +385,15 @@ def tracks_of(spec: SessionSpec) -> dict[Instrument, int]:
     }
 
 
+def pitches_of(spec: SessionSpec) -> dict[Instrument, dict[int, int]]:
+    """What each instrument's Live device answers to, from the Set spec (ADR-013)."""
+    return {
+        ROLE_TO_INSTRUMENT[track.role]: dict(track.pitches)
+        for track in spec.tracks
+        if track.role in ROLE_TO_INSTRUMENT and track.pitches
+    }
+
+
 def brief_of(spec: SessionSpec, seconds: float, feel: Feel, key: int, scale: str) -> SongBrief:
     """The song, from the Set's tempo and the flags. Tempo is the Set's, not a flag's.
 
@@ -672,6 +681,7 @@ def main() -> int:
             candidates=jumps,
             plan=shared,
             variants=variants,
+            pitches=pitches_of(spec),
         )
         scheduler.run(form, endings=endings)
         if not scheduler.finished:
