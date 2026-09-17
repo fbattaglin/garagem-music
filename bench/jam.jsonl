@@ -5003,3 +5003,28 @@
 {"at_beats":485.0,"kind":"variant_written","detail":{"section":17,"variant":"stop","instrument":"GTR","scene":4}}
 {"at_beats":489.0,"kind":"variant_written","detail":{"section":17,"variant":"stop","instrument":"KEY","scene":4}}
 {"at_beats":504.0,"kind":"session_ended","detail":{"finished":true,"bpm":132.0,"spent_usd":"0.000","estimated_usd":"0","target_usd":"0.3","cap_usd":"1.0","killed":false}}
+{"at_beats":0.0,"kind":"fallback","detail":{"section":0,"seed":7,"reason":"not_in_buffer"}}
+{"at_beats":2.0,"kind":"section_written","detail":{"section":0,"scene":0,"seed":7,"briefing":"intro 4 bars dyn=1 tension=0.20","notes":137,"ms":1197.3,"ending":"fill"}}
+{"at_beats":2.0,"kind":"section_measured","detail":{"section":0,"seed":7,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.906,"kit_collision":1.0}}
+{"at_beats":2.0,"kind":"scene_fired","detail":{"scene":0,"section":0,"name":"intro","slack_bars":0,"first":true}}
+{"at_beats":4.0,"kind":"fallback","detail":{"section":1,"seed":8,"reason":"not_in_buffer"}}
+{"at_beats":6.0,"kind":"section_written","detail":{"section":1,"scene":1,"seed":8,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":305,"ms":1158.0,"ending":"build"}}
+{"at_beats":6.0,"kind":"section_measured","detail":{"section":1,"seed":8,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.99,"kit_collision":0.905}}
+{"at_beats":16.0,"kind":"scene_fired","detail":{"scene":1,"section":1,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":24.0,"kind":"fallback","detail":{"section":2,"seed":9,"reason":"not_in_buffer"}}
+{"at_beats":28.0,"kind":"section_written","detail":{"section":2,"scene":0,"seed":9,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":517,"ms":1947.9,"ending":"fill"}}
+{"at_beats":28.0,"kind":"section_measured","detail":{"section":2,"seed":9,"harmonic_conformance":0.983,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.938,"kit_collision":0.96}}
+{"at_beats":48.0,"kind":"scene_fired","detail":{"scene":0,"section":2,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":56.0,"kind":"fallback","detail":{"section":3,"seed":10,"reason":"not_in_buffer"}}
+{"at_beats":58.0,"kind":"section_written","detail":{"section":3,"scene":1,"seed":10,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":292,"ms":1196.7,"ending":"stop"}}
+{"at_beats":58.0,"kind":"section_measured","detail":{"section":3,"seed":10,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.933,"kit_collision":1.0}}
+{"at_beats":80.0,"kind":"scene_fired","detail":{"scene":1,"section":3,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":88.0,"kind":"fallback","detail":{"section":4,"seed":11,"reason":"not_in_buffer"}}
+{"at_beats":90.0,"kind":"section_written","detail":{"section":4,"scene":0,"seed":11,"briefing":"chorus 8 bars dyn=5 tension=0.80","notes":536,"ms":1187.7,"ending":"fill"}}
+{"at_beats":90.0,"kind":"section_measured","detail":{"section":4,"seed":11,"harmonic_conformance":0.983,"register_spread":1.0,"bass_kick_alignment":0.667,"density_against_tension":0.958,"kit_collision":0.94}}
+{"at_beats":112.0,"kind":"scene_fired","detail":{"scene":0,"section":4,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":120.0,"kind":"fallback","detail":{"section":5,"seed":12,"reason":"not_in_buffer"}}
+{"at_beats":124.0,"kind":"section_written","detail":{"section":5,"scene":1,"seed":12,"briefing":"outro 4 bars dyn=2 tension=0.15","notes":126,"ms":1907.6,"ending":"final"}}
+{"at_beats":124.0,"kind":"section_measured","detail":{"section":5,"seed":12,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.812,"kit_collision":1.0}}
+{"at_beats":144.0,"kind":"scene_fired","detail":{"scene":1,"section":5,"name":"outro","slack_bars":1,"first":false}}
+{"at_beats":168.0,"kind":"session_ended","detail":{"finished":true,"bpm":132.0}}

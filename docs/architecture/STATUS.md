@@ -75,7 +75,18 @@ and [ADR-025](ADR-025-the-model-composes-offline.md):
     notation.
 - **Stage 4, the voice spike, is parked** (ADR-025). `scripts/spike_voice.py` stays.
 - **The review, 2026-09-16:** ADR-025.
-- Suite at **2211 passed, 27 skipped**; `ruff` and `mypy` clean.
+- **The band's own instruments, 2026-09-17** (§10). `garagem-band.als` carries a Dry Session Kit,
+  Electric Bass Raw, Guitar Electric Muted and a Grand Piano, all Core Library presets built from
+  Drum Rack and Simpler. `session.toml` says where the kit keeps its toms, since it holds a ride
+  where the band writes its high tom.
+  - Song 1 played from it, conducted: 226 s, 0 beats lost, 10 of 11 bar cues one bar after the
+    pad, two KEEPs struck and applied.
+  - Fabiano: *"A banda já soua mais como rock, o que era o obejtivo desde o inicio. E o uso dos
+    instrumentos corretos faz a difereça."*
+  - **The last chord now has a bar to ring in**, after he heard the ending as abrupt. One golden
+    file moved, and he heard the result: *"O final ficou muito melhor."*
+  - **Open, not acted on:** how the fill arrives. It is heard as fun but bolted on.
+- Suite at **2221 passed, 27 skipped**; `ruff` and `mypy` clean.
 
 Next, in order:
 

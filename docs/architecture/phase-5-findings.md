@@ -599,5 +599,6 @@ exactly that boundary, and `jam.py` stopped the transport on the beat the chord 
   guitar and keys ringing twice as long. The drums are untouched, and no other ending, section
   or feel changed.
 
-Suite: **2221 passed, 27 skipped**; `ruff` and `mypy` clean. Unheard: it goes to Fabiano's next
-session.
+Suite: **2221 passed, 27 skipped**; `ruff` and `mypy` clean.
+
+**Heard the same day:** *"O final ficou muito melhor."* — the ending is much better.

@@ -44,14 +44,16 @@ needed.
 - **Measures itself.** Every decision, fallback, cue and write goes into a JSONL event log
   with its beat and its seed. Any performance can be audited and replayed.
 
-**Measured, not assumed** (`docs/architecture/phase-4-findings.md`):
+**Measured, not assumed** (`docs/architecture/phase-4-findings.md`,
+`phase-5-findings.md`):
 
 | | |
 |---|---|
 | An 8-minute conducted performance | 489 s continuous, 0 beats lost, 34 of 34 cues on the next bar, $0.24 |
 | Chaos test: Wi-Fi lost twice mid-song | 0 beats lost, and nothing audible to the listener |
+| A baked setlist | 3 songs written for $0.06, played from disk with no network or key |
 | Model output, recorded regression set | 29 of 29 sections conformant, none needing repair |
-| Test suite | 2,093 tests, network-free by construction, `mypy --strict` clean |
+| Test suite | 2,221 tests, network-free by construction, `mypy --strict` clean |
 
 ## How it works
 
@@ -145,7 +147,10 @@ uv run python scripts/install_abletonosc.py    # installs the Remote Script
 1. In Live's preferences, choose **AbletonOSC** as a Control Surface, then quit and reopen
    Live.
 2. Open a Set with four MIDI tracks and an instrument on each, laid out as
-   [`session.toml`](session.toml) describes.
+   [`session.toml`](session.toml) describes. It names the four Core Library presets the band
+   plays — a Drum Rack kit, a sampled bass, a muted electric guitar and a grand piano — and,
+   per track, which notes that instrument answers to, since a sampled kit lays its pieces out
+   where its maker put them.
 3. Validate the Set, and let the bootstrap repair what can be repaired safely: tempo, launch
    quantisation, track names and arm state. It never creates a track.
 
