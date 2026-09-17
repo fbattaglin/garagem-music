@@ -628,3 +628,24 @@ not one session: an ordinary jam was played between them, so only the last count
 session will be three runs with nothing between them.
 
 Suite: **2235 passed, 27 skipped**; `ruff` and `mypy` clean.
+
+## 12. What the rehearsal predicts for the Wi-Fi-off session
+
+Run on 2026-09-17, offline and free: `rehearse_session.py --setlist setlists/first.json --song N
+--conduct all`, replaying the last three conducted runs in `bench/jam.jsonl` — 368 controls,
+which is the heaviest conducting this project has recorded.
+
+| Song | From the setlist's takes |
+|---|---|
+| 1, Seven | 6 of 16 |
+| 2, Swing low | 9 of 16 |
+| 3, Half light | 10 of 16 |
+| **Together** | **25 of 48** |
+
+- **Pads only, song 1: 9 of 16.** Unconducted it is 14 of 16, and the two that are never asked
+  are the 4-bar intro and outro (§4).
+- **The knobs are what costs.** A knob step rewrites the next section in the same tick, before
+  any take can reach the buffer (§7), and that is Stage 5's approved live timing.
+- **So the line the session is held to is set below the prediction**, because how much is
+  conducted decides it, and the session is played to be enjoyed rather than to pass.
+- **The floor alone scores 0 here**, which is what the criterion exists to separate.

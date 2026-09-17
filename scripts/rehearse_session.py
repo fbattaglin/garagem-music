@@ -73,7 +73,15 @@ from garagem.llm import (
     load_catalog,
     prices_of,
 )
-from garagem.obs import Event, EventLog, load_events, model_share, performance_checks, render_checks
+from garagem.obs import (
+    Event,
+    EventLog,
+    load_events,
+    model_share,
+    performance_checks,
+    render_checks,
+    setlist_checks,
+)
 from garagem.setlist import Setlist, SetlistError, Song, answers, briefings, load_setlist
 from garagem.transport import BarClock, CueQueue, FormPlan, Scheduler, ScoreBuffer
 
@@ -235,6 +243,16 @@ def rehearse(
     if baked is not None:
         model = BakedProvider(answers(baked))
         route = only(briefings(baked))
+        # The same row `jam.py` writes when it loads a song, so the rehearsal's log reads
+        # through Phase 5's report exactly as a real run's does.
+        log.record(
+            "setlist_loaded",
+            0.0,
+            setlist="rehearsal",
+            title=baked.title,
+            takes=len(baked.playable()),
+            serving="baked",
+        )
     else:
         model = PerfectModel(
             plan,
@@ -359,7 +377,17 @@ def main() -> int:
         f"rehearsed {args.seconds:.0f}s, {source}, conducted: {args.conduct} "
         f"({arrived} controls from {len(runs)} runs)\n"
     )
-    sys.stderr.write(render_checks(performance_checks(log.events), model_share(log.events)))
+    if baked is not None:
+        sys.stderr.write(
+            render_checks(
+                setlist_checks(log.events, minimum_seconds=args.seconds),
+                model_share(log.events),
+                phase="Phase 5",
+                wrote="from the setlist:",
+            )
+        )
+    else:
+        sys.stderr.write(render_checks(performance_checks(log.events), model_share(log.events)))
     sys.stderr.write(f"  {calls} calls to the model\n")
     return 0
 
