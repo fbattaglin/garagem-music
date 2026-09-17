@@ -94,6 +94,7 @@ from garagem.engines import (
     jump_plan,
     play_section,
     shifted,
+    tail_bars,
     tension_offset,
 )
 from garagem.engines.arranger import BRIDGE, CHORUS, OUTRO
@@ -456,6 +457,11 @@ class Scheduler:
         if bar < boundary:
             return
         if self._index + 1 >= len(self._sections):
+            if bar < boundary + self._tail():
+                # The last chord is still ringing into the tail its clip carries. Stopping
+                # the transport on the beat it ends is what Fabiano heard as an abrupt end
+                # (`phase-5-findings.md` §10).
+                return
             # The last section has played out. Ending here rather than at its fire is
             # what makes `run` return after the music, not before it.
             self.finished = True
@@ -875,7 +881,7 @@ class Scheduler:
                 f"refusing to write section {index} into scene {scene}, which a bar cue is "
                 "sounding from (invariant 6)"
             )
-        ms = self._write_tracks(score, scene)
+        ms = self._write_tracks(score, scene, tail_bars(ending) if ending else 0)
         self._log.record(
             "section_written",
             self._beats(),
@@ -920,13 +926,16 @@ class Scheduler:
             ms=ms,
         )
 
-    def _write_tracks(self, score: SectionScore, scene: int) -> float:
+    def _write_tracks(self, score: SectionScore, scene: int, tail: int = 0) -> float:
         """Every track of a score into one scene; the cost in milliseconds.
 
         The cue queue is read between tracks: a section write is up to two seconds, and a
         jump that waited for all of it would land a bar late (`phase-4-findings.md` §8).
+
+        `tail` is bars of silence the clip carries past its section, so the song's last chord
+        has somewhere to ring (`engines.tail_bars`). Only the final section ever has one.
         """
-        length = score.section.total_beats()
+        length = score.section.total_beats() + tail * BEATS_PER_BAR
         # Wall time, and only here. `at_beats` is the event's musical position and stays
         # that way (P6); `ms` is how much of a bar the write actually cost, which is the
         # one number `write_lead` has to be sized against and cannot be read in beats.
@@ -953,6 +962,12 @@ class Scheduler:
                 for name, value in coherence.model_dump().items()
             },
         )
+
+    def _tail(self) -> int:
+        """Bars the section playing rings into, past its own last bar. Only a final one does."""
+        if self._endings is None or not (0 <= self._index < len(self._endings)):
+            return 0
+        return tail_bars(self._endings[self._index])
 
     def _beats(self) -> float:
         beat = self._clock.beat

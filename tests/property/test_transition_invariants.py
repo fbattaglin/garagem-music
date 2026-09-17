@@ -15,8 +15,8 @@ from hypothesis import given
 from hypothesis import strategies as st
 from strategies import sections, seeds
 
-from garagem.domain import Instrument, Section
-from garagem.engines import Ending, compose, play_section
+from garagem.domain import BEATS_PER_BAR, Instrument, Section
+from garagem.engines import Ending, compose, play_section, tail_bars
 from garagem.theory import validate
 
 endings = st.sampled_from(Ending)
@@ -77,9 +77,15 @@ def test_no_ended_note_overlaps_the_next_attack_of_its_own_pitch(
 def test_an_ending_stays_inside_the_section(
     section: Section, seed: int, ending: Ending, into: Section | None
 ) -> None:
-    """The next section's clip is a different clip. Nothing rung here may reach into it."""
+    """The next section's clip is a different clip. Nothing rung here may reach into it.
+
+    The one exception is the song's last chord, which has no next section and rings into the
+    tail its clip carries (`engines.tail_bars`, `phase-5-findings.md` §10).
+    """
     score = play_section(section, seed)
     composed = compose(score, ending, into=into)
+    room = tail_bars(ending) * BEATS_PER_BAR
     for before, after in zip(score.parts, composed.parts, strict=True):
         assert all(note.start_beats >= 0.0 for note in after.notes)
-        assert after.last_beat() <= max(before.last_beat(), score.total_beats())
+        assert all(note.start_beats < score.total_beats() for note in after.notes)
+        assert after.last_beat() <= max(before.last_beat(), score.total_beats()) + room

@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from garagem.domain import (
+    BEATS_PER_BAR,
     SIXTEENTHS_PER_BAR,
     Feel,
     Instrument,
@@ -27,6 +28,7 @@ from garagem.engines import SongBrief, arrange, play_section, with_climax
 from garagem.engines.arranger import BRIDGE, CHORUS, INTRO, OUTRO, VERSE
 from garagem.engines.groove import fill_for
 from garagem.engines.transitions import (
+    FINAL_TAIL_BARS,
     LAST_BEAT_SLOT,
     ROLL,
     STOP_RING_BEATS,
@@ -305,13 +307,20 @@ def final_of(section: Section) -> SectionScore:
     return compose(play_section(section, SEED), Ending.FINAL)
 
 
-def test_the_last_chord_rings_to_the_end_of_the_song() -> None:
+def test_the_last_chord_rings_past_the_end_of_the_song() -> None:
+    """A whole bar past it: stopping the transport on the beat the chord ends cuts it.
+
+    Fabiano, 2026-09-17, on the ending as it was: *"O fim é meio brusco"*
+    (`phase-5-findings.md` §10). The clip carries the same bar of silence, so the ring has
+    somewhere to go.
+    """
     section = a_section(OUTRO, bars=4, chart=parse_chart("| Em | C | Em | Em |"))
     ended = final_of(section)
-    end = section.total_beats()
+    end = section.total_beats() + FINAL_TAIL_BARS * BEATS_PER_BAR
     for instrument in PITCHED:
         notes = in_bar(section, ended.part(instrument), 3)
         assert notes
+        assert all(note.start_beats < section.total_beats() for note in notes)
         assert all(end - 0.05 < note.start_beats + note.duration_beats <= end for note in notes)
 
 

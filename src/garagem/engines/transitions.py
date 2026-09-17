@@ -98,6 +98,13 @@ SWELL_TO: Final = 1.15
 # before the pickup.
 STOP_RING_BEATS: Final = 1.5
 
+# How long the song's last chord goes on ringing after its section is over. Without it the
+# chord rings to the section's last beat and the transport stops on that beat, so it is cut
+# instead of decaying: Fabiano heard that as *"o fim é meio brusco"* on 2026-09-17
+# (`phase-5-findings.md` §10). One bar is what a band does with the last chord of a song —
+# nobody mutes it on the beat.
+FINAL_TAIL_BARS: Final = 1
+
 # The last beat of a bar, in sixteenths. Where a pickup lives and what a build lets go of.
 LAST_BEAT_SLOT: Final = 12
 
@@ -129,6 +136,15 @@ def endings_for(form: Sequence[Section]) -> tuple[Ending, ...]:
         else:
             endings.append(ENDINGS.get((section.name, form[index + 1].name), Ending.FILL))
     return tuple(endings)
+
+
+def tail_bars(ending: Ending) -> int:
+    """Bars of silence this ending rings into, past its own section's last bar.
+
+    The clip has to be that much longer than the section or the ring has nowhere to go, and
+    the scheduler has to wait that much longer before the song is over. Both read it here.
+    """
+    return FINAL_TAIL_BARS if ending is Ending.FINAL else 0
 
 
 def compose(score: SectionScore, ending: Ending, *, into: Section | None = None) -> SectionScore:
@@ -242,8 +258,9 @@ def _hit(
     """The downbeat of the last bar, and nothing after it but a pickup if there is one.
 
     `final` is the song's last chord: every pitched note on the downbeat rings to the end
-    of the section. A stop rings for `STOP_RING_BEATS` and leaves a silence, and picks up
-    only when there is a section to pick up into.
+    of the section and on through `FINAL_TAIL_BARS` past it. A stop rings for
+    `STOP_RING_BEATS` and leaves a silence, and picks up only when there is a section to pick
+    up into.
     """
     last = section.bars - 1
     downbeat_slot = last * SIXTEENTHS_PER_BAR
@@ -266,7 +283,7 @@ def _hit(
             )
         return before + hit + list(humanise(added, rng, feel=section.feel))
 
-    end = section.total_beats()
+    end = section.total_beats() + (FINAL_TAIL_BARS * BEATS_PER_BAR if final else 0.0)
     ringing = [
         note.model_copy(
             update={

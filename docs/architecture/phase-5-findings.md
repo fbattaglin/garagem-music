@@ -577,10 +577,27 @@ way. The ending is a bit abrupt.
 **Nothing approved before was heard as broken by the new instruments.** The toms fill, the snare
 roll into a chorus, the palm-muted guitar and the final chord all survived the change of sound.
 
-**Two things are open, both musical, neither acted on here.**
-- **How the fill arrives.** It is heard as fun but bolted on. Where a fill is announced, and
-  whether it should grow out of the bar before it, is arrangement work.
-- **The ending is abrupt.** The mechanism is known and mechanical: `Ending.FINAL` rings the last
-  chord from the downbeat of the last bar to the end of the section, and the scheduler declares
-  the song finished at exactly that boundary, so `jam.py` stops the transport as the chord ends.
-  The chord gets one bar and is then cut rather than allowed to decay.
+**How the fill arrives is left open.** It is heard as fun but bolted on. Where a fill is
+announced, and whether it should grow out of the bar before it, is arrangement work for the
+songwriter phase.
+
+### The last chord is given a bar to ring in
+
+Asked which of the two it was, Fabiano said the chord is cut rather than the song arriving at
+its end too quickly. The mechanism was mechanical: `Ending.FINAL` rang the chord from the
+downbeat of the last bar to the end of the section, the scheduler declared the song finished at
+exactly that boundary, and `jam.py` stopped the transport on the beat the chord ended.
+
+- **`engines.tail_bars`** says how many bars an ending rings into past its own section. Only
+  `FINAL` has one, and it is one bar.
+- **The chord rings into it**, so it lasts eight beats instead of four.
+- **The clip carries the same bar**, so the ring has somewhere to go and the clip does not loop
+  back into the outro.
+- **The scheduler waits it out** before it is finished, so the transport stops after the chord
+  rather than on it.
+- **One golden file moved**, `verse-straight8-7-final.dsl`, and the diff is six notes of bass,
+  guitar and keys ringing twice as long. The drums are untouched, and no other ending, section
+  or feel changed.
+
+Suite: **2221 passed, 27 skipped**; `ruff` and `mypy` clean. Unheard: it goes to Fabiano's next
+session.

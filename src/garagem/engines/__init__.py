@@ -25,7 +25,14 @@ from garagem.engines.humanise import (
     humanise,
     separate,
 )
-from garagem.engines.transitions import ENDINGS, Ending, compose, endings_for
+from garagem.engines.transitions import (
+    ENDINGS,
+    FINAL_TAIL_BARS,
+    Ending,
+    compose,
+    endings_for,
+    tail_bars,
+)
 from garagem.engines.variants import FILL_CUE_TENSION, FillStyle, fill_bars, land_bars, stop_bars
 
 __all__ = [
@@ -34,6 +41,7 @@ __all__ = [
     "FEEL_AMOUNT",
     "FILLS",
     "FILL_CUE_TENSION",
+    "FINAL_TAIL_BARS",
     "GROOVES",
     "MAX_TIMING_BEATS",
     "MAX_VELOCITY",
@@ -64,6 +72,7 @@ __all__ = [
     "separate",
     "shifted",
     "stop_bars",
+    "tail_bars",
     "tension_offset",
     "with_climax",
 ]

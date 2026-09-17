@@ -16,7 +16,17 @@ from collections.abc import Callable, Iterable
 import pytest
 
 from garagem.daw import ClipAddress, DawTimeoutError, FakeDawAdapter, MidiNote
-from garagem.domain import Cue, CueKind, Feel, Instrument, Macro, MacroKind, Section, SectionScore
+from garagem.domain import (
+    BEATS_PER_BAR,
+    Cue,
+    CueKind,
+    Feel,
+    Instrument,
+    Macro,
+    MacroKind,
+    Section,
+    SectionScore,
+)
 from garagem.engines import Ending, coherence_of, compose, play_section
 from garagem.obs import Event, EventLog
 from garagem.theory import parse_chart
@@ -349,6 +359,30 @@ def test_every_written_section_names_the_ending_it_plays() -> None:
         event.detail["section"]: event.detail["ending"] for event in rig.of_kind("section_written")
     }
     assert written == {0: "fill", 1: "build", 2: "stop", 3: "final"}
+
+
+def test_the_last_clip_carries_a_bar_for_the_final_chord_to_ring_into() -> None:
+    """Fabiano, 2026-09-17: *"O fim é meio brusco"*. The chord was cut by the transport stop."""
+    from garagem.engines import FINAL_TAIL_BARS
+
+    rig = EndingRig()
+    rig.play_with_endings()
+    outro = FORM[-1]
+    at_outro = ClipAddress(track=TRACKS[Instrument.KEYS], scene=1)
+    expected = (outro.bars + FINAL_TAIL_BARS) * BEATS_PER_BAR
+    assert rig.daw.clip_length_beats(at_outro) == expected
+    chord = max(note.start_beats + note.duration_beats for note in rig.daw.read_notes(at_outro))
+    assert chord > outro.total_beats()
+
+
+def test_the_song_is_not_over_while_the_last_chord_is_still_ringing() -> None:
+    """The scheduler waits out the tail before `finished`, so the transport stops after it."""
+    from garagem.engines import FINAL_TAIL_BARS
+
+    rig = EndingRig()
+    rig.play_with_endings()
+    bars = sum(section.bars for section in FORM)
+    assert rig.beat >= (bars + FINAL_TAIL_BARS) * BEATS_PER_BAR
 
 
 def test_the_last_section_is_written_with_its_final_chord() -> None:
