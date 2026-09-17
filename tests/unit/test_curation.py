@@ -18,6 +18,7 @@ import pytest
 
 from garagem.agents import structural
 from garagem.domain import Feel
+from garagem.engines import shifted
 from garagem.llm import (
     BakedProvider,
     CircuitBreaker,
@@ -28,7 +29,15 @@ from garagem.llm import (
     prices_of,
 )
 from garagem.obs import EventLog, load_events, marks, per_author
-from garagem.setlist import Setlist, SetlistSpec, SongSpec, TakeStatus, load_setlist, save_setlist
+from garagem.setlist import (
+    Setlist,
+    SetlistSpec,
+    SongSpec,
+    TakeStatus,
+    load_setlist,
+    save_setlist,
+    served,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG = load_catalog(ROOT / "config" / "models.toml")
@@ -75,11 +84,18 @@ SETLIST = a_setlist()
 SONG = SETLIST.songs[0]
 
 
-def a_run(log: EventLog, strikes: list[tuple[str, int, str]], *, setlist: str | None = "t") -> None:
+def a_run(
+    log: EventLog,
+    strikes: list[tuple[str, int, str]],
+    *,
+    setlist: str | None = "t",
+    knob: tuple[int, float] | None = None,
+) -> None:
     """A performance as the log sees it: the producer's takes, the scheduler's writes, marks.
 
     `strikes` is (mark, section, author). A model section's take is the song's take for the
-    first section with that briefing, as a setlist run serves it.
+    first section with that briefing, as a setlist run serves it. `knob` serves every take under
+    its briefing moved by that offset, echo included, as a knob-conducted run logs it.
     """
     if setlist is not None:
         log.record(
@@ -96,7 +112,8 @@ def a_run(log: EventLog, strikes: list[tuple[str, int, str]], *, setlist: str | 
     for index, section in enumerate(SONG.form):
         take = by_briefing.get(section)
         if take is not None:
-            log.record("section_parsed", 0.0, section=index, seed=7 + index, dsl=take.dsl)
+            dsl = take.dsl if knob is None else served(take, shifted(take.briefing, *knob))
+            log.record("section_parsed", 0.0, section=index, seed=7 + index, dsl=dsl)
             log.record(
                 "section_generated", float(index), section=index, seed=7 + index, source="buffer"
             )
@@ -203,6 +220,17 @@ def test_a_keep_pins_and_a_veto_retires() -> None:
     assert statuses[0] is TakeStatus.KEPT
     assert statuses[1] is TakeStatus.VETOED
     assert tally["keep"] == tally["veto"] == 1
+
+
+def test_a_mark_on_a_take_a_knob_moved_still_curates_it() -> None:
+    """The echo is rewritten for the moved briefing; the join is on what the model wrote."""
+    log = EventLog(None)
+    a_run(log, [("veto", model_section(), "model")], knob=(1, 0.1))
+    (found,) = marks(log.events)
+    assert found.dsl != SONG.takes[0].dsl
+    curated, tally = curation.curate(SETLIST, marks(log.events))
+    assert curated.songs[0].takes[0].status is TakeStatus.VETOED
+    assert tally["veto"] == 1
 
 
 def test_the_last_word_on_a_take_wins() -> None:

@@ -16,7 +16,7 @@ from garagem.dsl.lines import (
 )
 from garagem.dsl.realise import realise
 from garagem.dsl.schema import SYSTEM, SYSTEM_ARRANGED, TOOL, brief, system_for
-from garagem.dsl.serialize import serialize_score, serialize_section
+from garagem.dsl.serialize import sec_line, serialize_score, serialize_section
 from garagem.dsl.stream import ORDER, ParsedSection, SectionStream, parse_section, parse_text
 
 __all__ = [
@@ -46,6 +46,7 @@ __all__ = [
     "parse_section",
     "parse_text",
     "realise",
+    "sec_line",
     "serialize_score",
     "serialize_section",
     "system_for",

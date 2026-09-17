@@ -72,7 +72,7 @@ ACCENT_MARGIN: Final = 6
 def serialize_section(score: SectionScore) -> str:
     """The DSL text for a whole section, in the mandated emission order."""
     section = score.section
-    lines = [_sec_line(section), f"CHD {render_chart(section.chart)}"]
+    lines = [sec_line(section), f"CHD {render_chart(section.chart)}"]
     for instrument in Instrument:
         part = _part_or_silence(score, instrument)
         lines.extend(_part_lines(part, section))
@@ -83,7 +83,7 @@ def serialize_score(score: SectionScore) -> str:
     """Every note, exactly, for the golden files. Not a wire format."""
     lines = [
         f"# seed={score.seed} scale={score.section.scale}",
-        _sec_line(score.section),
+        sec_line(score.section),
         f"CHD {render_chart(score.section.chart)}",
     ]
     for instrument in Instrument:
@@ -100,7 +100,8 @@ def _note_line(note: Note) -> str:
     )
 
 
-def _sec_line(section: Section) -> str:
+def sec_line(section: Section) -> str:
+    """The `SEC` line for a briefing, field for field what `brief` sends and `check_sec` reads."""
     key = render_key(section.key, section.scale)
     return (
         f"SEC {section.name} bars={section.bars} key={key} "

@@ -22,6 +22,7 @@ from garagem.setlist import (
     answers,
     arranged,
     askable,
+    body,
     briefings,
     digest,
     drifted,
@@ -29,6 +30,7 @@ from garagem.setlist import (
     load_spec,
     played,
     save_setlist,
+    served,
 )
 from garagem.theory import repair
 
@@ -220,7 +222,24 @@ def test_a_knob_moved_briefing_is_answered_by_the_take_it_was_moved_from() -> No
     moved = shifted(take.briefing, 1, 0.1)
     assert moved != take.briefing
     assert moved in briefings(song)
-    assert answers(song)[brief(moved)] == take.dsl
+    assert body(answers(song)[brief(moved)]) == body(take.dsl)
+
+
+def test_a_take_served_under_a_moved_briefing_echoes_it_and_logs_no_mismatch() -> None:
+    """A knob-served take is working as designed, so the log must not count it a violation."""
+    from garagem.engines import shifted
+
+    song = a_song()
+    take = song.takes[0]
+    moved = shifted(take.briefing, 1, 0.1)
+
+    def mismatches(dsl: str) -> int:
+        violations = parse_text(dsl, moved).violations
+        return sum(1 for v in violations if v.rule == "section_mismatch")
+
+    assert mismatches(take.dsl) > 0
+    assert mismatches(answers(song)[brief(moved)]) == 0
+    assert served(take, take.briefing) == take.dsl
 
 
 def test_an_exact_briefing_always_gets_its_own_take() -> None:
@@ -239,8 +258,8 @@ def test_a_vetoed_take_answers_no_knob_either() -> None:
     vetoed = song.takes[0].model_copy(update={"status": TakeStatus.VETOED})
     song = a_song(takes=(vetoed, *song.takes[1:]))
     assert all(
-        answers(song).get(brief(shifted(vetoed.briefing, dyn, 0.0))) != vetoed.dsl
-        for dyn in (-2, -1, 0, 1, 2)
+        answers(song).get(brief(moved)) != served(vetoed, moved)
+        for moved in (shifted(vetoed.briefing, dyn, 0.0) for dyn in (-2, -1, 0, 1, 2))
     )
 
 

@@ -14,6 +14,8 @@ the setlist as that take's status.
 - **A mark on the floor's music is not curation.** It is counted, and it changes nothing in the
   file.
 - **A mark on a take the setlist no longer holds** (re-baked since) is reported and skipped.
+- **A take is matched on its body, not its `SEC` echo**, which a knob rewrites
+  (`setlist.served`).
 
 Applying the same log twice gives the same file. What it prints counts marks by kind, never
 which sections the model wrote: the next session is played blind too.
@@ -27,7 +29,14 @@ from collections import Counter
 from pathlib import Path
 
 from garagem.obs import Mark, load_events, marks
-from garagem.setlist import Setlist, SetlistError, TakeStatus, load_setlist, save_setlist
+from garagem.setlist import (
+    Setlist,
+    SetlistError,
+    TakeStatus,
+    body,
+    load_setlist,
+    save_setlist,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOG = ROOT / "bench" / "jam.jsonl"
@@ -49,17 +58,17 @@ def curate(setlist: Setlist, found: list[Mark]) -> tuple[Setlist, Counter[str]]:
             tally[f"{mark.mark} on the floor"] += 1
             continue
         song = setlist.songs[mark.song - 1]
-        if not any(take.dsl == mark.dsl for take in song.takes):
+        if not any(body(take.dsl) == body(mark.dsl) for take in song.takes):
             tally[f"{mark.mark} on a take no longer here"] += 1
             continue
-        decided[(mark.song, mark.dsl)] = STATUS[mark.mark]
+        decided[(mark.song, body(mark.dsl))] = STATUS[mark.mark]
         tally[mark.mark] += 1
 
     songs = []
     for number, song in enumerate(setlist.songs, start=1):
         takes = tuple(
-            take.model_copy(update={"status": decided[(number, take.dsl)]})
-            if (number, take.dsl) in decided
+            take.model_copy(update={"status": decided[(number, body(take.dsl))]})
+            if (number, body(take.dsl)) in decided
             else take
             for take in song.takes
         )

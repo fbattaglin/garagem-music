@@ -13,6 +13,7 @@ from garagem.setlist.setlist import (
     answers,
     arranged,
     askable,
+    body,
     briefings,
     digest,
     drifted,
@@ -20,6 +21,7 @@ from garagem.setlist.setlist import (
     load_spec,
     played,
     save_setlist,
+    served,
 )
 
 __all__ = [
@@ -35,6 +37,7 @@ __all__ = [
     "answers",
     "arranged",
     "askable",
+    "body",
     "briefings",
     "digest",
     "drifted",
@@ -42,4 +45,5 @@ __all__ = [
     "load_spec",
     "played",
     "save_setlist",
+    "served",
 ]

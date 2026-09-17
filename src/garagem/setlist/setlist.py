@@ -46,7 +46,8 @@ from typing import Any, Final, Self
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from garagem.domain import Feel, Section, SectionScore
-from garagem.dsl import brief, parse_text, realise
+from garagem.dsl import brief, parse_text, realise, sec_line
+from garagem.dsl.lines import SEC
 from garagem.engines import (
     Ending,
     SongBrief,
@@ -282,14 +283,31 @@ def reachable(song: Song) -> dict[Section, Take]:
 
 
 def answers(song: Song) -> dict[str, str]:
-    """Briefing text, as today's prompt words it, to the DSL baked for it, knobs included.
+    """Briefing text, as today's prompt words it, to the DSL baked for it, knobs included."""
+    return {brief(section): served(take, section) for section, take in reachable(song).items()}
 
-    The take is served as written. Under a moved briefing its `SEC` echo disagrees on `dyn` or
-    `tension`, the parser counts that as `section_mismatch` and plays the briefing, which is
-    what ADR-011 has always done with an echo. The text stays the model's, so curation still
-    finds the take a mark fell on.
+
+def served(take: Take, section: Section) -> str:
+    """The take as it answers `section`: the model's text, echoing the briefing it now answers.
+
+    Under a knob-moved briefing the take's own `SEC` echo disagrees on `dyn` or `tension`, and
+    the parser would log a `section_mismatch` for behaviour that is working as designed: 33 of
+    them in one conducted run of songs 2 and 3. The echo is the briefing's, not the model's
+    material, so it is rendered for the briefing answered. Curation joins on `body`, which
+    leaves the echo out, so a mark still finds its take.
     """
-    return {brief(section): take.dsl for section, take in reachable(song).items()}
+    if section == take.briefing:
+        return take.dsl
+    return "\n".join(sec_line(section) if _is_sec(line) else line for line in take.dsl.splitlines())
+
+
+def body(dsl: str) -> str:
+    """A take's DSL without its `SEC` echo: what the model wrote, whichever briefing it answers."""
+    return "\n".join(line for line in dsl.splitlines() if not _is_sec(line))
+
+
+def _is_sec(line: str) -> bool:
+    return line.split(maxsplit=1)[:1] == [SEC]
 
 
 def briefings(song: Song) -> frozenset[Section]:
