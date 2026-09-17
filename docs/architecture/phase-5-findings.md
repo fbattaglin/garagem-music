@@ -547,3 +547,40 @@ golden file moves.
 
 **Checked:** `bootstrap_set.py` says the Set matches, and `uv run pytest -m live` passes 27 of
 27 against it, audio included.
+
+### The listening, 2026-09-17
+
+Fabiano balanced the four tracks over a minute of seed 7, then played song 1 of
+`setlists/first.json` from the MiniLab: 226 s, 15 section changes, 0 beats lost, 148 controls,
+two KEEPs struck. Ten of eleven bar cues landed one bar after the pad; the eleventh was a fill
+struck on the bar line, which is Stage 4's known two-bar case.
+
+His verdict, verbatim:
+
+> *"Eu fiquei muito feliz com os resultados. Acho que nesta fase, após revermos os planos, demos
+> um salta bem alto em qualidade. A banda já soua mais como rock, o que era o obejtivo desde o
+> inicio. E o uso dos instrumentos corretos faz a difereça"*
+>
+> *"A virada é divertida, talvez no futuro vamos ter que penssar em ela entrando de uma forma
+> mais integrada e suave"*
+>
+> *"Esse toque artistico é algo que vamos ter que trabalhar mais no futuro, mas entendo que
+> requer we put some thought on it"*
+>
+> *"O fim é meio brusco"*
+
+— very happy with the result; a high jump in quality after the plans were reviewed; the band
+sounds more like rock, which was the point from the start, and the right instruments are what
+makes the difference. The fill is fun, and one day should arrive in a more integrated, smoother
+way. The ending is a bit abrupt.
+
+**Nothing approved before was heard as broken by the new instruments.** The toms fill, the snare
+roll into a chorus, the palm-muted guitar and the final chord all survived the change of sound.
+
+**Two things are open, both musical, neither acted on here.**
+- **How the fill arrives.** It is heard as fun but bolted on. Where a fill is announced, and
+  whether it should grow out of the bar before it, is arrangement work.
+- **The ending is abrupt.** The mechanism is known and mechanical: `Ending.FINAL` rings the last
+  chord from the downbeat of the last bar to the end of the section, and the scheduler declares
+  the song finished at exactly that boundary, so `jam.py` stops the transport as the chord ends.
+  The chord gets one bar and is then cut rather than allowed to decay.

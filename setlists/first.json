@@ -672,7 +672,7 @@
           "output_tokens": 263,
           "cost_usd": "0.003768",
           "digest": "d16765c6bb319307",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 9,

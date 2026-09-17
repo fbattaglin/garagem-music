@@ -33,13 +33,16 @@ and [ADR-025](ADR-025-the-model-composes-offline.md):
         (§7, and songs 2 and 3 on 2026-09-16).
       - KEEP and VETO counts per author are reported at the gate, from the logs. They decide
         nothing further (ADR-019).
-- [ ] **The band plays on its own instruments** (ADR-025)
+- [x] **The band plays on its own instruments** (ADR-025)
       - The Set, `garagem-band.als`, has a Drum Rack kit and sampled instruments, and
         `bootstrap_set.py` and `pytest -m live` pass against it. — **met 2026-09-17**
         (`phase-5-findings.md` §10): Dry Session Kit, Electric Bass Raw, Guitar Electric Muted
         and Grand Piano; 27 of 27 live tests pass. The kit keeps its toms a piece lower than the
         band writes them, so `session.toml` now carries a `pitches` table per track.
-      - *By ear:* the first song heard in the new sound, the verdict quoted.
+      - *By ear:* the first song heard in the new sound, the verdict quoted. — **met
+        2026-09-17** (`phase-5-findings.md` §10): *"A banda já soua mais como rock, o que era o
+        obejtivo desde o inicio. E o uso dos instrumentos corretos faz a difereça."* Two musical
+        notes are open: how the fill arrives, and an abrupt ending.
 - [ ] **A 10-minute session with the Wi-Fi off, played from the curated setlist**
       - The setlist's three songs, back to back, as three `jam.py --setlist` runs from the
         MiniLab (ADR-025).
