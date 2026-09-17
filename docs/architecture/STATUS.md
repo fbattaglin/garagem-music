@@ -47,8 +47,11 @@ and [ADR-025](ADR-025-the-model-composes-offline.md):
       - The setlist's three songs, back to back, as three `jam.py --setlist` runs from the
         MiniLab (ADR-025).
       - *Log:* at least 600 s in total, 0 beats lost in each run, $0 spent and no adapter built.
-      - *Log:* at least N sections from the setlist's takes. N is fixed with Fabiano before the
-        session, from `rehearse_session.py --setlist`. The floor alone cannot meet this line.
+      - *Log:* **at least 20 of the sections played come from the setlist's takes.** Fixed with
+        Fabiano on 2026-09-17, before the session, from the offline rehearsal: it predicts 25 of
+        48 under his heaviest recorded conducting, 42 of 48 with nobody at the MiniLab, and 0 for
+        the floor alone (`phase-5-findings.md` §12). Read by
+        `scripts/setlist_report.py --share 20`.
       - *By ear:* the verdict quoted.
 
 ### Where the phase actually is
@@ -100,7 +103,13 @@ Next, in order:
 3. ~~**The Phase 5 report:** `jam.py --setlist` prints Phase 5's lines, not Phase 4's.~~
    **Done 2026-09-17** (§11), per song and per session, with `--share N` for the line the
    session is held to.
-4. **N fixed from a rehearsal**, then the Wi-Fi-off session, then the gate.
+4. ~~**N fixed from a rehearsal.**~~ **Done 2026-09-17: 20 of the sections played**, against a
+   prediction of 25 of 48 (§12). `scripts/setlist_report.py` reads the session back.
+5. **The Wi-Fi-off session**, then the gate.
+   - Wi-Fi off, the three songs one after another, nothing else played in between, conducted
+     from the MiniLab.
+   - `uv run python scripts/jam.py --setlist setlists/first.json --song N --controller minilab`
+   - then `uv run python scripts/setlist_report.py --share 20`, and the verdict by ear.
 
 ## Phase 4 — closed with one waiver
 

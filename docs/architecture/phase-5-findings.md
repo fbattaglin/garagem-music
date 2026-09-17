@@ -649,3 +649,8 @@ which is the heaviest conducting this project has recorded.
 - **So the line the session is held to is set below the prediction**, because how much is
   conducted decides it, and the session is played to be enjoyed rather than to pass.
 - **The floor alone scores 0 here**, which is what the criterion exists to separate.
+
+**Fabiano fixed the line at 20 of the sections played, on 2026-09-17, before the session.** Five
+below the prediction, so that how much he conducts does not decide whether the criterion is met.
+`scripts/setlist_report.py --share 20` reads it back from the log, and exits 1 if any line is
+missed.

@@ -25,6 +25,7 @@ from garagem.obs.latency import (
     summarise,
 )
 from garagem.obs.performance import (
+    SETLIST_SESSION_S,
     Check,
     model_share,
     performance_checks,
@@ -52,6 +53,7 @@ __all__ = [
     "LATENCY_TARGET",
     "REQUIRED_BUCKETS",
     "SECTION_DEADLINE_S",
+    "SETLIST_SESSION_S",
     "Aggregate",
     "Check",
     "Event",
