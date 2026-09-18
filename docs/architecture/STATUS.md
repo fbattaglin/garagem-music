@@ -38,6 +38,15 @@ states its `n`.
 **Left open, and named so it is not rediscovered:** how the fill arrives (`phase-5-findings.md`
 §10).
 
+### Where the phase actually is
+
+- **Stage A is built: the shuffle has its own vocabulary** (`phase-6-findings.md` §1). The bass
+  takes the beats, the guitar the swung offbeats, the keys the backbeat, and the loudest kick
+  moved onto the eighths it used to push between. Two golden files regenerated, and the floor's
+  shuffle is now a fixed point of straightening at every dynamic.
+  - Suite at **2243 passed, 27 skipped**; `ruff` and `mypy` clean.
+  - **Unheard.** The listening is one shuffle jam and the verdict quoted.
+
 **Two things Phase 5 ended on, in the order they were heard:**
 1. **The shuffle is mechanical.** *"A musica número dois … foi sem dúvidas a menos interessante e
    mais mecanica delas"* (`phase-5-findings.md` §13). In a shuffle the whole band lands on one

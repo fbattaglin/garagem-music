@@ -62,12 +62,20 @@ GROOVES: Final[dict[Feel, tuple[Groove, ...]]] = {
     ),
     Feel.SHUFFLE: (
         # Hats on the eighths only: under a shuffle those eighths are already swung, so
-        # the feel comes from `beats_of` rather than from a different pattern.
+        # the feel comes from `beats_of` rather than from a different pattern. What the other
+        # three players do with those eighths is what stops the feel being a machine, and it
+        # is their own tables' business (ADR-026): the bass takes the beats, the guitar the
+        # swung offbeats and the keys the backbeat.
         _groove("shuffle, brushed", "x.......x.......", "....x.......x...", "x...x...x...x..."),
         _groove("shuffle", "x.......x.......", "....x.......x...", "x.x.x.x.x.x.x.x."),
         _groove("shuffle, pushed", "x.....x.x.......", "....x.......x...", "x.x.x.x.x.x.x.x."),
         _groove("shuffle, hard", "x.....x.x.....x.", "....x.......x...", "x.x.x.x.x.x.x.x."),
-        _groove("shuffle, flat out", "x..x..x.x..x..x.", "....x.......x...", "x.x.x.x.x.x.x.x."),
+        # The kick stays on the swung eighths. It used to push three-by-three
+        # (`x..x..x.x..x..x.`), which put two attacks a bar *between* them — the same figure
+        # the model wrote on its hat and that straightening exists to remove
+        # (`phase-5-findings.md` §2). Nobody is known to have heard it, and it is the one
+        # place the floor contradicted its own shuffle.
+        _groove("shuffle, flat out", "x.x...x.x.x...x.", "....x.......x...", "x.x.x.x.x.x.x.x."),
     ),
     Feel.HALFTIME: (
         # One backbeat instead of two, on beat 3. Everything sounds half as fast without

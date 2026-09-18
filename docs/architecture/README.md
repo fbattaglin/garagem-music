@@ -30,7 +30,7 @@
     songwriter.
   - `ADR-026-the-songwriter.md` — Phase 6: a fifth voice, a notation with pitched material for
     the bake only, and a theme written per song before its sections.
-- `phase-0-findings.md` … `phase-5-findings.md` — what the measurements and the
+- `phase-0-findings.md` … `phase-6-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 
 ADR format: context, decision, rejected alternatives, consequences.

@@ -37,7 +37,12 @@ ROOT_OCTAVE = 2
 PULSE: dict[Feel, str] = {
     Feel.STRAIGHT8: "x.x.x.x.x.x.x.x.",
     Feel.STRAIGHT16: "x.x.x.x.x.x.x.x.",
-    Feel.SHUFFLE: "x.x.x.x.x.x.x.x.",
+    # A shuffle bass walks on the beats and leaves the swung offbeats to the guitar. Eighths
+    # here, which is what this line held until ADR-026, put the whole band on one grid:
+    # *"a menos interessante e mais mecanica delas"* (`phase-5-findings.md` §13). Four
+    # attacks is also exactly what `WALKING_MIN_ATTACKS` needs, so a high-tension shuffle
+    # still walks into the next chord.
+    Feel.SHUFFLE: "x...x...x...x...",
     Feel.HALFTIME: "x.......x.......",
 }
 

@@ -34,7 +34,10 @@ from garagem.theory.voicings import Register, fit_to_range, voice, voice_lead
 RHYTHMS: dict[Feel, str] = {
     Feel.STRAIGHT8: "x.x.x.x.x.x.x.x.",
     Feel.STRAIGHT16: "xx.xxx.xxx.xx.x.",
-    Feel.SHUFFLE: "x.x.x.x.x.x.x.x.",
+    # The swung offbeats, and only those: the chop that makes a shuffle swing. The bass has
+    # the beats and the hats have both, so the three interlock instead of doubling each other
+    # (ADR-026). Under `beats_of` these four attacks are the late half of each beat.
+    Feel.SHUFFLE: "..x...x...x...x.",
     Feel.HALFTIME: "x.......x.......",
 }
 

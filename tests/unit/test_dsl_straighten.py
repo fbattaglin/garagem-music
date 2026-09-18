@@ -148,30 +148,30 @@ def test_it_is_on_unless_asked_not_to_be() -> None:
     assert realise(parsed, 7) != realise(parsed, 7, straighten=False)
 
 
-@pytest.mark.parametrize("dyn", [1, 2, 3, 4])
+@pytest.mark.parametrize("dyn", [1, 2, 3, 4, 5])
 @pytest.mark.parametrize("seed", [7, 2026])
-def test_the_floors_shuffle_is_a_fixed_point_up_to_flat_out(dyn: int, seed: int) -> None:
-    """Up to dyn 4 the floor strikes only eighths under a shuffle: nothing to straighten."""
+def test_the_floors_shuffle_is_a_fixed_point_at_every_dynamic(dyn: int, seed: int) -> None:
+    """The floor strikes only eighths under a shuffle, flat out included: nothing to straighten.
+
+    Flat out was the exception until ADR-026 — its kick pushed three-by-three, the same figure
+    straightening exists to take out of a model's take (`phase-5-findings.md` §2).
+    """
     section = a_section(dyn=dyn)
     parsed = parsed_from(serialize_section(play_section(section, seed)), section)
     assert realise(parsed, seed, straighten=True) == realise(parsed, seed, straighten=False)
 
 
-def test_flat_out_is_the_one_floor_shuffle_that_would_move_and_only_its_kick() -> None:
-    """`engines/groove.py`'s "shuffle, flat out" kick is `1,4,7,9,12,15`: two kicks between
-    the eighths, the figure §16 found in the model's hat. Found by the property above.
-
-    Straightening never touches the floor — `play_section` does not pass through `realise` —
-    so this pins what the floor *is*, recorded in `phase-5-findings.md` §2 and not acted on.
+def test_flat_outs_kick_stays_on_the_swung_eighths() -> None:
+    """It used to be `1,4,7,9,12,15` — two kicks a bar between the eighths, the figure §16
+    found on the model's hat and the one place the floor contradicted its own shuffle
+    (`phase-5-findings.md` §2). ADR-026 moved it onto them, and nothing straightens it now.
     """
     section = a_section(dyn=5)
     before = parsed_from(serialize_section(play_section(section, 7)), section)
-    after = straightened(before)
-    assert render_positions(drums_of(before).kick) == "1,4,7,9,12,15"
-    assert render_positions(drums_of(after).kick) == "1,3,7,9,11,15"
-    assert drums_of(after).model_copy(update={"kick": drums_of(before).kick}) == drums_of(before)
+    assert render_positions(drums_of(before).kick) == "1,3,7,9,11,15"
+    assert straightened(before) == before
     for instrument in (Instrument.BASS, Instrument.GUITAR, Instrument.KEYS):
-        assert after.lines[instrument] == before.lines[instrument]
+        assert straightened(before).lines[instrument] == before.lines[instrument]
 
 
 # ------------------------------------------------------------------------ the realised music

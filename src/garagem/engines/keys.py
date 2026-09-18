@@ -45,7 +45,9 @@ STAB_BEATS = 0.4
 STAB_RHYTHMS: dict[Feel, str] = {
     Feel.STRAIGHT8: "x...x...x...x...",
     Feel.STRAIGHT16: "x..x..x...x..x..",
-    Feel.SHUFFLE: "x...x...x...x...",
+    # Backbeat stabs, with the snare, instead of a quarter-note pulse nobody else was
+    # leaving room for (ADR-026).
+    Feel.SHUFFLE: "....x.......x...",
     Feel.HALFTIME: "x.......x.......",
 }
 
