@@ -10,12 +10,12 @@ material; the floor and the curated setlist play
 measured or baked**, from [ADR-025](ADR-025-the-model-composes-offline.md)'s re-scoping. Each rate
 states its `n`.
 
-- [ ] **The band has a fifth voice and plays it without a network**
-      - [x] the property tests hold with five parts;
-      - [ ] `bootstrap_set.py` exits 0 against the five-track Set and `pytest -m live` passes
-            — **blocked on Live**: track 4 (LEAD, "Guitar Electric Clean") is not in
-            `garagem-band.als` yet, and no LOM call can load an instrument (ADR-013);
-      - [x] a four-track Set still plays, so the voice is optional by construction.
+- [x] **The band has a fifth voice and plays it without a network** — met 2026-09-17
+      - the property tests hold with five parts, over every briefing and seed;
+      - `bootstrap_set.py` prints "the Set matches" against the five-track
+        `garagem-band.als`, and `uv run pytest -m live -q` → **27 passed**;
+      - a four-track Set still plays, so the voice is optional by construction
+        (`test_a_set_without_a_lead_track_never_receives_the_part`).
 - [x] **The shuffle has its own vocabulary**, and the verdict on it is recorded verbatim.
       *"Achei que teve muito mais alma. Muito bom."* — 2026-09-17, one shuffle jam
       (`phase-6-findings.md` §1).
@@ -58,8 +58,8 @@ states its `n`.
   dynamic.
   - Suite at **2243 passed, 27 skipped**; `ruff` and `mypy` clean.
   - **Heard on 2026-09-17**, one shuffle jam: *"Achei que teve muito mais alma. Muito bom."*
-- **Stage B is built: the band has a fifth voice** (`phase-6-findings.md` §2). A
-  deterministic `LEAD` that plays a three-note hook in the second half of every other bar
+- **Stage B is done and approved: the band has a fifth voice** (`phase-6-findings.md` §2).
+  A deterministic `LEAD` that plays a three-note hook in the second half of every other bar
   of a chorus, and nothing at all below `dyn` 4. A fifth `[[track]]` in `session.toml`; a
   Set with four tracks never receives the part.
   - It caught one real bug: the stop pad's readiness waited on tracks the Set may not
@@ -69,8 +69,10 @@ states its `n`.
     29 of 29 — no note moved. **Criterion 6 said only the shuffle's goldens would move;
     this is the deviation, written down rather than smoothed over.**
   - Suite at **2281 passed, 27 skipped**; `ruff` and `mypy` clean.
-  - **Unheard, and blocked on Live.** Fabiano adds track 4 in `garagem-band.als` and
-    loads "Guitar Electric Clean"; `bootstrap_set.py` says so by name.
+  - **Heard on 2026-09-17**, the same shuffle jam as Stage A with track 4 in the Set:
+    *"Acho que ela está de bom gosto e adiciona uma cor. Talvez no futuro podemos explorar
+    a possibilidade de ela ser mais do que isso."* Approved as colour, which is what it was
+    built to be; "more than that" is what Stage D asks the model for.
 - **Stage C is next: the notation for pitched material, bake only.**
 
 **Two things Phase 5 ended on, in the order they were heard:**

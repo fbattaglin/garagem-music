@@ -119,11 +119,25 @@ five-track Set stops the lead with the rest.
   instrument out of `session.toml` — and it is what Fabiano reads while adding track 4.
 - Suite: **2281 passed, 27 skipped**; `ruff` and `mypy` clean.
 
-### Unheard, and blocked on Live
+### Heard
 
-`bootstrap_set.py` reports what is left:
+Track 4 went into `garagem-band.als` with *Guitar Electric Clean* on it, and
+`bootstrap_set.py` reported **"the Set matches"** against the five-track spec. Fabiano
+then played the same shuffle jam as Stage A, now with the lead in it:
 
-    HUMAN: [missing_track] track 4 (LEAD) does not exist; it wants 'Guitar Electric Clean'
+> *"Acho que ela está de bom gosto e adiciona uma cor. Talvez no futuro podemos explorar a
+> possibilidade de ela ser mais do que isso."*
 
-Until that track is in `garagem-band.als`, `pytest -m live` cannot pass and the lead
-cannot be heard. The listening is the same short jam as Stage A, with the lead present.
+**The floor's lead is approved as it stands, and as what it is: colour.** That is the
+restraint it was built with, and it landed.
+
+Criterion 1 is met with that: five parts in the property tests, `bootstrap_set.py` clean
+against the five-track Set, `pytest -m live -q` at **27 passed**, and a four-track Set
+still playing.
+
+**The wish is this phase's own next step, not a new open item.** "More than that" is a
+lead that carries a hook the song comes back to — which is exactly what Stage D asks the
+model for: a theme per song, then each section written with that theme in hand. The
+floor's lead stays sparse on purpose, because it plays underneath and instead of the
+model's. If, after a song from the songwriter, he still wants more from the *floor's*
+lead, that is a separate finding and the table in `engines/lead.py` is where it goes.
