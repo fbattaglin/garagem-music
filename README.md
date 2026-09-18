@@ -264,8 +264,8 @@ evidence, or when a criterion is explicitly waived in an ADR with its threshold 
 | 2 | Clock, buffer and deterministic engine | Closed · 2026-08-30 |
 | 3 | First structural generation, one call per section | Closed · 2026-09-01 · one waiver ([ADR-018](docs/architecture/ADR-018-the-ab-waiver.md)) |
 | 4 | The full band and the tactical layer, conducted from the MiniLab | Closed · 2026-09-13 · one waiver ([ADR-023](docs/architecture/ADR-023-the-second-ab-waiver.md)) |
-| 5 | Setlist Mode for offline shows, curated with keep and veto, on the band's own instruments | **Current** |
-| 6 | The songwriter: whole songs composed offline, with riffs, bass lines and a lead voice | Planned ([ADR-025](docs/architecture/ADR-025-the-model-composes-offline.md)) |
+| 5 | Setlist Mode for offline shows, curated with keep and veto, on the band's own instruments | Closed · 2026-09-17 · no waiver |
+| 6 | The songwriter: whole songs composed offline, with riffs, bass lines and a lead voice | **Current** ([ADR-025](docs/architecture/ADR-025-the-model-composes-offline.md)) |
 
 **One finding shapes what comes next.** In the last three blind listening tests, 36 pairs in
 all, sections written by the model and by the deterministic floor were preferred equally, 18 to
