@@ -4,20 +4,39 @@
 material; the floor and the curated setlist play
 ([ADR-025](ADR-025-the-model-composes-offline.md)).
 
-## Phase 6 — not yet planned
+## Phase 6 exit criteria
 
-[ADR-025](ADR-025-the-model-composes-offline.md) re-scoped this phase and says what it is for:
-**the model's role was narrowed by a live deadline that a bake does not have.** Its criteria are
-written with Fabiano before anything is measured or baked, which is the project's rule and the
-reason Phase 5 opened with ADR-024.
+[ADR-026](ADR-026-the-songwriter.md), agreed with Fabiano on 2026-09-17 **before anything was
+measured or baked**, from [ADR-025](ADR-025-the-model-composes-offline.md)'s re-scoping. Each rate
+states its `n`.
 
-What it is, from ADR-025:
-- a notation for the bake only, carrying pitched material: a bass line, a riff, a lead voice on
-  a fifth track, bars that differ inside a phrase, and a motif the chorus brings back;
-- whole songs written in context, with no deadline, several takes per section, and a retry
-  allowed at bake time;
-- `dyn` and `tension` out of the take, composed by the realiser instead;
-- judged by playing: KEEP/VETO, and one verdict on a whole song.
+- [ ] **The band has a fifth voice and plays it without a network**
+      - the property tests hold with five parts;
+      - `bootstrap_set.py` exits 0 against the five-track Set and `pytest -m live` passes;
+      - a four-track Set still plays, so the voice is optional by construction.
+- [ ] **The shuffle has its own vocabulary**, and the verdict on it is recorded verbatim.
+- [ ] **The bake writes pitched material**
+      - ≥90% of baked sections conformant on the first pass, `n` stated;
+      - ≥80% approved by the validator without repair, `n` stated;
+      - beside them, as description and never as a target (ADR-019): the share of sections whose
+        bass moves inside the bar, and whose chorus carries a lead line.
+- [ ] **Cost per song inside a declared budget**, estimated before the bake.
+- [ ] **By ear:** one whole song from the songwriter, played and curated, the verdict verbatim.
+- [ ] **Nothing regresses:** the live prompt and its cassettes untouched, the musical regression
+      suite green, and the only golden files that move are the shuffle's.
+
+### What the phase builds
+
+1. **The shuffle's own vocabulary** — the floor's shuffle bass, guitar, keys and grooves stop
+   copying straight eighths.
+2. **The fifth voice** — `LEAD`, a deterministic engine, a range, a track in `session.toml`.
+3. **The notation, bake only** — a degree per struck slot for bass and lead, a superset of 0.1.
+4. **The songwriter bake** — a theme call per song, then a call per briefing with the theme in
+   hand, one line per bar.
+5. **Bake a song, play it, judge it.**
+
+**Left open, and named so it is not rediscovered:** how the fill arrives (`phase-5-findings.md`
+§10).
 
 **Two things Phase 5 ended on, in the order they were heard:**
 1. **The shuffle is mechanical.** *"A musica número dois … foi sem dúvidas a menos interessante e
@@ -26,14 +45,6 @@ What it is, from ADR-025:
    the guitar strums them, and straightening puts the model's takes on them too.
 2. **The fill arrives bolted on.** *"A virada é divertida, talvez no futuro vamos ter que pensar
    em ela entrando de uma forma mais integrada e suave"* (§10).
-
-The first three steps:
-
-1. **Plan the phase with Fabiano and write its criteria down**, before anything is measured or
-   baked, the shuffle included.
-2. **Build the bake's notation and its validation**, with the floor's counterpart for whatever
-   new voice it adds (invariant 2), and take `dyn` and `tension` out of the take.
-3. **Bake one song with it and hear it** against the Seven he knows, curating with KEEP/VETO.
 
 ## Phase 5 — closed
 

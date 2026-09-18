@@ -28,6 +28,8 @@
   - `ADR-025-the-model-composes-offline.md` — the model composes offline and live generation is
     frozen; real instruments before more listening; voice out of Phase 5; Phase 6 is the
     songwriter.
+  - `ADR-026-the-songwriter.md` — Phase 6: a fifth voice, a notation with pitched material for
+    the bake only, and a theme written per song before its sections.
 - `phase-0-findings.md` … `phase-5-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 
