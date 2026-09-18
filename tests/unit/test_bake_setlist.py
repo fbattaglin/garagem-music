@@ -84,7 +84,7 @@ def guarded(inner: LLMProvider) -> GuardedProvider:
 
 
 def baked_songs() -> list[Song]:
-    provider = guarded(BakedProvider(bake.floor_answers(PLANNED), name="fake"))
+    provider = guarded(BakedProvider(bake.floor_answers(PLANNED, songwriter=False), name="fake"))
     return asyncio.run(bake.bake(provider, MODEL, PLANNED, emit=lambda text: None))
 
 
@@ -110,7 +110,7 @@ def test_the_estimate_is_the_measured_usage_beside_a_pessimistic_bound() -> None
 def test_a_delivered_section_is_a_take_that_plays_what_it_baked() -> None:
     song = PLANNED[0]
     index = song.asked[0]
-    provider = guarded(BakedProvider(bake.floor_answers(PLANNED)))
+    provider = guarded(BakedProvider(bake.floor_answers(PLANNED, songwriter=False)))
     outcome = asyncio.run(
         bake.shoot(provider, MODEL, song.form[index], index, song.spec.seed + index)
     )
@@ -242,3 +242,123 @@ def test_a_baked_song_rehearsed_plays_its_takes_and_the_floor_the_rest() -> None
     assert calls == served
     reasons = {event.detail.get("reason") for event in log.of_kind("fallback")}
     assert reasons <= {"no_time", "not_in_buffer"}
+
+
+# ------------------------------------------------------------------- the songwriter (ADR-026)
+
+
+def songwriter_songs() -> list[Song]:
+    provider = guarded(BakedProvider(bake.floor_answers(PLANNED, songwriter=True), name="fake"))
+    return asyncio.run(bake.bake(provider, MODEL, PLANNED, emit=lambda text: None, songwriter=True))
+
+
+def test_every_song_gets_a_theme_and_every_take_is_written_with_it() -> None:
+    songs = songwriter_songs()
+    assert all(song.theme for song in songs)
+    for song in songs:
+        for line in song.theme.splitlines():
+            # A theme is material: bar lines, no SEC and no CHD.
+            assert line.split(maxsplit=1)[0] in {"BAS", "GTR", "LED"}
+        assert song.takes
+
+
+def test_the_songwriter_s_takes_carry_the_fifth_voice() -> None:
+    """Which GARAGEM/0.1 has no line for: this is the stage that can write one."""
+    songs = songwriter_songs()
+    assert all("LED" in take.parts for song in songs for take in song.takes)
+
+
+def test_a_songwriter_take_still_plays_what_it_baked() -> None:
+    song = songwriter_songs()[0]
+    take = song.takes[0]
+    score = played(take)
+    assert score is not None
+    assert digest(score) == take.digest
+
+
+def test_the_estimate_counts_the_theme_calls_and_says_it_is_an_estimate() -> None:
+    plain, _ = bake.estimate(MODEL, 18)
+    written, bound = bake.estimate(MODEL, 18, songwriter=True, songs=3)
+    assert written > plain, "a per-bar answer costs more than a per-section one"
+    assert written < bound
+    assert written == (
+        MODEL.price.cost_of(bake.SONGWRITER_USAGE) * 18 + MODEL.price.cost_of(bake.THEME_USAGE) * 3
+    )
+
+
+def test_a_theme_the_notation_cannot_read_is_dropped_rather_than_pasted_into_every_call() -> None:
+    song = PLANNED[0]
+    nonsense = {bake.theme_brief(**bake.theme_fields(song)): "LED oct=4 deg:99=5\nBAS wat"}
+    provider = guarded(BakedProvider(nonsense, name="fake"))
+    assert asyncio.run(bake.theme_shot(provider, MODEL, song)) == ""
+
+
+def test_a_song_with_no_theme_still_bakes_its_sections() -> None:
+    """P2 one level up: the material degrades, the song does not stop."""
+    song = PLANNED[0]
+    answers = bake.floor_answers(PLANNED, songwriter=True)
+    del answers[bake.theme_brief(**bake.theme_fields(song))]
+    provider = guarded(BakedProvider(answers, name="fake"))
+    songs = asyncio.run(bake.bake(provider, MODEL, [song], emit=lambda text: None, songwriter=True))
+    assert songs[0].theme == ""
+
+
+class Refusing:
+    """Refuses once, then answers. What a retry is for."""
+
+    name = "refusing"
+
+    def __init__(self, answers: dict[str, str]) -> None:
+        self._inner = BakedProvider(answers, name="fake")
+        self.calls = 0
+
+    async def stream(self, request: Request) -> AsyncIterator[StreamEvent]:
+        self.calls += 1
+        if self.calls == 1:
+            raise ProviderUnavailableError("one bad moment")
+        async for event in self._inner.stream(request):
+            yield event
+
+
+def test_a_refused_section_is_asked_once_more_because_nothing_is_playing() -> None:
+    song = PLANNED[0]
+    index = song.asked[0]
+    inner = Refusing(bake.floor_answers(PLANNED, songwriter=False))
+    provider = guarded(inner)
+    outcome, retried = asyncio.run(
+        bake.asked_twice(
+            provider, MODEL, song.form[index], index, song.spec.seed + index, theme=None
+        )
+    )
+    assert isinstance(outcome, Take)
+    assert retried
+    assert inner.calls == 2
+
+
+def test_a_budget_refusal_is_not_retried() -> None:
+    """The system saying stop is not the model having a bad moment."""
+    song = PLANNED[0]
+    index = song.asked[0]
+    provider = GuardedProvider(
+        BakedProvider(bake.floor_answers(PLANNED, songwriter=False)),
+        governor=Governor(
+            bake.Budget(
+                # A cap a single call cannot fit under: the governor refuses before sending.
+                session_usd=Decimal("0.0000001"),
+                per_minute_usd=Decimal("0.0000001"),
+                max_in_flight=1,
+                prices=prices_of(CATALOG),
+            )
+        ),
+        breaker=CircuitBreaker(),
+    )
+    outcome, retried = asyncio.run(
+        bake.asked_twice(
+            provider, MODEL, song.form[index], index, song.spec.seed + index, theme=None
+        )
+    )
+    assert isinstance(outcome, Missed)
+    # The concrete subclass, which is what `shoot` stores and what the guard must match.
+    assert outcome.reason == "SessionBudgetExceededError"
+    assert outcome.reason in bake.NOT_RETRYABLE
+    assert not retried

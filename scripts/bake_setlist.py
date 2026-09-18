@@ -46,13 +46,30 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
-from typing import Final
+from typing import Final, TypedDict
 
-from garagem.agents import by_id, request_for, structural, worth_asking
+from garagem.agents import (
+    BAKE_MAX_TOKENS,
+    by_id,
+    request_for,
+    songwriter_request_for,
+    structural,
+    theme_request_for,
+    worth_asking,
+)
 from garagem.daw import load_session
-from garagem.domain import Section
-from garagem.dsl import SectionStream, brief, realise, serialize_section
+from garagem.domain import Instrument, Section
+from garagem.dsl import (
+    SectionStream,
+    brief,
+    parse_bar_line,
+    realise,
+    serialize_section,
+    songwriter_brief,
+    theme_brief,
+)
 from garagem.dsl.errors import DslError
+from garagem.dsl.fragments import StringField
 from garagem.engines import Ending, completed, play_section
 from garagem.llm import (
     AnthropicAdapter,
@@ -87,7 +104,7 @@ from garagem.setlist import (
     load_spec,
     save_setlist,
 )
-from garagem.theory import repair
+from garagem.theory import render_key, repair
 
 ROOT = Path(__file__).resolve().parents[1]
 SESSION = ROOT / "session.toml"
@@ -98,6 +115,41 @@ DEFAULT_CAP_USD: Final = Decimal("1.00")
 # (`phase-4-findings.md` §12). The estimate's expected figure; the bound assumes max_tokens.
 MEASURED_USAGE: Final = Usage(input_tokens=295, output_tokens=235)
 PESSIMISTIC_INPUT_TOKENS: Final = 700
+
+# The songwriter's section call, **estimated and not yet measured** — said plainly because
+# ADR-026's criterion 4 asks for the estimate to be written down before the bake, and an
+# estimate presented as a measurement is worse than no estimate. Its basis: the superset
+# writes one line per bar per instrument, five instruments, eight bars, so about 40 lines
+# against the live path's five; the input carries the song's material as well as the
+# briefing. What the bake actually spends is printed beside this when it finishes.
+SONGWRITER_USAGE: Final = Usage(input_tokens=900, output_tokens=1000)
+THEME_USAGE: Final = Usage(input_tokens=450, output_tokens=200)
+
+
+def _every_name(*bases: type[Exception]) -> frozenset[str]:
+    """Every exception name in these hierarchies.
+
+    `shoot` stores `type(error).__name__`, and what actually arrives is a *subclass*: a
+    budget refusal is a `SessionBudgetExceededError`, never a bare `BudgetError`. A guard
+    written against the base names would have matched nothing and quietly retried the one
+    thing that must not be retried, which is what the test for it caught.
+    """
+    seen: set[str] = set()
+    stack = list(bases)
+    while stack:
+        cls = stack.pop()
+        if cls.__name__ in seen:
+            continue
+        seen.add(cls.__name__)
+        stack.extend(cls.__subclasses__())
+    return frozenset(seen)
+
+
+# One retry, and only here. P7 forbids a retry **on the critical path** — a section about to
+# play is failed once and the floor covers it. A bake is planning, nothing is sounding, and
+# asking twice is what a person would do. A budget or a breaker refusal is not retried:
+# those are the system saying stop, not the model having a bad moment.
+NOT_RETRYABLE: Final = _every_name(BudgetError, CircuitOpenError)
 
 
 # ------------------------------------------------------------------------------- the plan
@@ -121,34 +173,162 @@ def plan(spec: SetlistSpec, bpm: float) -> list[Planned]:
     return out
 
 
-def floor_answers(planned: list[Planned]) -> dict[str, str]:
-    """Every asked briefing answered with the floor's own DSL: what `--fake` bakes."""
+def floor_answers(planned: list[Planned], *, songwriter: bool) -> dict[str, str]:
+    """Every question the bake will ask, answered by the floor: what `--fake` bakes.
+
+    In songwriter mode that is two questions per song — the theme, then each section with
+    the theme in its message — and the answers are written in the bake's own notation
+    (`pitched=True`), so a fake bake exercises the `deg:` and `LED` path end to end before
+    a penny is spent. `BakedProvider` matches on the last user message, so these keys have
+    to be the exact briefs the requests will carry.
+    """
+    if not songwriter:
+        return {
+            brief(song.form[index]): serialize_section(
+                play_section(song.form[index], song.spec.seed + index)
+            )
+            for song in planned
+            for index in song.asked
+        }
+
+    answers: dict[str, str] = {}
+    for song in planned:
+        theme = floor_theme(song)
+        answers[theme_brief(**theme_fields(song))] = theme
+        for index in song.asked:
+            section = song.form[index]
+            answers[songwriter_brief(section, theme)] = serialize_section(
+                play_section(section, song.spec.seed + index), pitched=True
+            )
+    return answers
+
+
+class ThemeFields(TypedDict):
+    """What the theme call is told about a song. Typed, because two callers splat it and a
+    field that quietly changed name would make `--fake` miss every theme by a string."""
+
+    title: str
+    key: str
+    feel: str
+    bpm: float
+    form: str
+
+
+def theme_fields(song: Planned) -> ThemeFields:
+    """What the theme call is told about a song: enough to write material for it."""
     return {
-        brief(song.form[index]): serialize_section(
-            play_section(song.form[index], song.spec.seed + index)
-        )
-        for song in planned
-        for index in song.asked
+        "title": song.spec.title,
+        "key": render_key(song.spec.key, song.spec.scale),
+        "feel": str(song.spec.feel),
+        "bpm": song.form[0].bpm,
+        "form": " ".join(section.name for section in song.form),
     }
 
 
-def estimate(model: ModelSpec, calls: int) -> tuple[Decimal, Decimal]:
-    """(expected, at most): the measured usage per call, and every call filling max_tokens."""
-    expected = model.price.cost_of(MEASURED_USAGE) * calls
-    bound = model.price.cost_of(
-        Usage(input_tokens=PESSIMISTIC_INPUT_TOKENS, output_tokens=model.max_tokens)
+def floor_theme(song: Planned) -> str:
+    """The floor's own material: two bars of bass and lead from the song's first chorus.
+
+    Only `--fake` uses it. It exists so the fake bake's theme is the shape a real one will
+    be — bar lines, no SEC and no CHD — rather than a placeholder that would let the
+    playback path pass on something the model will never send.
+    """
+    loudest = max(song.asked, key=lambda index: song.form[index].dyn)
+    section = song.form[loudest]
+    score = play_section(section, song.spec.seed + loudest)
+    lines = serialize_section(score, pitched=True).splitlines()
+    tags = (str(Instrument.BASS), str(Instrument.LEAD))
+    kept: dict[str, list[str]] = {tag: [] for tag in tags}
+    for line in lines:
+        tag = line.split(maxsplit=1)[0] if line.strip() else ""
+        if tag in kept and len(kept[tag]) < 2:
+            kept[tag].append(line)
+    return "\n".join(line for tag in tags for line in kept[tag])
+
+
+def estimate(
+    model: ModelSpec, calls: int, *, songwriter: bool = False, songs: int = 0
+) -> tuple[Decimal, Decimal]:
+    """(expected, at most): the usage per call, and every call filling max_tokens.
+
+    In songwriter mode the per-section figure is an estimate rather than a measurement and
+    says so at the constant; the bound assumes `BAKE_MAX_TOKENS`, which is four times the
+    live path's, because that is what the request actually allows.
+    """
+    if not songwriter:
+        expected = model.price.cost_of(MEASURED_USAGE) * calls
+        bound = model.price.cost_of(
+            Usage(input_tokens=PESSIMISTIC_INPUT_TOKENS, output_tokens=model.max_tokens)
+        )
+        return expected, bound * calls
+
+    expected = (
+        model.price.cost_of(SONGWRITER_USAGE) * calls + model.price.cost_of(THEME_USAGE) * songs
     )
-    return expected, bound * calls
+    ceiling = model.price.cost_of(
+        Usage(input_tokens=PESSIMISTIC_INPUT_TOKENS * 2, output_tokens=BAKE_MAX_TOKENS)
+    )
+    return expected, ceiling * (calls + songs)
 
 
 # ---------------------------------------------------------------------------- one section
 
 
+async def theme_shot(provider: LLMProvider, model: ModelSpec, song: Planned) -> str:
+    """One call for the song's material (ADR-026). The empty string when it does not arrive.
+
+    A song without a theme still bakes: its sections are written with nothing above the
+    briefing, the floor plays its lead, and the music degrades rather than stopping — P2,
+    one level up.
+
+    **Every line is parsed before the theme is kept.** A theme is pasted into every section
+    prompt of the song, so material the notation cannot read would be repeated into every
+    call and paid for each time.
+    """
+    request = theme_request_for(model, **theme_fields(song))
+    decoder = StringField()
+
+    async def drain() -> None:
+        async for event in provider.stream(request):
+            if event.type == "tool_input_delta":
+                decoder.feed(event.fragment)
+
+    try:
+        await asyncio.wait_for(drain(), timeout=request.deadline_s)
+    except (TimeoutError, ProviderError, DslError, CircuitOpenError, BudgetError):
+        return ""
+
+    theme = decoder.value().strip()
+    lines = [line.strip() for line in theme.splitlines() if line.strip()]
+    if not lines:
+        return ""
+    try:
+        for line in lines:
+            parse_bar_line(line)
+    except DslError:
+        return ""
+    return "\n".join(lines)
+
+
 async def shoot(
-    provider: LLMProvider, model: ModelSpec, section: Section, index: int, seed: int
+    provider: LLMProvider,
+    model: ModelSpec,
+    section: Section,
+    index: int,
+    seed: int,
+    *,
+    theme: str | None = None,
 ) -> Take | Missed:
-    """The producer's call for one section, once, inside its deadline. Never raises."""
-    request = request_for(section, model)
+    """The producer's call for one section, once, inside its deadline. Never raises.
+
+    `theme` switches the whole question: `None` is the live path's request, frozen by
+    ADR-025 and used by `--plain` and by `--rebake-vetoed`; a string (empty included) is
+    the songwriter's, which asks for pitches and for the material to come back.
+    """
+    request = (
+        request_for(section, model)
+        if theme is None
+        else songwriter_request_for(section, model, theme=theme)
+    )
     stream = SectionStream(section)
     usage = Usage()
 
@@ -189,13 +369,42 @@ async def shoot(
     )
 
 
+async def asked_twice(
+    provider: LLMProvider,
+    model: ModelSpec,
+    section: Section,
+    index: int,
+    seed: int,
+    *,
+    theme: str | None,
+) -> tuple[Take | Missed, bool]:
+    """One section, and one more attempt if the first came back unusable. (outcome, retried).
+
+    The one place in this system that asks again, and the reason it is allowed is that
+    nothing is playing: P7 forbids a retry **on the critical path**, where a second call
+    would cost the bar it was for. Here a refusal costs a section of a setlist nobody is
+    listening to yet, and a person would obviously ask again.
+    """
+    outcome = await shoot(provider, model, section, index, seed, theme=theme)
+    if isinstance(outcome, Take) or outcome.reason in NOT_RETRYABLE:
+        return outcome, False
+    return await shoot(provider, model, section, index, seed, theme=theme), True
+
+
 async def bake(
     provider: LLMProvider,
     model: ModelSpec,
     planned: list[Planned],
     emit: Callable[[str], object] = sys.stderr.write,
+    *,
+    songwriter: bool = False,
 ) -> list[Song]:
-    """Every song, one call at a time, in play order, on one event loop."""
+    """Every song, one call at a time, in play order, on one event loop.
+
+    In songwriter mode each song takes its theme first and every section of it is then
+    written with that theme in hand (ADR-026), which is what makes a song come back to
+    something instead of being eight unrelated grooves.
+    """
     if isinstance(provider, Warmable):
         with suppress(ProviderError):
             await provider.warm()
@@ -203,9 +412,21 @@ async def bake(
     for number, song in enumerate(planned, start=1):
         takes: list[Take] = []
         missed: list[Missed] = []
+        theme = ""
+        if songwriter:
+            theme = await theme_shot(provider, model, song)
+            lines = len(theme.splitlines()) if theme else 0
+            emit(f"  song {number} theme   {f'{lines} bar lines' if theme else 'missed'}\n")
         for index in song.asked:
             section = song.form[index]
-            outcome = await shoot(provider, model, section, index, song.spec.seed + index)
+            outcome, retried = await asked_twice(
+                provider,
+                model,
+                section,
+                index,
+                song.spec.seed + index,
+                theme=theme if songwriter else None,
+            )
             if isinstance(outcome, Take):
                 takes.append(outcome)
                 verdict = "delivered"
@@ -213,7 +434,7 @@ async def bake(
                 missed.append(outcome)
                 verdict = f"missed: {outcome.reason}"
             where = f"song {number} section {index + 1:>2}/{len(song.form)}"
-            emit(f"  {where} {section.name:<7} {verdict}\n")
+            emit(f"  {where} {section.name:<7} {verdict}{' (asked twice)' if retried else ''}\n")
         songs.append(
             Song(
                 title=song.spec.title,
@@ -224,6 +445,7 @@ async def bake(
                 seed=song.spec.seed,
                 form=song.form,
                 endings=song.endings,
+                theme=theme,
                 takes=tuple(takes),
                 missed=tuple(missed),
             )
@@ -284,11 +506,24 @@ def guarded(inner: LLMProvider, catalog: list[ModelSpec], cap_usd: Decimal) -> G
     )
 
 
-def paid_provider(yes: bool, model: ModelSpec, calls: int, cap_usd: Decimal) -> LLMProvider | int:
+def paid_provider(
+    yes: bool,
+    model: ModelSpec,
+    calls: int,
+    cap_usd: Decimal,
+    *,
+    songwriter: bool = False,
+    songs: int = 0,
+) -> LLMProvider | int:
     """The real adapter once `--yes` is given, or the exit code to stop with."""
-    expected, bound = estimate(model, calls)
+    expected, bound = estimate(model, calls, songwriter=songwriter, songs=songs)
+    basis = (
+        "at the usage ADR-026 estimated, which is not yet measured"
+        if songwriter
+        else "at the usage Phase 4 measured"
+    )
     sys.stderr.write(
-        f"expected ~${expected:.2f} at the usage Phase 4 measured; at most ~${bound:.2f} "
+        f"expected ~${expected:.2f} {basis}; at most ~${bound:.2f} "
         f"if every call filled max_tokens; capped at ${cap_usd}\n"
     )
     if not yes:
@@ -307,6 +542,11 @@ def main() -> int:
     parser.add_argument("--out", type=Path, help="default: the spec's path, .json or .fake.json")
     parser.add_argument("--yes", action="store_true", help="actually bake; spends money")
     parser.add_argument("--fake", action="store_true", help="bake the floor's DSL; free, offline")
+    parser.add_argument(
+        "--plain",
+        action="store_true",
+        help="the live path's prompt, with no theme and no pitches (the bake before ADR-026)",
+    )
     parser.add_argument(
         "--rebake-vetoed",
         action="store_true",
@@ -337,6 +577,8 @@ def main() -> int:
     sections = sum(len(song.form) for song in planned)
     minutes = sum(s.total_seconds() for song in planned for s in song.form) / 60
 
+    songwriter = not args.plain
+
     for number, song in enumerate(planned, start=1):
         seconds = sum(section.total_seconds() for section in song.form)
         sys.stderr.write(
@@ -344,24 +586,28 @@ def main() -> int:
             f"{song.spec.scale}, {seconds:.0f}s, {len(song.form)} sections, "
             f"{len(song.asked)} to ask\n"
         )
+    themes = len(planned) if songwriter else 0
     sys.stderr.write(
         f"{len(planned)} songs, {minutes:.1f} minutes at {bpm:g} BPM, {sections} sections: "
-        f"{calls} calls to {model.id}\n"
+        f"{calls + themes} calls to {model.id}"
+        + (f" ({themes} themes, {calls} sections)\n" if songwriter else "\n")
     )
 
     inner: LLMProvider
     if args.fake:
-        inner = BakedProvider(floor_answers(planned), name="fake")
+        inner = BakedProvider(floor_answers(planned, songwriter=songwriter), name="fake")
         provider_name = "fake"
         sys.stderr.write("baking the floor's own DSL: no network, no money\n")
     else:
-        paid = paid_provider(args.yes, model, calls, args.cap_usd)
+        paid = paid_provider(
+            args.yes, model, calls, args.cap_usd, songwriter=songwriter, songs=themes
+        )
         if isinstance(paid, int):
             return paid
         inner, provider_name = paid, "anthropic"
 
     provider = guarded(inner, catalog, args.cap_usd)
-    songs = asyncio.run(bake(provider, model, planned))
+    songs = asyncio.run(bake(provider, model, planned, songwriter=songwriter))
     setlist = Setlist(
         name=spec.name,
         provider=provider_name,

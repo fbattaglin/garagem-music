@@ -13,14 +13,20 @@ from garagem.agents.routing import (
     tactical,
 )
 from garagem.agents.section import (
+    BAKE_DEADLINE_S,
+    BAKE_MAX_TOKENS,
     DEADLINE_FRACTION,
     MIN_DEADLINE_S,
     deadline_for,
     request_for,
+    songwriter_request_for,
+    theme_request_for,
     worth_asking,
 )
 
 __all__ = [
+    "BAKE_DEADLINE_S",
+    "BAKE_MAX_TOKENS",
     "DEADLINE_FRACTION",
     "IDLE_S",
     "MIN_DEADLINE_S",
@@ -34,7 +40,9 @@ __all__ = [
     "everything",
     "only",
     "request_for",
+    "songwriter_request_for",
     "structural",
     "tactical",
+    "theme_request_for",
     "worth_asking",
 ]

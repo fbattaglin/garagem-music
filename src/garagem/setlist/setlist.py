@@ -178,6 +178,10 @@ class Song(BaseModel):
     seed: int
     form: tuple[Section, ...] = Field(min_length=1)
     endings: tuple[Ending, ...]
+    # The song's material, in the bake's notation: a riff and a hook the sections were
+    # written with in hand (ADR-026). Optional, so `FORMAT` stays 1 and every bake made
+    # before the songwriter existed still loads. Empty means nobody asked for one.
+    theme: str = ""
     takes: tuple[Take, ...] = ()
     missed: tuple[Missed, ...] = ()
     # Vetoed takes that a new bake replaced. Kept, because a veto is a preference and the

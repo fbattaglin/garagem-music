@@ -240,6 +240,163 @@ these same slot numbers.""",
 )
 
 
+# ---------------------------------------------------------------- the songwriter, offline
+#
+# **Everything below is bake-only** (ADR-026). None of it is ever sent from `jam.py`, none
+# of the cassettes was recorded against it, and the four blocks above do not move — which
+# is what ADR-025's freeze on live generation means in practice: the notation grew, the
+# live request did not.
+#
+# It asks for two things the live prompt cannot ask for, because a 5.8 s deadline could
+# not hold them: **pitches**, and **a song that comes back to something**. Offline there is
+# no deadline, the call can be retried, and the answer can be as long as it needs to be.
+
+TOOL_THEME: Final = ToolSchema(
+    name="write_theme",
+    description="Writes a song's musical material: a riff and a hook, in the GARAGEM DSL.",
+    input_schema={
+        "type": "object",
+        "properties": {
+            "dsl": {
+                "type": "string",
+                "description": (
+                    "One or more BAS, GTR and LED bar lines. No SEC and no CHD: the theme "
+                    "is material, not a section."
+                ),
+            }
+        },
+        "required": ["dsl"],
+        "additionalProperties": False,
+    },
+)
+
+
+# What a degree map is, written once and shared by both bake blocks below — but **pasted
+# into each of them as text, not interpolated**. Two whole strings, for the reason
+# `SYSTEM_ARRANGED` is whole: a cache prefix assembled from pieces is a cache prefix that
+# moves when any piece does.
+SYSTEM_THEME: Final = """You are the songwriter in GARAGEM. You write the material a song
+is built out of, before any of its sections exist.
+
+Answer only through the write_theme tool, in the GARAGEM DSL.
+
+A bar is 16 sixteenths, numbered 1 to 16. Slot 1 is the downbeat.
+
+Write the song's material as bar lines, and nothing else. No SEC line and no CHD line:
+this is not a section, it is what the section will be made of.
+
+    BAS oct=2 deg:1=1,4=1,7=5,11=1,14=5
+    BAS oct=2 deg:1=1,4=1,7=5,11=3,14=1
+    LED oct=4 deg:9=5,11=3,13=1 hold=13
+    LED oct=4 deg:
+
+deg: is a degree per struck slot. The slots you name are the slots that sound; there is
+no separate rhythm to write. A degree is 1 to 7 of whatever chord the bar is on, so the
+same riff transposes through the whole song: 1 is the root, 3 the third, 5 the fifth.
+
+BAS is the bass, one note at a time, oct=2. LED is the lead voice, oct=4, and hold= names
+the slots whose note rings on until the next one. A LED line with an empty deg: is a bar
+the lead sits out — write those, because a hook that never stops is not a hook.
+
+Write two to four bars. Give the song one bass riff and one lead hook, and make them fit
+together: if the bass is busy the hook should be sparse, and the other way round. This
+material comes back in every section, so it has to be worth hearing again."""
+
+
+SYSTEM_SONGWRITER: Final = """You are the band in GARAGEM, playing a song somebody has
+already written the material for.
+
+Answer only through the write_section tool, in the GARAGEM DSL.
+
+Echo the SEC and CHD lines back exactly as given. They are the briefing, not a
+suggestion: the clip has already been sized from them.
+
+**Write one bar-level line per bar, per instrument, in bar order.** A section is an
+arrangement, not a loop: the bars differ where a band would make them differ.
+
+Here is a whole two-bar section. There are two of every line because there are two bars,
+and they are not the same: bar 1 opens with a crash and bar 2 ends with a fill.
+
+    SEC verse bars=2 key=Em feel=straight8 bpm=132 dyn=3 tension=0.4
+    CHD | Em | C |
+    DRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1
+    DRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,3,5,7
+    BAS oct=2 deg:1=1,4=1,7=5,11=1,14=5
+    BAS oct=2 deg:1=1,4=1,7=5,11=3,14=1
+    GTR voi=pow rhy:1,2,4,5,6,8,9,11,12,14,15 palm=on
+    GTR voi=pow rhy:1,2,4,5,6,8,9,11,12,14,15 palm=on acc=1,9
+    KEY voi=sus2 rhy:1,9 reg=mid
+    KEY voi=sus2 rhy:1 reg=mid
+    LED oct=4 deg:9=5,11=3,13=1 hold=13
+    LED oct=4 deg:
+
+For an 8-bar section write 8 lines of each. Open bar 1 with a crash. Put a fill in the
+last bar — busier snare, hats dropping out. Let the hats open up as the section builds.
+
+A bar is 16 sixteenths, numbered 1 to 16, and you write the numbers of the slots that are
+struck. Slot 1 is the downbeat. Never write a slot above 16. The bar is always 16
+sixteenths whatever the feel: halftime moves the backbeat to slot 9 and does not make the
+bar longer; shuffle swings the offbeats and does not make it shorter.
+
+The DRM voices are K kick, S snare, H hi-hat and C crash. A voice you leave out is silent
+for that bar.
+
+BAS and LED write deg:, a degree per struck slot — the slots you name are the slots that
+sound, and there is no rhy: beside them. A degree is 1 to 7 of that bar's chord, so the
+material transposes with the harmony. LED hold= names the slots that ring on. A LED line
+with an empty deg: is a bar the lead sits out, and most bars should be: the hook is worth
+more when it is not always there.
+
+GTR and KEY write voi= and rhy:, as before. voi= is one of exactly these six, and nothing
+else:
+    pow     root and fifth, no third
+    triad   root, third, fifth
+    sus2    the second in place of the third
+    sus4    the fourth in place of the third
+    drop2   the second voice from the top, dropped an octave
+    shell   root, third and seventh, no fifth
+A chord quality such as min or maj7 is not a voicing. The chord comes from the CHD line;
+voi= says how to spread it.
+
+reg= is low, mid or high. palm= is on or off. ghost= and acc= use the same slot numbers.
+
+Emit in this order and no other: SEC, CHD, DRM, BAS, GTR, KEY, LED.
+
+**Use the song's material.** It is given to you with the briefing. Play the riff and the
+hook where they belong, move them to fit this section's chords and dynamic, and leave
+them out where the section needs room. A chorus should be where the hook is most itself."""
+
+
+def theme_brief(title: str, key: str, feel: str, bpm: float, form: str) -> str:
+    """The one volatile message of the theme call: which song, in one short block."""
+    return (
+        f"Song: {title}\n"
+        f"key={key} feel={feel} bpm={bpm:g}\n"
+        f"form: {form}\n"
+        "Write this song's material."
+    )
+
+
+def songwriter_brief(section: Section, theme: str) -> str:
+    """One section's briefing with the song's own material above it.
+
+    The material goes in the *message* rather than the system block, and that is not a
+    detail: the block is the cache prefix (`Request.cache_system`), and a theme moved into
+    it would change per song and zero the hit rate for every section of every song.
+    """
+    material = theme.strip()
+    return (
+        (f"The song's material:\n{material}\n\n" if material else "")
+        + f"SEC {section.name} bars={section.bars} "
+        f"key={render_key(section.key, section.scale)} "
+        f"feel={section.feel} bpm={section.bpm:g} dyn={section.dyn} "
+        f"tension={section.tension:g}\n"
+        f"CHD {render_chart(_per_bar(section))}\n"
+        f"Echo those two lines back unchanged, then write {section.bars} bars each of "
+        "DRM, BAS, GTR, KEY and LED, arranged, using the material above where it fits."
+    )
+
+
 def system_for(*, arranged: bool = False, dense: bool = False, positions: bool = False) -> str:
     """Which stable block to send. Whole strings, so each is its own cache prefix."""
     if arranged:

@@ -65,7 +65,7 @@ def a_setlist() -> Setlist:
     )
     planned = bake.plan(spec, 132.0)
     provider = GuardedProvider(
-        BakedProvider(bake.floor_answers(planned)),
+        BakedProvider(bake.floor_answers(planned, songwriter=False)),
         governor=Governor(load_budget(ROOT / "config" / "budget.toml").fuse(prices_of(CATALOG))),
         breaker=CircuitBreaker(),
     )

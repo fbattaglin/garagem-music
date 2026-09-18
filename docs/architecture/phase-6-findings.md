@@ -205,3 +205,85 @@ motif names, and two parametrised tests hold it over every chord quality the DSL
 
 Nothing in this stage changes what plays: the floor writes no `deg:` lines and no model
 has been asked for one. Stage D is what asks.
+
+## 4. The songwriter: a theme, then the sections
+
+Built on 2026-09-17. Stage D of [ADR-026](ADR-026-the-songwriter.md), and the first stage
+that can spend money — it has not yet.
+
+### What the bake asks now
+
+Two questions per song instead of one per section:
+
+1. **`write_theme`**, once: *write this song's material — a bass riff and a lead hook, two
+   to four bars, in the notation.* No `SEC`, no `CHD`: material, not a section.
+2. **`write_section`**, per distinct briefing, with that material at the top of the
+   message: *write these eight bars, arranged, using the material where it fits.*
+
+That is what makes a song come back to something. Degrees are relative to each bar's
+chord, so one riff transposes through the whole progression rather than being written out
+per chord — which is also why the theme is short enough to paste into every call.
+
+**The theme travels in the message, never in the system block.** The block is the cache
+prefix (`Request.cache_system`), and a theme inside it would change per song and take the
+hit rate to zero. Both new blocks — `SYSTEM_THEME` and `SYSTEM_SONGWRITER` — are whole
+strings, for the reason `SYSTEM_ARRANGED` is whole: a prefix assembled from pieces moves
+when any piece does.
+
+**The live prompt did not move.** `SYSTEM`, `SYSTEM_ARRANGED`, `SYSTEM_DENSE`,
+`SYSTEM_POSITIONS` and `brief()` are untouched, the cassettes still match, and
+`--plain` and `--rebake-vetoed` still send the live request.
+
+### The one retry, and where it is allowed
+
+P7 forbids a retry **on the critical path**, where a second call costs the bar it was for.
+A bake is planning and nothing is sounding, so a refused section is asked once more and the
+log says `(asked twice)`. A budget or breaker refusal is never retried: that is the system
+saying stop, not the model having a bad moment.
+
+**That guard was wrong when first written, and its own test caught it.** `shoot` stores
+`type(error).__name__`, and what actually arrives is a subclass — a budget refusal is a
+`SessionBudgetExceededError`, never a bare `BudgetError`. A set of base names would have
+matched nothing and retried the one thing that must not be retried. The set is now built by
+walking the hierarchies.
+
+### What it cost to check, with no network
+
+`--fake` bakes the floor's own DSL through **both** stages, in the bake's own notation, so
+the whole path is exercised before a penny is spent:
+
+    3 songs, 10.9 minutes at 132 BPM, 48 sections: 21 calls (3 themes, 18 sections)
+    song 1 theme   4 bar lines
+    song 1 section  2/16 verse   delivered
+    ...
+    18 of 18 delivered; spent $0.0000
+
+Every take came back with `BAS,DRM,GTR,KEY,LED`, its per-slot bass and its `LED` lines
+parsed, realised and matched its stored digest.
+
+### The cost, written down before anything is spent
+
+ADR-026's criterion 4 asks for the estimate first, so here it is, for the three-song
+setlist at `claude-sonnet-5`:
+
+    expected ~$0.24 at the usage ADR-026 estimated, which is not yet measured;
+    at most ~$1.81 if every call filled max_tokens; capped at $1.00
+
+About **$0.08 a song**, inside the $0.10–0.15 ADR-026 predicted. The per-section figure is
+an estimate and the code says so where it is written: 900 tokens in, 1000 out, from the
+shape of the answer (five instruments × eight bars) and not from a measurement. The
+pessimistic bound is above the cap, which is the cap working — a runaway bake stops rather
+than finishing.
+
+### Left out, and named rather than dropped quietly
+
+**`--takes N`** — asking for several takes of one briefing — is in the Phase 6 plan and is
+not built. Nothing consumes a second take: ADR-024 §4 rules out A/B at section level,
+`answers()` keys one take per briefing, and curation marks a take rather than choosing
+between two. Building the knob now would mean building the chooser too, for a comparison
+nobody has asked to make. It is one line of plan to reinstate when something needs it.
+
+### Unheard, and the next step spends money
+
+Nothing has been asked of a model yet. Stage E is one paid bake of one song, played and
+curated, and its verdict is criterion 5.

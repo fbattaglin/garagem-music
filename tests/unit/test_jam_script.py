@@ -800,7 +800,7 @@ def a_fake_bake(tmp_path: Path, bpm: float = 132.0) -> Path:
         SetlistSpec(name="t", songs=(SongSpec(title="One", key=4, seconds=60, seed=7),)), bpm
     )
     provider = GuardedProvider(
-        BakedProvider(bake.floor_answers(planned)),
+        BakedProvider(bake.floor_answers(planned, songwriter=False)),
         governor=Governor(load_budget(ROOT / "config" / "budget.toml").fuse(prices_of(catalog))),
         breaker=CircuitBreaker(),
     )

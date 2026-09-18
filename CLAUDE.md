@@ -39,8 +39,10 @@ written to a file is in English.
   offline and predicts its cost and the model's share; `--network-lost-at-s` rehearses the
   chaos test. No network, no Live, no money.
 - `uv run python scripts/bake_setlist.py setlists/<name>.toml` — bakes a setlist: the model
-  writes each song's sections once into `<name>.json` (ADR-024). Estimates and stops unless
-  `--yes`; spends real money. `--fake` bakes the floor's own DSL, free and offline.
+  writes each song's material once, then every section with it in hand, into `<name>.json`
+  (ADR-024, ADR-026). Estimates and stops unless `--yes`; spends real money. `--fake` bakes the
+  floor's own DSL through the same two stages, free and offline. `--plain` is the pre-ADR-026
+  bake: the live prompt, no theme and no pitches.
 - `uv run python scripts/jam.py --setlist setlists/<name>.json --song N` — plays a baked song
   from disk: no network, no key. It reports Phase 5's criteria; `--share N` adds the line for how
   many sections must come from the setlist's takes (ADR-025).

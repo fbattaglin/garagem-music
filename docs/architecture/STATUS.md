@@ -85,8 +85,23 @@ states its `n`.
   - Suite at **2323 passed, 27 skipped**; `ruff` and `mypy` clean.
   - **Nothing to hear yet:** the floor writes no `deg:` lines and no model has been asked
     for one.
-- **Stage D is next: the songwriter bake — a theme per song, then each section with it in
-  hand.** It is the first stage that spends money.
+- **Stage D is built: the songwriter bake** (`phase-6-findings.md` §4). One `write_theme`
+  call per song, then every section written with that material in the message. Two new
+  whole system blocks, both bake-only; the live prompt and its cassettes are untouched.
+  - One retry, allowed because nothing is playing, and never for a budget or breaker
+    refusal. The guard was wrong when written — the stored reason is the *subclass* name —
+    and its own test caught it.
+  - `--fake` bakes both stages offline: 18 of 18 delivered, every take `BAS,DRM,GTR,KEY,LED`,
+    every digest matched. `--plain` is the pre-ADR-026 bake.
+  - **The estimate, before anything is spent:** ~$0.24 for the three-song setlist, about
+    $0.08 a song, against ADR-026's $0.10–0.15. The per-section usage is an estimate and
+    says so; the pessimistic bound is above the $1.00 cap, which is the cap working.
+  - **Left out and named:** `--takes N`. Nothing consumes a second take — no A/B at section
+    level (ADR-024 §4), one take per briefing in `answers()`, and curation marks rather than
+    chooses.
+  - Suite at **2331 passed, 27 skipped**; `ruff` and `mypy` clean.
+- **Stage E is next, and it is the first thing that spends money:** one paid bake of one
+  song, played with the pads and curated, and the verdict recorded verbatim.
 
 **Two things Phase 5 ended on, in the order they were heard:**
 1. **The shuffle is mechanical.** *"A musica número dois … foi sem dúvidas a menos interessante e

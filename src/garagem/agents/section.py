@@ -26,7 +26,16 @@ from __future__ import annotations
 from typing import Final
 
 from garagem.domain import Section
-from garagem.dsl import TOOL, brief, system_for
+from garagem.dsl import (
+    SYSTEM_SONGWRITER,
+    SYSTEM_THEME,
+    TOOL,
+    TOOL_THEME,
+    brief,
+    songwriter_brief,
+    system_for,
+    theme_brief,
+)
 from garagem.llm import Message, ModelSpec, Request, Role
 
 # ADR-000 §4.2. Not a tuning knob: it is the number the two-section lookahead was sized
@@ -48,6 +57,19 @@ DEADLINE_FRACTION: Final = 0.4
 # lists as a High-probability risk and which no floor addresses. This constant stops one
 # wasted call in thirty; it is not the answer to the tail.
 MIN_DEADLINE_S: Final = 5.0
+
+
+# The bake has no deadline in the §4.2 sense — nothing is playing, so there is no musical
+# time to take a fraction of. `Request.deadline_s` still has no default, deliberately, so a
+# number has to be written here where it can be argued with. This one is a *ceiling on a
+# hung stream*, not a budget: 180 s is far past any section-shot this project has measured
+# (max 4.96 s live, and an arranged section is perhaps four times the output).
+BAKE_DEADLINE_S: Final = 180.0
+
+# An arranged section in the superset is one line per bar per instrument, five instruments,
+# eight bars — about 40 lines against the live path's five. The catalogue's 2048 was sized
+# for the live shot; this is sized for the longest answer the songwriter can give.
+BAKE_MAX_TOKENS: Final = 8192
 
 
 def deadline_for(section: Section, *, fraction: float = DEADLINE_FRACTION) -> float:
@@ -109,5 +131,61 @@ def request_for(
         else deadline_for(section, fraction=fraction),
         effort=model.effort,
         # The stable block is the cache prefix. `dsl/schema.py` says what breaks it.
+        cache_system=True,
+    )
+
+
+def theme_request_for(
+    model: ModelSpec,
+    *,
+    title: str,
+    key: str,
+    feel: str,
+    bpm: float,
+    form: str,
+    deadline_s: float = BAKE_DEADLINE_S,
+) -> Request:
+    """One call for one song's material, before any of its sections (ADR-026).
+
+    Bake only. Nothing on the live path asks this question, and nothing about the live
+    request changes because it exists.
+    """
+    return Request(
+        model=model.id,
+        messages=(
+            Message(
+                role=Role.USER,
+                content=theme_brief(title=title, key=key, feel=feel, bpm=bpm, form=form),
+            ),
+        ),
+        system=SYSTEM_THEME,
+        tool=TOOL_THEME,
+        max_tokens=BAKE_MAX_TOKENS,
+        deadline_s=deadline_s,
+        effort=model.effort,
+        cache_system=True,
+    )
+
+
+def songwriter_request_for(
+    section: Section,
+    model: ModelSpec,
+    *,
+    theme: str = "",
+    deadline_s: float = BAKE_DEADLINE_S,
+) -> Request:
+    """One section, written with the song's material in hand. Bake only.
+
+    The theme travels in the message and never in the system block: the block is the cache
+    prefix, and a theme inside it would change per song and zero the hit rate.
+    """
+    return Request(
+        model=model.id,
+        messages=(Message(role=Role.USER, content=songwriter_brief(section, theme)),),
+        system=SYSTEM_SONGWRITER,
+        tool=TOOL,
+        max_tokens=BAKE_MAX_TOKENS,
+        deadline_s=deadline_s,
+        effort=model.effort,
         cache_system=True,
     )
