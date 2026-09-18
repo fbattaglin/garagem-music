@@ -49,7 +49,15 @@ A/B pair reached dyn 5.
   straightening at every dynamic**, flat out included. That test used to carry the exception.
 - Suite: **2243 passed, 27 skipped**; `ruff` and `mypy` clean.
 
-### Unheard
+### Heard
 
-This is approved music changed on the strength of one verdict, which ADR-025's light gate allows
-and asks to be heard. The listening is one shuffle jam and Fabiano's words.
+One shuffle jam, `jam.py --seconds 120 --feel shuffle --seed 11`, on 2026-09-17. Fabiano:
+
+> *"Achei que teve muito mais alma. Muito bom."*
+
+That closes the gate ADR-025 asks for: approved music was changed on the strength of one verdict,
+and the change was heard before anything was built on top of it. **The floor's shuffle is
+approved as it now stands**, and it is Phase 6's criterion 2.
+
+Worth keeping beside the verdict: the bass went from eight attacks a bar to four, which was the
+risk in the change, and nothing came back as thin.

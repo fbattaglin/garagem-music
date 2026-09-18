@@ -14,7 +14,9 @@ states its `n`.
       - the property tests hold with five parts;
       - `bootstrap_set.py` exits 0 against the five-track Set and `pytest -m live` passes;
       - a four-track Set still plays, so the voice is optional by construction.
-- [ ] **The shuffle has its own vocabulary**, and the verdict on it is recorded verbatim.
+- [x] **The shuffle has its own vocabulary**, and the verdict on it is recorded verbatim.
+      *"Achei que teve muito mais alma. Muito bom."* — 2026-09-17, one shuffle jam
+      (`phase-6-findings.md` §1).
 - [ ] **The bake writes pitched material**
       - ≥90% of baked sections conformant on the first pass, `n` stated;
       - ≥80% approved by the validator without repair, `n` stated;
@@ -40,12 +42,14 @@ states its `n`.
 
 ### Where the phase actually is
 
-- **Stage A is built: the shuffle has its own vocabulary** (`phase-6-findings.md` §1). The bass
-  takes the beats, the guitar the swung offbeats, the keys the backbeat, and the loudest kick
-  moved onto the eighths it used to push between. Two golden files regenerated, and the floor's
-  shuffle is now a fixed point of straightening at every dynamic.
+- **Stage A is done and approved: the shuffle has its own vocabulary**
+  (`phase-6-findings.md` §1). The bass takes the beats, the guitar the swung offbeats, the keys
+  the backbeat, and the loudest kick moved onto the eighths it used to push between. Two golden
+  files regenerated, and the floor's shuffle is now a fixed point of straightening at every
+  dynamic.
   - Suite at **2243 passed, 27 skipped**; `ruff` and `mypy` clean.
-  - **Unheard.** The listening is one shuffle jam and the verdict quoted.
+  - **Heard on 2026-09-17**, one shuffle jam: *"Achei que teve muito mais alma. Muito bom."*
+- **Stage B is next: the fifth voice, `LEAD`.**
 
 **Two things Phase 5 ended on, in the order they were heard:**
 1. **The shuffle is mechanical.** *"A musica número dois … foi sem dúvidas a menos interessante e
