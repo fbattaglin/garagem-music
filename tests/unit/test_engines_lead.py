@@ -12,12 +12,11 @@ from random import Random
 
 import pytest
 
-from garagem.domain import SIXTEENTHS_PER_BAR, Feel, Instrument, Section
+from garagem.domain import SIXTEENTHS_PER_BAR, Chart, Chord, Feel, Instrument, Quality, Section
 from garagem.engines import play_section
 from garagem.engines.lead import BUSY, LEAD_DYN, QUIET, answering_bars
 from garagem.engines.lead import play as play_lead
 from garagem.theory import RANGES, parse_chart, validate
-from garagem.theory.scales import degree_to_pitch
 from garagem.theory.validator import grid_slots, nearest_slot
 
 PROGRESSION = parse_chart("| Em | C | G | D |")
@@ -124,8 +123,29 @@ def test_every_note_is_a_tone_of_the_bar_it_is_in() -> None:
     section = a_section()
     for note in play_lead(section, Random(7)).notes:
         chord = section.chart.at(int(note.start_beats // 4))
-        tones = {degree_to_pitch(chord, degree, 0) % 12 for degree in (1, 3, 5)}
-        assert note.pitch % 12 in tones
+        assert note.pitch % 12 in chord.pitch_classes()
+
+
+@pytest.mark.parametrize("quality", list(Quality))
+def test_a_chord_with_no_third_never_gets_one(quality: Quality) -> None:
+    """A power chord has no third and a sus chord has none either, and `degree_to_pitch`
+    answers for them out of the chord's implied scale — a note that can be in neither the
+    chord nor the key. Found by the bake notation's round trip: 50% of one section's lead
+    notes outside the key against a 5% budget.
+    """
+    chart = Chart(chords=(Chord(root=0, quality=quality),))
+    section = a_section(key=0, scale="dorian", chart=chart, tension=0.0, dyn=5)
+    allowed = chart.chords[0].pitch_classes()
+    for seed in range(20):
+        for note in play_lead(section, Random(seed)).notes:
+            assert note.pitch % 12 in allowed, quality
+
+
+@pytest.mark.parametrize("quality", list(Quality))
+def test_the_whole_band_stays_legal_under_a_chart_that_fights_its_key(quality: Quality) -> None:
+    chart = Chart(chords=(Chord(root=0, quality=quality),))
+    section = a_section(key=0, scale="dorian", chart=chart, tension=0.0, dyn=5)
+    assert validate(play_section(section, 7)) == ()
 
 
 def test_it_stays_inside_the_lead_s_range() -> None:

@@ -26,7 +26,9 @@ from random import Random
 from typing import Final
 
 from garagem.domain import (
+    PITCH_CLASSES,
     SIXTEENTHS_PER_BAR,
+    Chord,
     Instrument,
     Note,
     Part,
@@ -94,7 +96,10 @@ def play(section: Section, rng: Random) -> Part:
     for bar in answering_bars(section.bars):
         chord = section.chart.at(bar)
         pitches = _in_range(
-            tuple(degree_to_pitch(chord, degree, LEAD_OCTAVE) for _, degree in motif)
+            tuple(
+                degree_to_pitch(chord, _in_the_chord(chord, degree), LEAD_OCTAVE)
+                for _, degree in motif
+            )
         )
         offset = bar * SIXTEENTHS_PER_BAR
         last = len(motif) - 1
@@ -120,6 +125,27 @@ def answering_bars(bars: int) -> range:
     across it would be the second thing in the arrangement arriving bolted on.
     """
     return range(1, max(bars - 1, 1), 2)
+
+
+def _in_the_chord(chord: Chord, degree: int) -> int:
+    """`degree`, or the root when the chord does not actually contain it.
+
+    **A third is not always there.** A power chord has none and a sus chord has none, and
+    `degree_to_pitch` answers those from the chord's *implied scale* — so under a chart
+    that disagrees with its key, degree 3 of `C5` in C dorian is a major third that is in
+    neither the key nor the chord. A lead that played it would break the dissonance budget
+    on its own and make the floor depend on the repairer, which is a floor with a hole in
+    it. `engines/keys.py` guards the same trap on a sus2 pad, for the same reason.
+
+    Found by `tests/property/test_dsl_round_trip.py` once the bake's notation could carry
+    a lead at all: 50% of one section's lead notes outside the key, budget 5%.
+
+    The root is in every chord, which is what makes it the safe answer rather than a
+    chosen one.
+    """
+    return (
+        degree if degree_to_pitch(chord, degree, 0) % PITCH_CLASSES in chord.pitch_classes() else 1
+    )
 
 
 def _in_range(pitches: tuple[int, ...]) -> tuple[int, ...]:

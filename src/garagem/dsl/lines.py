@@ -26,7 +26,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from garagem.domain import (
     ATTACK,
@@ -41,6 +41,7 @@ from garagem.domain import (
 )
 from garagem.dsl.errors import LineError
 from garagem.theory import TheoryError, Violation, parse_chart, render_chart, render_key
+from garagem.theory.scales import DEGREES
 
 FROZEN = ConfigDict(frozen=True, extra="forbid")
 
@@ -52,11 +53,9 @@ CHD: Final = "CHD"
 # neither list can claim a rule nobody implements.
 PARSE_RULES: Final[tuple[str, ...]] = ("section_mismatch", "schema")
 
-# The voices GARAGEM/0.1 has a line form for, which since ADR-026 is no longer every
-# voice the band has. `LEAD` plays and is not written: the live notation is frozen, and
-# the lead gets its `LED` line in the bake only. Until then a model that writes `LED` is
-# refused by name rather than half understood — naming it known here would promise a
-# parser that does not exist, and `serialize_section` would invent a line nobody reads.
+# The voices GARAGEM/0.1 carries, which since ADR-026 is no longer every voice the band
+# has. The live prompt teaches these four and its cassettes are recorded against them, so
+# `serialize_section` writes these unless it is asked for the bake's superset.
 WIRE_INSTRUMENTS: Final[tuple[Instrument, ...]] = (
     Instrument.DRUMS,
     Instrument.BASS,
@@ -64,8 +63,10 @@ WIRE_INSTRUMENTS: Final[tuple[Instrument, ...]] = (
     Instrument.KEYS,
 )
 
-# The DSL's three-letter tags are `Instrument`'s own values.
-BAR_TAGS: Final[tuple[str, ...]] = tuple(str(instrument) for instrument in WIRE_INSTRUMENTS)
+# The DSL's three-letter tags are `Instrument`'s own values. All five: the parser reads
+# the superset, and reading more than we write is what lets a bake carry a lead while the
+# live request does not move.
+BAR_TAGS: Final[tuple[str, ...]] = tuple(str(instrument) for instrument in Instrument)
 
 # Every `SEC` field `brief()` states, and therefore every one the model can be held to.
 SEC_FIELDS: Final[tuple[str, ...]] = ("bars", "key", "feel", "bpm", "dyn", "tension")
@@ -90,6 +91,12 @@ VOICINGS: Final[frozenset[str]] = frozenset({"pow", "triad", "sus2", "sus4", "dr
 ALIASES: Final[dict[str, str]] = {"power": "pow"}
 REGISTERS: Final[frozenset[str]] = frozenset({"low", "mid", "high"})
 
+# `deg:1=1,5=5,9=7,13=1` — a degree per struck slot, the bake's superset (ADR-026). Slots
+# are 1-indexed on the wire like every other position in this notation, and the struck
+# slots *are* the keys: one field carries the rhythm and the pitch, so there is no `rhy:`
+# beside it that could disagree with it.
+_DEGREE: Final = re.compile(r"^(\d+)=(\d+)$")
+
 
 # ------------------------------------------------------------------------------ the lines
 
@@ -106,6 +113,16 @@ class DrumLine(BaseModel):
 
 
 class BassLine(BaseModel):
+    """One bar of bass: a degree, an octave, a rhythm — or a degree per struck slot.
+
+    `degrees` is the bake's superset (ADR-026): `BAS oct=2 deg:1=1,5=5,9=7,13=1`, a line
+    that moves inside the bar instead of sitting on one degree of it. It is **additive**.
+    When it is present `rhythm` is exactly its struck slots and `degree` is the first of
+    them, so everything written against GARAGEM/0.1 — straightening, the serializer, the
+    realiser's own loop — keeps reading a `BassLine` the way it always did, and only the
+    realiser looks at the map.
+    """
+
     model_config = FROZEN
 
     degree: int = Field(ge=1, le=7)
@@ -113,6 +130,15 @@ class BassLine(BaseModel):
     rhythm: Grid
     # 0-indexed here; the wire says 1.
     ghosts: tuple[int, ...] = ()
+    # (slot, degree), 0-indexed slots, ascending. Empty in GARAGEM/0.1.
+    degrees: tuple[tuple[int, int], ...] = ()
+
+    @model_validator(mode="after")
+    def _the_map_is_the_rhythm(self) -> BassLine:
+        """Two spellings of where the notes are would drift the first time one was moved."""
+        if self.degrees and rhythm_of(self.degrees) != self.rhythm:
+            raise ValueError("a bass line's degree map and its rhythm disagree")
+        return self
 
 
 class ChordLine(BaseModel):
@@ -130,7 +156,34 @@ class ChordLine(BaseModel):
     reg: str = "mid"
 
 
-BarLine = DrumLine | BassLine | ChordLine
+class LeadLine(BaseModel):
+    """One bar of lead: a degree per struck slot, and which of them ring on.
+
+    **Bake only** (ADR-026). GARAGEM/0.1 has no `LED` line and the live prompt never asks
+    for one, so nothing the cassettes hold can contain this. It exists because a hook
+    needs to name its notes, which is the one thing the live notation was never given.
+
+    `LED oct=4 deg:9=5,11=3,13=1 hold=13`. An empty map is a bar the lead sits out, which
+    is most of them — `LED oct=4 deg:` — and it has to be spellable, because lines are
+    positional and a bar left out would shift every bar after it.
+    """
+
+    model_config = FROZEN
+
+    octave: int = Field(ge=0, le=8)
+    degrees: tuple[tuple[int, int], ...] = ()
+    rhythm: Grid
+    # 0-indexed here; the wire says 1. A held note rings to the next attack.
+    holds: tuple[int, ...] = ()
+
+    @model_validator(mode="after")
+    def _the_map_is_the_rhythm(self) -> LeadLine:
+        if rhythm_of(self.degrees) != self.rhythm:
+            raise ValueError("a lead line's degree map and its rhythm disagree")
+        return self
+
+
+BarLine = DrumLine | BassLine | ChordLine | LeadLine
 
 
 # -------------------------------------------------------------------------- SEC and CHD
@@ -251,7 +304,7 @@ def check_chd(chart: Chart, asked: Section) -> tuple[Violation, ...]:
 
 
 def parse_bar_line(line: str) -> BarLine:
-    """One `DRM`, `BAS`, `GTR` or `KEY` line into its typed form."""
+    """One `DRM`, `BAS`, `GTR`, `KEY` or `LED` line into its typed form."""
     parts = line.split()
     if not parts:
         raise LineError("an empty line is not a bar line")
@@ -260,6 +313,8 @@ def parse_bar_line(line: str) -> BarLine:
         return _drums(parts[1:], line)
     if tag == str(Instrument.BASS):
         return _bass(parts[1:], line)
+    if tag == str(Instrument.LEAD):
+        return _lead(parts[1:], line)
     if tag in (str(Instrument.GUITAR), str(Instrument.KEYS)):
         return _chordal(Instrument(tag), parts[1:], line)
     raise LineError(f"{tag!r} is not a DSL tag; known are {', '.join(BAR_TAGS)}: {line!r}")
@@ -296,13 +351,49 @@ def _drums(parts: list[str], line: str) -> DrumLine:
 
 
 def _bass(parts: list[str], line: str) -> BassLine:
+    """`BAS deg=1 oct=2 rhy:…` as GARAGEM/0.1 has it, or `BAS oct=2 deg:1=1,5=5,…`.
+
+    The two are told apart by the separator the model used, which is a fact about the text
+    rather than a guess: `deg=` is one degree for the bar, `deg:` is a degree per slot.
+    Writing both is refused rather than resolved — a rhythm stated twice is two rhythms,
+    and picking one would put notes where nobody wrote them.
+    """
     fields = _fields(parts, line, tag="BAS")
-    rhythm = _grid(_required(fields, "rhy", line), line)
+    octave = _integer(fields, "oct", line)
+    ghosts = _positions(fields.get("ghost", ""), line)
+
+    if "deg" in fields and fields.spellings["deg"] == ":":
+        if "rhy" in fields:
+            raise LineError(f"BAS: deg: already says where the notes are, drop rhy:, in {line!r}")
+        degrees = _degrees(fields["deg"], line, tag="BAS")
+        return BassLine(
+            # Unused where the map covers the slot, which is every struck slot it has. It
+            # is here so a `BassLine` always answers "what degree is this bar on".
+            degree=degrees[0][1] if degrees else 1,
+            octave=octave,
+            rhythm=rhythm_of(degrees),
+            ghosts=ghosts,
+            degrees=degrees,
+        )
+
     return BassLine(
         degree=_integer(fields, "deg", line),
+        octave=octave,
+        rhythm=_grid(_required(fields, "rhy", line), line),
+        ghosts=ghosts,
+    )
+
+
+def _lead(parts: list[str], line: str) -> LeadLine:
+    fields = _fields(parts, line, tag="LED")
+    if fields.spellings.get("deg") == "=":
+        raise LineError(f"LED: a lead names a degree per slot, deg:1=5 not deg=5, in {line!r}")
+    degrees = _degrees(_required(fields, "deg", line), line, tag="LED")
+    return LeadLine(
         octave=_integer(fields, "oct", line),
-        rhythm=rhythm,
-        ghosts=_positions(fields.get("ghost", ""), line),
+        degrees=degrees,
+        rhythm=rhythm_of(degrees),
+        holds=_positions(fields.get("hold", ""), line),
     )
 
 
@@ -348,18 +439,72 @@ def _chordal(instrument: Instrument, parts: list[str], line: str) -> ChordLine:
 _GRID_FIELD = re.compile(rf"(rhy):([x.]{{{SIXTEENTHS_PER_BAR}}}|[0-9,]+)(?=[a-z]+[=:])")
 
 
-def _fields(parts: list[str], line: str, *, tag: str) -> dict[str, str]:
-    """`deg=1 rhy:x...` — the DSL uses both separators, and both mean the same thing."""
-    fields: dict[str, str] = {}
+class Fields(dict[str, str]):
+    """A line's key/value pairs, and which separator each key was written with.
+
+    The separator used to be noise — `deg=1` and `rhy:x…` differ for no reason anyone
+    wrote down. Since ADR-026 it carries meaning on one key: `deg=1` is one degree for the
+    whole bar and `deg:1=1,5=5` is a degree per slot, and those are two line forms rather
+    than two spellings of one. Keeping the separator is how `_bass` tells them apart
+    without guessing from the shape of the value.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.spellings: dict[str, str] = {}
+
+    def put(self, key: str, separator: str, value: str) -> None:
+        self[key] = value
+        self.spellings[key] = separator
+
+
+def _fields(parts: list[str], line: str, *, tag: str) -> Fields:
+    """`deg=1 rhy:x...` — the DSL uses both separators.
+
+    **Whichever appears first is the one that splits the field.** That is new and it is
+    load-bearing: a degree map's *values* contain `=`, so splitting on `=` first read
+    `deg:1=1,5=5` as the key `deg:1`. Every GARAGEM/0.1 field holds exactly one separator,
+    so nothing written before this moves.
+    """
+    fields = Fields()
     for part in _split_fields(parts):
-        for separator in ("=", ":"):
-            key, found, value = part.partition(separator)
-            if found:
-                fields[key] = value
-                break
-        else:
+        at = min((found for found in (part.find(":"), part.find("=")) if found >= 0), default=-1)
+        if at < 0:
             raise LineError(f"{tag}: {part!r} is not a field, in {line!r}")
+        fields.put(part[:at], part[at], part[at + 1 :])
     return fields
+
+
+def rhythm_of(degrees: tuple[tuple[int, int], ...]) -> Grid:
+    """The bar a degree map strikes: the map *is* the rhythm, written the other way."""
+    struck = {slot for slot, _ in degrees}
+    return tuple(slot in struck for slot in range(SIXTEENTHS_PER_BAR))
+
+
+def _degrees(text: str, line: str, *, tag: str) -> tuple[tuple[int, int], ...]:
+    """`1=1,5=5,9=7` -> `((0, 1), (4, 5), (8, 7))`. Empty is a bar that rests.
+
+    Every refusal is named, as everywhere else in this module: a pair that is not
+    `slot=degree`, a slot outside the bar, a degree outside 1..7, and a slot given two
+    degrees — ambiguous the way a fifteen-character grid is ambiguous, so refused rather
+    than resolved.
+    """
+    if not text:
+        return ()
+    found: dict[int, int] = {}
+    for item in text.split(","):
+        match = _DEGREE.match(item.strip())
+        if match is None:
+            raise LineError(f"{tag}: {item!r} is not slot=degree, in {line!r}")
+        slot, degree = int(match.group(1)), int(match.group(2))
+        if not 1 <= slot <= SIXTEENTHS_PER_BAR:
+            raise LineError(f"{tag}: slot {slot} is outside 1..{SIXTEENTHS_PER_BAR}, in {line!r}")
+        if not 1 <= degree <= DEGREES:
+            raise LineError(f"{tag}: degree {degree} is outside 1..{DEGREES}, in {line!r}")
+        if slot - 1 in found:
+            raise LineError(f"{tag}: slot {slot} is given two degrees, in {line!r}")
+        found[slot - 1] = degree
+    return tuple(sorted(found.items()))
 
 
 def _split_fields(parts: list[str]) -> list[str]:

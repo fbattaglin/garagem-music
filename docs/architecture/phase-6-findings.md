@@ -141,3 +141,67 @@ model for: a theme per song, then each section written with that theme in hand. 
 floor's lead stays sparse on purpose, because it plays underneath and instead of the
 model's. If, after a song from the songwriter, he still wants more from the *floor's*
 lead, that is a separate finding and the table in `engines/lead.py` is where it goes.
+
+## 3. The notation learns to name notes
+
+Built on 2026-09-17, with no model and no network. Stage C of
+[ADR-026](ADR-026-the-songwriter.md). It is the stage that removes the reason the A/B came
+out at parity: **in GARAGEM/0.1 the model cannot name a pitch.** `BAS deg=1` is one degree
+for a whole bar, there is no line for a lead, and what is left to choose is which of
+sixteen slots to strike — out of the floor's own vocabulary.
+
+### What the bake can write that the live prompt cannot
+
+    BAS oct=2 deg:1=1,5=5,9=7,13=1       a degree per struck slot: a line that moves
+    LED oct=4 deg:9=5,11=3,13=1 hold=13  the fifth voice; hold= rings to the next attack
+    LED oct=4 deg:                       a bar the lead sits out, which is most of them
+
+The struck slots **are** the keys of the map, so one field carries the rhythm and the
+pitch and there is no second spelling of the bar to disagree with it. Writing `deg:` and
+`rhy:` together is refused rather than resolved, the way a fifteen-character grid is.
+
+**`deg=` and `deg:` are told apart by the separator**, which used to be noise: the parser
+split fields on `=` first, and a degree map's values contain `=`, so `deg:1=1,5=5` read as
+the key `deg:1`. Splitting on whichever separator comes first fixes it and moves nothing
+older — every GARAGEM/0.1 field holds exactly one separator.
+
+### The live notation did not move, and that is the load-bearing part
+
+- `serialize_section` writes GARAGEM/0.1 unless it is handed `pitched=True`. Every
+  cassette, every golden file and every prompt example is in that dialect, and a
+  serializer that quietly started writing more would move all three at once. **No golden
+  file changed in this stage.**
+- The parser reads the superset. Reading more than we write is exactly what lets a bake
+  carry a lead while the live request stays byte-identical.
+- **Truncation is now measured against the four voices the notation asks for, not the five
+  the band has.** `LED` is optional even in a bake — a section whose lead rests has no line
+  to write — and counting it would have marked every live take truncated overnight and
+  every leadless bake a fallback. The tests that caught it: `test_llm_baked` and
+  `test_dsl_stream`.
+
+### It found a bug in the floor's own lead
+
+The bake notation's round-trip property — five parts out, five parts back, still valid —
+failed on a briefing nobody would have thought to write by hand: `C5` under C dorian, at
+tension 0. **50% of the section's lead notes outside the key, against a 5% budget.**
+
+The round trip was faithful; the floor was wrong. A power chord has no third and a sus
+chord has none either, and `degree_to_pitch` answers for them out of the chord's *implied
+scale* — so degree 3 of `C5` is a major third that is in neither the chord nor the key.
+`engines/keys.py` has guarded the same trap on a sus2 pad since Phase 2, for the same
+stated reason: a floor that needs the repairer to be legal is a floor with a hole in it.
+
+`engines/lead.py` now takes the root wherever the chord does not contain the degree the
+motif names, and two parametrised tests hold it over every chord quality the DSL has.
+
+### What it cost to check
+
+- `tests/unit/test_dsl_pitched.py`, 22 tests: both bass forms, the lead line, eight named
+  refusals, what it realises, how it straightens, and that the live dialect is unchanged.
+- A new round-trip property over the superset, and the lead engine's own no-third tests.
+- Suite: **2323 passed, 27 skipped**; `ruff` and `mypy` clean; no golden file moved.
+
+### Unheard, and nothing to hear yet
+
+Nothing in this stage changes what plays: the floor writes no `deg:` lines and no model
+has been asked for one. Stage D is what asks.

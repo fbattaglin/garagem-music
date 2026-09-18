@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from garagem.domain import Feel, Instrument, Section
-from garagem.dsl import ORDER, WIRE_INSTRUMENTS, SectionStream, parse_section
+from garagem.dsl import WIRE_INSTRUMENTS, SectionStream, parse_section
 from garagem.dsl.errors import StreamProtocolError
 from garagem.llm import EVENT_ADAPTER, StreamDone, StreamEvent, TextDelta, ToolInputDelta
 from garagem.llm import ToolUseStart as Start
@@ -112,7 +112,18 @@ def test_instruments_become_ready_in_the_mandated_order() -> None:
     order: list[Instrument] = []
     for event in events_for(DSL, pieces=40):
         order.extend(stream.feed(event))
-    assert order == list(ORDER)
+    assert order == list(WIRE_INSTRUMENTS)
+
+
+def test_a_lead_line_closes_every_voice_before_it() -> None:
+    """`LED` is last in `ORDER` (ADR-026), so it is the one tag that can close all four."""
+    dsl = DSL + "\nLED oct=4 deg:9=5,13=1"
+    stream = SectionStream(a_section())
+    order: list[Instrument] = []
+    for event in events_for(dsl, pieces=40):
+        order.extend(stream.feed(event))
+    assert order == [*WIRE_INSTRUMENTS, Instrument.LEAD]
+    assert not stream.result().truncated
 
 
 def fed(lines: int) -> SectionStream:

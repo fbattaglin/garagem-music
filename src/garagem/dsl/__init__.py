@@ -9,11 +9,13 @@ from garagem.dsl.lines import (
     BassLine,
     ChordLine,
     DrumLine,
+    LeadLine,
     check_chd,
     check_sec,
     parse_bar_line,
     parse_chd,
     parse_sec,
+    rhythm_of,
 )
 from garagem.dsl.realise import realise
 from garagem.dsl.schema import SYSTEM, SYSTEM_ARRANGED, TOOL, brief, system_for
@@ -33,6 +35,7 @@ __all__ = [
     "ChordLine",
     "DrumLine",
     "DslError",
+    "LeadLine",
     "LineError",
     "ParsedSection",
     "SectionStream",
@@ -48,6 +51,7 @@ __all__ = [
     "parse_section",
     "parse_text",
     "realise",
+    "rhythm_of",
     "sec_line",
     "serialize_score",
     "serialize_section",

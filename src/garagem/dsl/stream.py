@@ -34,9 +34,11 @@ from garagem.domain import Chart, Instrument, Section
 from garagem.dsl.errors import LineError, StreamProtocolError
 from garagem.dsl.fragments import StringField
 from garagem.dsl.lines import (
+    WIRE_INSTRUMENTS,
     BarLine,
     BassLine,
     DrumLine,
+    LeadLine,
     check_chd,
     check_sec,
     parse_bar_line,
@@ -51,11 +53,15 @@ from garagem.theory import Violation
 FROZEN = ConfigDict(frozen=True, extra="forbid")
 
 # Rhythmic priority. A line for a later instrument closes every earlier one.
+#
+# `LEAD` is last and arrives only in a bake (ADR-026): the live prompt never asks for a
+# `LED` line, so on the live path this tuple behaves exactly as it did with four in it.
 ORDER: Final[tuple[Instrument, ...]] = (
     Instrument.DRUMS,
     Instrument.BASS,
     Instrument.GUITAR,
     Instrument.KEYS,
+    Instrument.LEAD,
 )
 
 # The rule name a line that would not parse is counted under. It is the name the exit
@@ -225,9 +231,15 @@ class SectionStream:
         return tuple(self._violations)
 
     def result(self) -> ParsedSection:
-        """Everything that arrived. `truncated` when the stream ended mid-section."""
-        expected = len(ORDER)
-        arrived = sum(1 for instrument in ORDER if self._lines[instrument])
+        """Everything that arrived. `truncated` when the stream ended mid-section.
+
+        **Measured against the four voices the notation asks for, not the five the band
+        has.** `LED` is bake-only and optional in the bake too (ADR-026): a section whose
+        lead rests has no `LED` line to write, and reading that as a cut-off stream would
+        make every live take truncated overnight and every leadless bake a fallback.
+        """
+        expected = len(WIRE_INSTRUMENTS)
+        arrived = sum(1 for instrument in WIRE_INSTRUMENTS if self._lines[instrument])
         return ParsedSection(
             section=self._asked,
             chart=self._chart,
@@ -242,6 +254,8 @@ def _instrument_of(line: BarLine) -> Instrument:
         return Instrument.DRUMS
     if isinstance(line, BassLine):
         return Instrument.BASS
+    if isinstance(line, LeadLine):
+        return Instrument.LEAD
     return line.instrument
 
 

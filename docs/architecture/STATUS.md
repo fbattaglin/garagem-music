@@ -73,7 +73,20 @@ states its `n`.
     *"Acho que ela está de bom gosto e adiciona uma cor. Talvez no futuro podemos explorar
     a possibilidade de ela ser mais do que isso."* Approved as colour, which is what it was
     built to be; "more than that" is what Stage D asks the model for.
-- **Stage C is next: the notation for pitched material, bake only.**
+- **Stage C is built: the notation can name notes** (`phase-6-findings.md` §3). A degree
+  per struck slot for the bass, and the `LED` line — read by the parser, written by
+  `serialize_section(..., pitched=True)` and by nothing else, so the live dialect, its
+  cassettes and every golden file are untouched. **No golden file moved in this stage.**
+  - Truncation is now counted against the four voices the notation asks for, not the five
+    the band has; counting the lead would have marked every live take truncated.
+  - Its round-trip property found a real bug in `engines/lead.py`: a power or sus chord
+    has no third, so degree 3 came out of the chord's implied scale and landed outside
+    both the chord and the key. The lead takes the root there now.
+  - Suite at **2323 passed, 27 skipped**; `ruff` and `mypy` clean.
+  - **Nothing to hear yet:** the floor writes no `deg:` lines and no model has been asked
+    for one.
+- **Stage D is next: the songwriter bake — a theme per song, then each section with it in
+  hand.** It is the first stage that spends money.
 
 **Two things Phase 5 ended on, in the order they were heard:**
 1. **The shuffle is mechanical.** *"A musica número dois … foi sem dúvidas a menos interessante e

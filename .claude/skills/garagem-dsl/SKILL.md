@@ -42,11 +42,29 @@ The order follows rhythmic priority and exists to allow **incremental parsing**:
 and bass arrive first and can already be written into the clip while the rest is still
 being generated. Never reorder it.
 
-**The band has a fifth voice the notation does not.** Since ADR-026 `Instrument` carries
-`LEAD = "LED"`, played by `engines/lead.py` and written into a fifth Live track. GARAGEM/0.1
-has no `LED` line: the live prompt is frozen, `serialize_section` writes the four voices
-above (`dsl.WIRE_INSTRUMENTS`), and `parse_bar_line` refuses `LED` by name. The lead's own
-line form is bake-only and arrives with Stage C of ADR-026.
+## The bake's superset — read, and written only when asked
+
+Since ADR-026 the notation has **two vocabularies, and the frozen half is the one with
+cassettes against it.** GARAGEM/0.1 is what the live prompt teaches and what
+`serialize_section` writes by default: the four voices above, `BAS deg=` naming one degree
+for a whole bar, and no lead. The parser reads more than that, and `serialize_section(...,
+pitched=True)` writes it — for the offline bake, where there is no 5.8 s deadline and the
+model can be asked for pitches.
+
+    BAS oct=2 deg:1=1,5=5,9=7,13=1     a degree per struck slot: the line moves in the bar
+    LED oct=4 deg:9=5,11=3,13=1 hold=13    the fifth voice; hold= rings to the next attack
+    LED oct=4 deg:                     a bar the lead sits out, which is most of them
+
+- Slots are 1-indexed, like every other position in this notation. **The struck slots are
+  the keys**: `deg:` carries the rhythm and the pitch together, so there is no `rhy:`
+  beside it — writing both is refused.
+- `deg=` and `deg:` are different line forms, told apart by the separator. A lead has no
+  `deg=` form: `LED ... deg=5` is refused by name.
+- Degrees are 1..7 of the *bar's chord*. A slot outside 1..16, a degree outside 1..7, a
+  pair that is not `slot=degree`, and a slot given two degrees are each refused by name.
+- **Truncation is measured against the four**, not the five: a section whose lead rests
+  has no `LED` line, and that is complete, not cut off.
+- `LEAD` is last in the emission order, so nothing written before ADR-026 moves.
 
 ## Invariants the validator enforces
 

@@ -41,6 +41,7 @@ from garagem.domain import (
     SectionScore,
 )
 from garagem.dsl.lines import WIRE_INSTRUMENTS
+from garagem.dsl.realise import LEAD_BEATS
 from garagem.theory.chords import render_chart, render_key
 from garagem.theory.percussion import CRASH, GHOST_VELOCITY, HATS, KICK, SNARE
 from garagem.theory.scales import DEGREES, degree_to_pitch
@@ -71,13 +72,21 @@ PALM_MUTE_BEATS: Final = 0.2
 ACCENT_MARGIN: Final = 6
 
 
-def serialize_section(score: SectionScore) -> str:
-    """The DSL text for a whole section, in the mandated emission order."""
+def serialize_section(score: SectionScore, *, pitched: bool = False) -> str:
+    """The DSL text for a whole section, in the mandated emission order.
+
+    `pitched` writes the bake's superset (ADR-026): a degree per struck slot for the bass,
+    and the `LED` line the band's fifth voice needs. **Off by default, and that default is
+    the frozen live notation** — every cassette, every golden file and every prompt example
+    is written in GARAGEM/0.1, and a serializer that quietly started writing more would move
+    all three at once.
+    """
     section = score.section
     lines = [sec_line(section), f"CHD {render_chart(section.chart)}"]
-    for instrument in WIRE_INSTRUMENTS:
+    voices = (*WIRE_INSTRUMENTS, Instrument.LEAD) if pitched else WIRE_INSTRUMENTS
+    for instrument in voices:
         part = _part_or_silence(score, instrument)
-        lines.extend(_part_lines(part, section))
+        lines.extend(_part_lines(part, section, pitched=pitched))
     return "\n".join(lines) + "\n"
 
 
@@ -119,13 +128,17 @@ def _part_or_silence(score: SectionScore, instrument: Instrument) -> Part:
         return Part(instrument=instrument)
 
 
-def _part_lines(part: Part, section: Section) -> list[str]:
+def _part_lines(part: Part, section: Section, *, pitched: bool = False) -> list[str]:
     """One line per bar, positional. Bar 1 is the section's first bar."""
     placed = _by_bar(part, section)
     if part.instrument is Instrument.DRUMS:
         return [_drum_line(placed[bar]) for bar in range(section.bars)]
     if part.instrument is Instrument.BASS:
-        return [_bass_line(placed[bar], section, bar) for bar in range(section.bars)]
+        return [
+            _bass_line(placed[bar], section, bar, pitched=pitched) for bar in range(section.bars)
+        ]
+    if part.instrument is Instrument.LEAD:
+        return [_lead_line(placed[bar], section, bar) for bar in range(section.bars)]
     return [
         _chordal_line(part.instrument, placed[bar], section.chart.at(bar).root)
         for bar in range(section.bars)
@@ -165,17 +178,75 @@ def _drum_line(bar: dict[int, list[Note]]) -> str:
     return f"DRM {voices}"
 
 
-def _bass_line(bar: dict[int, list[Note]], section: Section, index: int) -> str:
+def _bass_line(
+    bar: dict[int, list[Note]], section: Section, index: int, *, pitched: bool = False
+) -> str:
     notes = [note for slot in sorted(bar) for note in bar[slot]]
     rhythm = "".join(ATTACK if slot in bar else REST for slot in range(SIXTEENTHS_PER_BAR))
     if not notes:
         return f"BAS deg=0 oct=0 rhy:{rhythm}"
     first = notes[0]
-    degree = _degree_of(first.pitch, section, index)
     octave = first.pitch // 12 - 1
     ghosts = _positions(bar, lambda note: note.velocity < GHOST_VELOCITY)
-    line = f"BAS deg={degree} oct={octave} rhy:{rhythm}"
+
+    per_slot = _degree_map(bar, section, index) if pitched else None
+    if per_slot is not None:
+        line = f"BAS oct={octave} deg:{per_slot}"
+    else:
+        line = f"BAS deg={_degree_of(first.pitch, section, index)} oct={octave} rhy:{rhythm}"
     return f"{line} ghost={ghosts}" if ghosts else line
+
+
+def _degree_map(bar: dict[int, list[Note]], section: Section, index: int) -> str | None:
+    """`1=1,5=5,9=7` for this bar, or `None` when the notation cannot name one of its notes.
+
+    A walking bass reaches a chromatic passing tone, and that note is a degree of nothing —
+    `_degree_of` says 0, which the parser refuses. So a bar with one in it falls back to
+    GARAGEM/0.1's bar-level form rather than being written in a spelling that will not
+    parse. The loss is the one this notation already has and already documents: `deg=`
+    names one degree for the bar, and the passing tone comes back on it.
+    """
+    pairs = []
+    for slot in sorted(bar):
+        degree = _degree_of(bar[slot][0].pitch, section, index)
+        if degree == 0:
+            return None
+        pairs.append(f"{slot + 1}={degree}")
+    return ",".join(pairs)
+
+
+def _lead_line(bar: dict[int, list[Note]], section: Section, index: int) -> str:
+    """`LED oct=4 deg:9=5,11=3,13=1 hold=13`, or an empty map for a bar it sits out.
+
+    A lead note that is not a degree of its bar's chord takes the **nearest** degree, which
+    the bass's fallback cannot do because the bass has a bar-level form to fall back to and
+    the lead has none. It is at most a semitone, it never refuses, and the floor's lead
+    never needs it: its motifs are chord tones (`engines/lead.py`).
+    """
+    if not bar:
+        return "LED oct=4 deg:"
+    first = bar[min(bar)][0]
+    octave = first.pitch // 12 - 1
+    pairs = ",".join(
+        f"{slot + 1}={_nearest_degree(bar[slot][0].pitch, section, index)}" for slot in sorted(bar)
+    )
+    holds = _positions(bar, lambda note: note.duration_beats > LEAD_BEATS)
+    line = f"LED oct={octave} deg:{pairs}"
+    return f"{line} hold={holds}" if holds else line
+
+
+def _nearest_degree(pitch: int, section: Section, bar: int) -> int:
+    """The degree of the bar's chord closest to `pitch`, in semitones. Ties go down."""
+    exact = _degree_of(pitch, section, bar)
+    if exact:
+        return exact
+    chord = section.chart.at(bar)
+
+    def distance(degree: int) -> int:
+        apart = (pitch - degree_to_pitch(chord, degree, 0)) % 12
+        return min(apart, 12 - apart)
+
+    return min(range(1, DEGREES + 1), key=lambda degree: (distance(degree), degree))
 
 
 def _chordal_line(instrument: Instrument, bar: dict[int, list[Note]], root: int) -> str:

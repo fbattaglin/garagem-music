@@ -70,7 +70,7 @@ from garagem.domain import (
     beats_of,
     parse_grid,
 )
-from garagem.dsl.lines import BarLine, BassLine, ChordLine, DrumLine
+from garagem.dsl.lines import BarLine, BassLine, ChordLine, DrumLine, LeadLine, rhythm_of
 from garagem.dsl.stream import ORDER, ParsedSection
 from garagem.engines.groove import fill_for, groove_for
 from garagem.engines.humanise import humanise, separate
@@ -90,6 +90,7 @@ HIT_BEATS: Final = 0.125
 BASS_BEATS: Final = 0.45
 MUTED_BEATS: Final = 0.12
 RING_BEATS: Final = 0.5
+LEAD_BEATS: Final = 0.5
 
 REGISTERS: Final[dict[str, Register]] = {
     "low": Register.LOW,
@@ -156,6 +157,8 @@ def _part(
         notes = _drums(lines, section, straighten)
     elif instrument is Instrument.BASS:
         notes = _bass(lines, section)
+    elif instrument is Instrument.LEAD:
+        notes = _lead(lines, section)
     else:
         notes = _chordal(instrument, lines, section)
     return Part(
@@ -342,10 +345,21 @@ def _straight_line(line: BarLine) -> BarLine:
             }
         )
     if isinstance(line, BassLine):
+        degrees = _merged_degrees(line.degrees)
         return line.model_copy(
             update={
                 "rhythm": _onto_the_eighths(line.rhythm),
                 "ghosts": _merged(line.rhythm, line.ghosts, keep=all),
+                "degrees": degrees,
+            }
+        )
+    if isinstance(line, LeadLine):
+        degrees = _merged_degrees(line.degrees)
+        return line.model_copy(
+            update={
+                "degrees": degrees,
+                "rhythm": rhythm_of(degrees),
+                "holds": _merged(line.rhythm, line.holds, keep=any),
             }
         )
     return line.model_copy(
@@ -354,6 +368,20 @@ def _straight_line(line: BarLine) -> BarLine:
             "accents": _merged(line.rhythm, line.accents, keep=any),
         }
     )
+
+
+def _merged_degrees(degrees: tuple[tuple[int, int], ...]) -> tuple[tuple[int, int], ...]:
+    """A degree map moved onto the eighths. Where two notes merge, the earlier one wins.
+
+    The rule the rest of straightening follows — attacks move or merge, nothing is
+    invented — needs an answer for which *pitch* survives a merge, and the earlier attack's
+    is the one that was already sounding on that eighth. It is also the one a listener
+    heard the beat start on.
+    """
+    merged: dict[int, int] = {}
+    for slot, degree in degrees:
+        merged.setdefault(_eighth_of(slot), degree)
+    return tuple(sorted(merged.items()))
 
 
 def _eighth_of(slot: int) -> int:
@@ -390,18 +418,59 @@ def _bass(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
         if not isinstance(line, BassLine):
             continue
         chord = section.chart.at(bar)
-        pitch = _inside(degree_to_pitch(chord, line.degree, line.octave), low, high)
+        # A degree per slot where the line has one, the bar's degree everywhere else. A
+        # GARAGEM/0.1 line has an empty map, so every slot takes `line.degree` and the
+        # music is what it was before ADR-026 — which is what the golden files say.
+        per_slot = dict(line.degrees)
         offset = bar * SIXTEENTHS_PER_BAR
         for slot, attack in enumerate(line.rhythm):
             if not attack:
                 continue
             ghost = slot in line.ghosts
+            degree = per_slot.get(slot, line.degree)
             notes.append(
                 Note(
-                    pitch=pitch,
+                    pitch=_inside(degree_to_pitch(chord, degree, line.octave), low, high),
                     start_beats=beats_of(offset + slot, section.feel),
                     duration_beats=BASS_BEATS,
                     velocity=GHOST_VELOCITY - 1 if ghost else _accented(velocity, slot),
+                )
+            )
+    return notes
+
+
+# ---------------------------------------------------------------------------------- lead
+
+
+def _lead(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
+    """The hook, a degree at a time (ADR-026).
+
+    One note per struck slot, at the degree the line names, in the octave it names. A slot
+    named in `hold=` rings until the next attack — which is how a phrase lands instead of
+    stopping, and the only thing in this line form that is not a pitch or a place.
+    """
+    low, high = RANGES[Instrument.LEAD]
+    velocity = BASE_VELOCITY + DYN_VELOCITY * section.dyn
+    notes: list[Note] = []
+    for bar in range(section.bars):
+        line = _for_bar(lines, bar)
+        if not isinstance(line, LeadLine):
+            continue
+        chord = section.chart.at(bar)
+        offset = bar * SIXTEENTHS_PER_BAR
+        struck = [slot for slot, _ in line.degrees]
+        for index, (slot, degree) in enumerate(line.degrees):
+            at = beats_of(offset + slot, section.feel)
+            # The bar's end when nothing follows: a held last note rings into the next bar,
+            # which is what holding one is for.
+            after = struck[index + 1] if index + 1 < len(struck) else SIXTEENTHS_PER_BAR
+            held = beats_of(offset + after, section.feel) - at
+            notes.append(
+                Note(
+                    pitch=_inside(degree_to_pitch(chord, degree, line.octave), low, high),
+                    start_beats=at,
+                    duration_beats=max(LEAD_BEATS, held) if slot in line.holds else LEAD_BEATS,
+                    velocity=_accented(velocity, slot),
                 )
             )
     return notes

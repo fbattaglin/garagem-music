@@ -91,6 +91,29 @@ def test_what_comes_back_is_playable(section: Section, seed: int) -> None:
 
 
 @given(section=sections, seed=seeds)
+def test_the_bakes_notation_carries_the_whole_band(section: Section, seed: int) -> None:
+    """The superset's own round trip (ADR-026): five parts out, five parts back.
+
+    `pitched=True` writes a degree per struck slot and the `LED` line, so the gap the
+    bar-level form leaves — one degree for a bar the bass moved inside of — is not there.
+    A bar whose notes the notation cannot name still falls back to `deg=`, which is why
+    this asserts attacks and validity rather than every pitch; the exact-pitch claim is
+    `tests/unit/test_dsl_pitched.py`'s, over the floor's own output.
+    """
+    original = play_section(section, seed)
+    parsed = parse_section(as_stream(serialize_section(original, pitched=True)), section)
+    assert parsed.violations == ()
+    assert not parsed.truncated
+    back = realise(parsed, seed, straighten=False)
+    assert back.instruments() == frozenset(Instrument)
+    assert validate(back) == ()
+    for instrument in Instrument:
+        before = tuple(n.start_beats for n in original.part(instrument).notes)
+        after = tuple(n.start_beats for n in back.part(instrument).notes)
+        assert attacks(before, section) == attacks(after, section), instrument
+
+
+@given(section=sections, seed=seeds)
 def test_pitch_classes_survive_wherever_the_notation_can_carry_them(
     section: Section, seed: int
 ) -> None:
