@@ -1,0 +1,35 @@
+# The same three songs as `first.toml`, baked by the songwriter instead of the live prompt
+# (ADR-026). Same keys, same feels, same seeds — so the forms are identical and the only
+# thing that differs is who wrote the material.
+#
+#     uv run python scripts/bake_setlist.py setlists/songwriter.toml         # the estimate
+#     uv run python scripts/bake_setlist.py setlists/songwriter.toml --yes   # bakes it
+#
+# A separate name, not a second bake of `first`, so the event log can tell a session of one
+# from a session of the other and `first.json`'s curation is never at risk.
+
+name = "songwriter"
+
+[[song]]
+title = "Seven"
+key = 4
+scale = "minor"
+feel = "straight8"
+seconds = 200
+seed = 7
+
+[[song]]
+title = "Swing low"
+key = 9
+scale = "minor"
+feel = "shuffle"
+seconds = 200
+seed = 11
+
+[[song]]
+title = "Half light"
+key = 7
+scale = "major"
+feel = "halftime"
+seconds = 200
+seed = 23

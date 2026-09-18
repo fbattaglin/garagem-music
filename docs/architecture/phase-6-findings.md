@@ -287,3 +287,72 @@ nobody has asked to make. It is one line of plan to reinstate when something nee
 
 Nothing has been asked of a model yet. Stage E is one paid bake of one song, played and
 curated, and its verdict is criterion 5.
+
+## 5. The first paid bake, and the two things it says
+
+Baked on 2026-09-17 by `claude-sonnet-5`, into `setlists/songwriter.json`: the same three
+songs as `first.json`, same keys, same feels, same seeds, so the forms are identical and
+the only thing that differs is who wrote the material. **18 of 18 sections delivered, for
+$0.2808.**
+
+### Criterion 3, measured. One of its two rates is not met.
+
+| | | |
+|---|---|---|
+| Conformant on the first pass | **16 of 18 = 89%** | **not met**, against ≥90% |
+| Approved by the validator without repair | **18 of 18 = 100%** | met, against ≥80% |
+
+Beside them, as description and never as a target (ADR-019):
+
+- the bass moves inside the bar in **18 of 18** takes — the thing GARAGEM/0.1 could not say;
+- **9 of 9** choruses carry a lead line;
+- the lead sounds in **70 of 144** bars, so it rests about half the time.
+
+Median usage 425 tokens in, 1286 out. **Spent $0.2808 against an estimate of $0.24** — 17%
+over, because the sections are longer than the 1000 output tokens ADR-026 guessed. The
+estimate is now a measurement and the constant should say so before the next bake.
+
+### Both misses are the same defect, and the notation has the answer already
+
+    KEY voi=sus2 rhy:
+    DRM K:1,7,9,12 S:1,5,9,11,12,13,14,15,16 H:
+
+The model means *this voice is silent this bar*, and in the positions spelling an empty
+list says exactly that and nothing else. The parser refuses it, because `_grid("")` routes
+an empty value to the grid reader, which counts zero characters and asks for sixteen.
+
+**This is not the ambiguity P4 exists to refuse.** A fifteen-character grid is ambiguous —
+which slot went missing cannot be recovered — and is rightly refused. An empty *list* is
+not: nothing was struck. The lead line ADR-026 added already spells a rest that way, on
+purpose (`LED oct=4 deg:`), so the notation contradicts itself between two lines written a
+day apart.
+
+**The fix is not credited to this bake.** The rate was pre-registered at ≥90% and it came
+back at 89%; changing the parser after reading the number and then calling the criterion
+met is the exact move this project's discipline exists to prevent. The change is made
+deliberately, and it is measured on the *next* bake, whose `n` is stated as its own.
+
+### The theme prompt failed, and it failed in a way this project has already measured once
+
+Two of the three themes are **byte-identical to the example in `SYSTEM_THEME`**, and the
+third differs in five slots of the bass. Three songs, three feels, three keys — one riff
+and one hook between them.
+
+`phase-3-findings.md` §11 found the same thing and stated it as a rule: **an instruction
+that contradicts its example loses to the example.** The correction then was to make the
+example *be* the thing asked for. Here that correction is the defect: the example is a
+complete, valid, plausible answer, so returning it is both the cheapest move and a correct
+one. Nothing in the prompt makes a copy wrong.
+
+It is worth naming precisely what this does and does not show. It does **not** show that
+the model cannot write material. It shows that **we did not ask in a way that made copying
+impossible**, and a bake that gives three songs one theme cannot be the evidence for
+criterion 5 — every song would come back to the same hook, and the ear would be judging
+one theme played three ways.
+
+### Where this leaves the phase
+
+Criterion 5 is not asked for yet: playing a setlist whose three songs share a hook would
+spend a listening session on a prompt defect rather than on the songwriter. The bake stands
+as evidence and as a working end-to-end path — 18 of 18, five voices, pitched material,
+inside budget — and the next bake is the one that answers criterion 3 and criterion 5.

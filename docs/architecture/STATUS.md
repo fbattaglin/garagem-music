@@ -100,8 +100,21 @@ states its `n`.
     level (ADR-024 §4), one take per briefing in `answers()`, and curation marks rather than
     chooses.
   - Suite at **2331 passed, 27 skipped**; `ruff` and `mypy` clean.
-- **Stage E is next, and it is the first thing that spends money:** one paid bake of one
-  song, played with the pads and curated, and the verdict recorded verbatim.
+- **The first paid bake is done and says two things** (`phase-6-findings.md` §5).
+  `setlists/songwriter.json`, the same three songs as `first.json`, 18 of 18 delivered for
+  **$0.2808** against a $0.24 estimate.
+  - **Criterion 3 is not met:** 16 of 18 conformant on the first pass = **89%**, against a
+    pre-registered ≥90%. Approved without repair is 18 of 18 = 100%, against ≥80%.
+  - Both misses are one defect: an empty voice (`rhy:`, `H:`), which the positions
+    spelling makes unambiguous and the parser refuses anyway — while the `LED` line added
+    the day before spells a rest exactly that way. **The fix is not credited to this bake**;
+    it is measured on the next one, with its own `n`.
+  - **The theme prompt failed:** two of three themes are byte-identical to the example in
+    `SYSTEM_THEME` and the third differs in five slots. One riff and one hook for three
+    songs, three feels and three keys. `phase-3-findings.md` §11's rule, the other way
+    round: the example is a complete valid answer, so copying it is correct and cheap.
+  - **Criterion 5 is not asked for yet.** A setlist whose three songs share a hook would
+    spend a listening session on a prompt defect rather than on the songwriter.
 
 **Two things Phase 5 ended on, in the order they were heard:**
 1. **The shuffle is mechanical.** *"A musica número dois … foi sem dúvidas a menos interessante e
