@@ -7,8 +7,14 @@ golden-tested and was already approved by ear.
 **It is not the identity, and the gap is the DSL's rather than the parser's.** A
 sixteen-slot grid cannot carry a nine-millisecond push, and `BAS deg=1` is one degree per
 *bar* — so a bass line that moves to the fifth mid-bar comes back on the root. What must
-survive is asserted exactly: every attack, every instrument, no violation, and every
-pitch class for the three parts whose notation can carry them.
+survive is asserted exactly: every attack, every instrument the notation carries, no
+violation, and every pitch class for the three parts whose notation can carry them.
+
+**The round trip is over the notation's four voices, not the band's five.** Since ADR-026
+the floor plays a `LEAD`, and GARAGEM/0.1 has no line for it: the live notation is frozen
+and the lead's `LED` form belongs to the bake. So a lead goes in and does not come back,
+which is stated here rather than discovered — `WIRE_INSTRUMENTS` is the list, and when
+Stage C gives the lead a line this file's own assertions are what will say so.
 
 If this fails, the parser is wrong and not the serializer: the serializer's output is
 compared byte for byte against committed files in `tests/golden/`, and the music it
@@ -28,7 +34,7 @@ from hypothesis import given
 from strategies import sections, seeds
 
 from garagem.domain import Instrument, Section
-from garagem.dsl import parse_section, realise, serialize_section
+from garagem.dsl import WIRE_INSTRUMENTS, parse_section, realise, serialize_section
 from garagem.engines import play_section
 from garagem.llm import StreamDone, StreamEvent, ToolInputDelta, ToolUseStart
 from garagem.theory import validate
@@ -59,7 +65,7 @@ def test_the_round_trip_keeps_every_attack(section: Section, seed: int) -> None:
     parsed = parse_section(as_stream(serialize_section(original)), section)
     back = realise(parsed, seed, straighten=False)
 
-    for instrument in Instrument:
+    for instrument in WIRE_INSTRUMENTS:
         before = tuple(n.start_beats for n in original.part(instrument).notes)
         after = tuple(n.start_beats for n in back.part(instrument).notes)
         assert attacks(before, section) == attacks(after, section)
@@ -79,7 +85,8 @@ def test_what_comes_back_is_playable(section: Section, seed: int) -> None:
     original = play_section(section, seed)
     parsed = parse_section(as_stream(serialize_section(original)), section)
     back = realise(parsed, seed, straighten=False)
-    assert back.instruments() == original.instruments()
+    assert back.instruments() == frozenset(WIRE_INSTRUMENTS)
+    assert original.instruments() == frozenset(Instrument)
     assert validate(back) == ()
 
 

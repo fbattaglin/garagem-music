@@ -4,6 +4,7 @@ from garagem.dsl.errors import DslError, LineError, StreamProtocolError
 from garagem.dsl.fragments import ESCAPES, StringField, decode_fragments
 from garagem.dsl.lines import (
     PARSE_RULES,
+    WIRE_INSTRUMENTS,
     BarLine,
     BassLine,
     ChordLine,
@@ -26,6 +27,7 @@ __all__ = [
     "SYSTEM",
     "SYSTEM_ARRANGED",
     "TOOL",
+    "WIRE_INSTRUMENTS",
     "BarLine",
     "BassLine",
     "ChordLine",

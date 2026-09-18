@@ -50,7 +50,9 @@ def test_generation_is_reproducible(section: Section, seed: int) -> None:
 
 
 @given(section=sections, seed=seeds)
-def test_all_four_instruments_are_always_present(section: Section, seed: int) -> None:
+def test_all_five_instruments_are_always_present(section: Section, seed: int) -> None:
+    """Five parts for any briefing since ADR-026 — the lead's is often empty, and a part
+    with no notes is not a missing part."""
     assert play_section(section, seed).instruments() == frozenset(Instrument)
 
 

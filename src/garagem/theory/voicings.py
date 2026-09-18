@@ -52,6 +52,9 @@ RANGES: Final[dict[Instrument, tuple[int, int]]] = {
     Instrument.BASS: (28, 55),  # E1 - G3
     Instrument.GUITAR: (40, 76),  # E2 - E5
     Instrument.KEYS: (36, 84),  # C2 - C6
+    # G3 - C6: it starts where the bass stops, so the two can never share an octave, and
+    # it reaches over the top of the guitar, which is where a hook has to be heard from.
+    Instrument.LEAD: (55, 84),
 }
 
 STYLES: Final[tuple[str, ...]] = ("pow", "triad", "sus2", "sus4", "drop2", "shell")

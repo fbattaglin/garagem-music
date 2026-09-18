@@ -37,17 +37,23 @@ MAX_DYN = 5
 
 
 class Instrument(StrEnum):
-    """The four voices of the band, tagged as the DSL tags them.
+    """The five voices of the band, tagged as the DSL tags them.
 
     The values are the DSL's three-letter line prefixes, so a part and its serialised
-    line cannot drift apart (`.claude/skills/garagem-dsl`). Phase 6 adds a fifth voice by
-    adding a member here and an engine; nothing else in the system enumerates them.
+    line cannot drift apart (`.claude/skills/garagem-dsl`).
+
+    **`LEAD` is last, and it is younger than the other four.** ADR-026 added it so the
+    songwriter has somewhere to put a riff; it is last so every existing emission order,
+    golden file and parse order is unchanged by its arrival. GARAGEM/0.1 has no `LED`
+    line — the notation gains one in the bake only — so the wire format still carries
+    four voices while the band plays five.
     """
 
     DRUMS = "DRM"
     BASS = "BAS"
     GUITAR = "GTR"
     KEYS = "KEY"
+    LEAD = "LED"
 
 
 class Note(BaseModel):

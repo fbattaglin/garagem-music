@@ -63,17 +63,28 @@ VARIANTS: Final[dict[str, Callable[[SectionScore], SectionScore]]] = {
 
 # Which tracks each variant changes — and therefore fires, and returns.
 TRACKS: Final[dict[str, tuple[Instrument, ...]]] = {
-    STOP: (Instrument.DRUMS, Instrument.BASS, Instrument.GUITAR, Instrument.KEYS),
+    STOP: (
+        Instrument.DRUMS,
+        Instrument.BASS,
+        Instrument.GUITAR,
+        Instrument.KEYS,
+        Instrument.LEAD,
+    ),
     FILL: (Instrument.DRUMS,),
 }
 
-# Write order: the fill's single track first, then the stop's four.
+# Write order: the fill's single track first, then the stop's. A Set without the lead
+# track simply never reaches it — `write_one` skips an instrument it has no track for.
 WRITE_ORDER: Final[tuple[tuple[str, Instrument], ...]] = (
     (FILL, Instrument.DRUMS),
     *((STOP, instrument) for instrument in TRACKS[STOP]),
 )
 
-DROPPED: Final[tuple[Instrument, ...]] = (Instrument.GUITAR, Instrument.KEYS)
+DROPPED: Final[tuple[Instrument, ...]] = (
+    Instrument.GUITAR,
+    Instrument.KEYS,
+    Instrument.LEAD,
+)
 
 
 @dataclass(slots=True)
@@ -169,9 +180,19 @@ class BarCues:
         if scene is None or written is None or written[1] != playing_scene:
             return "no_variant"
         ready = self._ready.get((index, kind), set())
-        if not set(TRACKS[kind]) <= ready:
+        if not self._expected(kind) <= ready:
             return "unavailable"
         return None
+
+    def _expected(self, kind: str) -> set[Instrument]:
+        """The variant's tracks this Set actually has.
+
+        Four tracks under a five-voice band is the ordinary case since ADR-026: the lead
+        is optional by construction, and every writer maps instruments through
+        `self._tracks`. Waiting for a track that does not exist would not make the stop
+        leadless — it would make it permanently `unavailable`, and the pad would go dead.
+        """
+        return {instrument for instrument in TRACKS[kind] if instrument in self._tracks}
 
     def fire(self, kind: str, index: int, playing_scene: int, bar: int) -> Pending:
         """Fire the variant's tracks for the next bar. Guitar and keys stay out if dropped."""

@@ -1,4 +1,4 @@
-# DRM=93 BAS=32 GTR=144 KEY=32; notes sha256 4b2187a7ac6763c6
+# DRM=93 BAS=32 GTR=144 KEY=32; notes sha256 9f59a84f772725ef
 SEC bridge bars=8 key=C feel=shuffle bpm=110 dyn=3 tension=0.55
 CHD | Am | F | C | G |
 DRM K:x.....x.x...x... S:....x.......x... H:x.x...x.x...x.x. C:x...............

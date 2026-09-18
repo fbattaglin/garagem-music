@@ -25,7 +25,8 @@ from garagem.daw.errors import DawError, DawTimeoutError
 from garagem.daw.osc import OscArg, OscListener
 from garagem.daw.port import BeatHandler, ClipAddress, MidiNote, Quantization, normalised
 
-DEFAULT_TRACKS: tuple[str, ...] = ("DRUMS", "BASS", "GTR", "KEYS")
+# `session.toml`'s own track names, in its own order (ADR-013, ADR-026).
+DEFAULT_TRACKS: tuple[str, ...] = ("DRUMS", "BASS", "GTR", "KEYS", "LEAD")
 DEFAULT_DEVICE: str = "Drift"
 
 

@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from garagem.domain import Feel, Instrument, Section
-from garagem.dsl import ORDER, SectionStream, parse_section
+from garagem.dsl import ORDER, WIRE_INSTRUMENTS, SectionStream, parse_section
 from garagem.dsl.errors import StreamProtocolError
 from garagem.llm import EVENT_ADAPTER, StreamDone, StreamEvent, TextDelta, ToolInputDelta
 from garagem.llm import ToolUseStart as Start
@@ -71,8 +71,9 @@ def recorded(name: str) -> list[StreamEvent]:
 
 
 def test_a_whole_section_parses_into_four_parts() -> None:
+    """Four, not five: `LEAD` plays in the band and has no line in GARAGEM/0.1 (ADR-026)."""
     parsed = parse_section(events_for(DSL), a_section())
-    assert parsed.instruments() == frozenset(Instrument)
+    assert parsed.instruments() == frozenset(WIRE_INSTRUMENTS)
     assert parsed.violations == ()
     assert not parsed.truncated
 
@@ -194,7 +195,7 @@ def test_a_tool_by_another_name_is_a_protocol_error() -> None:
 def test_the_recorded_anthropic_stream_parses_clean() -> None:
     """45 fragments from a real model, replayed with no network."""
     parsed = parse_section(recorded("anthropic_section"), a_section())
-    assert parsed.instruments() == frozenset(Instrument)
+    assert parsed.instruments() == frozenset(WIRE_INSTRUMENTS)
     assert parsed.violations == ()
 
 
@@ -206,7 +207,7 @@ def test_the_recorded_flash_stream_parses_clean_too() -> None:
     """
     parsed = parse_section(recorded("google_section_flash"), a_section())
     assert parsed.violations == ()
-    assert parsed.instruments() == frozenset(Instrument)
+    assert parsed.instruments() == frozenset(WIRE_INSTRUMENTS)
 
 
 def test_one_fragment_and_forty_five_give_the_same_section() -> None:

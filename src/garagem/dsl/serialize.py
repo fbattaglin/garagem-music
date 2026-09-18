@@ -8,7 +8,8 @@ notation: a sixteen-slot grid, a degree, a voicing name. It cannot express a not
 nine milliseconds late or a velocity of 83, and it is not supposed to. This is the form
 Phase 3 exchanges with a model.
 
-`serialize_score` writes every note, exactly. It exists because invariant 7 says a
+`serialize_score` writes every note, exactly — every part, the lead included. It exists
+because invariant 7 says a
 generation is byte-identical given a seed, and a golden file that could not see a
 velocity change would be a test that passes while the music moves. Nothing sends this
 anywhere; it is evidence.
@@ -39,6 +40,7 @@ from garagem.domain import (
     Section,
     SectionScore,
 )
+from garagem.dsl.lines import WIRE_INSTRUMENTS
 from garagem.theory.chords import render_chart, render_key
 from garagem.theory.percussion import CRASH, GHOST_VELOCITY, HATS, KICK, SNARE
 from garagem.theory.scales import DEGREES, degree_to_pitch
@@ -73,7 +75,7 @@ def serialize_section(score: SectionScore) -> str:
     """The DSL text for a whole section, in the mandated emission order."""
     section = score.section
     lines = [sec_line(section), f"CHD {render_chart(section.chart)}"]
-    for instrument in Instrument:
+    for instrument in WIRE_INSTRUMENTS:
         part = _part_or_silence(score, instrument)
         lines.extend(_part_lines(part, section))
     return "\n".join(lines) + "\n"

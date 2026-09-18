@@ -281,7 +281,8 @@ def diff_session(spec: SessionSpec, observed: ObservedSet) -> tuple[Divergence, 
             found.append(
                 Divergence(
                     "missing_track",
-                    f"track {track.index} ({track.name}) does not exist",
+                    f"track {track.index} ({track.name}) does not exist; "
+                    f"it wants {track.instrument!r}",
                     False,
                     track=track.index,
                 )
@@ -330,7 +331,8 @@ def diff_session(spec: SessionSpec, observed: ObservedSet) -> tuple[Divergence, 
             found.append(
                 Divergence(
                     "no_instrument",
-                    f"track {track.index} ({track.name}) carries no device, so it will be silent",
+                    f"track {track.index} ({track.name}) carries no device, so it will be "
+                    f"silent; it wants {track.instrument!r}",
                     False,
                     track=track.index,
                 )
@@ -401,12 +403,12 @@ def _instruction(divergence: Divergence) -> str:
         case "missing_track":
             return (
                 " — open the Set, add a MIDI track at that position, name it as above,"
-                " and drop Drift on it"
+                " and load the preset named above onto it"
             )
         case "no_instrument":
             return (
-                " — open the Set and drag an instrument onto that track: Live's browser,"
-                " Instruments -> Drift, drag any preset onto the track"
+                " — open the Set and load the preset named above onto that track;"
+                " they are all Core Library presets, so search the browser by name"
             )
         case "extra_track":
             return " — remove them in Live, or add them to session.toml if they belong"

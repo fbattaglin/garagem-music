@@ -188,6 +188,7 @@ ROLE_TO_INSTRUMENT: dict[str, Instrument] = {
     "bass": Instrument.BASS,
     "guitar": Instrument.GUITAR,
     "keys": Instrument.KEYS,
+    "lead": Instrument.LEAD,
 }
 
 

@@ -42,9 +42,16 @@ The order follows rhythmic priority and exists to allow **incremental parsing**:
 and bass arrive first and can already be written into the clip while the rest is still
 being generated. Never reorder it.
 
+**The band has a fifth voice the notation does not.** Since ADR-026 `Instrument` carries
+`LEAD = "LED"`, played by `engines/lead.py` and written into a fifth Live track. GARAGEM/0.1
+has no `LED` line: the live prompt is frozen, `serialize_section` writes the four voices
+above (`dsl.WIRE_INSTRUMENTS`), and `parse_bar_line` refuses `LED` by name. The lead's own
+line form is bake-only and arrives with Stage C of ADR-026.
+
 ## Invariants the validator enforces
 
-- Every `BAS` note falls within E1–G3; `GTR` within E2–E5; `KEY` within C2–C6.
+- Every `BAS` note falls within E1–G3; `GTR` within E2–E5; `KEY` within C2–C6; `LED`
+  within G3–C6.
 - Bass degree 1 on beat 1 of each chord, unless `tension > 0.7`.
 - No open and closed hi-hat in the same slot.
 - Minimum interval between consecutive kicks: 60 ms, unless `double_kick=on`.

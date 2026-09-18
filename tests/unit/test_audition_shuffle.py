@@ -16,7 +16,7 @@ from types import ModuleType
 import pytest
 
 from garagem.daw import FakeDawAdapter, load_session
-from garagem.domain import Feel
+from garagem.domain import Feel, Instrument
 from garagem.theory import validate
 from garagem.theory.validator import grid_slots, nearest_slot
 
@@ -97,7 +97,7 @@ def test_the_two_sides_differ_and_both_play(take: object) -> None:
     assert sides[audition.AS_WRITTEN] != sides[audition.STRAIGHTENED]
     for score in sides.values():
         assert validate(score) == ()
-        assert len(score.parts) == 4
+        assert score.instruments() == frozenset(Instrument)
 
 
 @pytest.mark.parametrize("take", CHOSEN, ids=[take.name for take in CHOSEN])

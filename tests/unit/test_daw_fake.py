@@ -34,7 +34,7 @@ CHORD = (
 
 def test_the_fake_starts_as_the_template_set() -> None:
     daw = FakeDawAdapter()
-    assert daw.track_names() == ("DRUMS", "BASS", "GTR", "KEYS")
+    assert daw.track_names() == ("DRUMS", "BASS", "GTR", "KEYS", "LEAD")
     assert daw.device_names(0) == ("Drift",)
     assert daw.scene_count() == 2
     assert daw.accepts_midi(0) is True

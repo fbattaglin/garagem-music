@@ -35,6 +35,10 @@ SECTION = Section(
     chart=parse_chart("| Em | C | G | D |"),
 )
 
+# The lead rests below `dyn` 4 (`engines/lead.py`), so a verse is the wrong briefing for
+# any test whose point is that every voice sounds. A chorus is one where all five do.
+CHORUS = SECTION.model_copy(update={"name": "chorus", "dyn": 4, "tension": 0.7})
+
 
 def a_note(**extra: object) -> Note:
     base: dict[str, object] = {"pitch": 40, "start_beats": 1.0, "duration_beats": 0.5}
@@ -72,7 +76,7 @@ def test_rendering_is_pure() -> None:
 
 
 def test_a_whole_score_renders_to_one_entry_per_instrument() -> None:
-    rendered = render_score(play_section(SECTION, 7))
+    rendered = render_score(play_section(CHORUS, 7))
     assert set(rendered) == set(Instrument)
     assert all(notes for notes in rendered.values())
 
@@ -83,7 +87,7 @@ def test_a_score_with_no_parts_renders_to_an_empty_mapping() -> None:
 
 
 def test_the_offset_reaches_every_part() -> None:
-    score = play_section(SECTION, 7)
+    score = play_section(CHORUS, 7)
     at_zero = render_score(score)
     shifted = render_score(score, bar_offset=1)
     for instrument, notes in at_zero.items():

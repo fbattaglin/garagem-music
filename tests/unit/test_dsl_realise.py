@@ -25,7 +25,7 @@ from garagem.domain import (
     beats_of,
     render_grid,
 )
-from garagem.dsl import ParsedSection, parse_section, realise
+from garagem.dsl import WIRE_INSTRUMENTS, ParsedSection, parse_section, realise
 from garagem.engines import MAX_TIMING_BEATS
 from garagem.engines.groove import fill_for, groove_for
 from garagem.llm import EVENT_ADAPTER, StreamEvent
@@ -329,9 +329,10 @@ def test_every_recorded_response_realises_into_a_valid_score(name: str) -> None:
 
 
 def test_the_anthropic_cassette_realises_all_four_parts() -> None:
+    """Four. A take carries no lead, and `engines.completed` is what adds the floor's."""
     parsed = parse_section(recorded("anthropic_section"), a_section())
     score = realise(parsed, 7)
-    assert score.instruments() == frozenset(Instrument)
+    assert score.instruments() == frozenset(WIRE_INSTRUMENTS)
     assert all(part.notes for part in score.parts)
 
 

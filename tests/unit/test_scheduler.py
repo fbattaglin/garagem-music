@@ -33,12 +33,18 @@ from garagem.theory import parse_chart
 from garagem.theory.coherence import Coherence
 from garagem.transport import BarClock, CueQueue, Scheduler, ScoreBuffer, render_score
 
+# Four tracks under a five-voice band, which is what a Set from before ADR-026 looks like.
+# Every writer maps instruments through this, so the lead is simply never written here —
+# `test_a_set_without_a_lead_track_never_receives_the_part` is the one that says so, and
+# `FIVE_TRACKS` is the Set that does have it.
 TRACKS = {
     Instrument.DRUMS: 0,
     Instrument.BASS: 1,
     Instrument.GUITAR: 2,
     Instrument.KEYS: 3,
 }
+
+FIVE_TRACKS = {**TRACKS, Instrument.LEAD: 4}
 
 
 def a_section(name: str = "verse", bars: int = 4, **extra: object) -> Section:
@@ -772,9 +778,9 @@ def test_after_a_jump_the_candidate_plays_and_the_song_is_re_planned_from_it() -
 
 def test_no_write_ever_lands_in_the_scene_that_is_playing_even_across_jumps() -> None:
     rig = JumpRig().play({13: CueKind.CHORUS_NOW, 45: CueKind.CHORUS_NOW})
-    candidate_writes = len(Instrument)
+    candidate_writes = len(TRACKS)
     assert len(rig.of_kind("cue_applied")) == 2
-    for scene, playing in rig.daw.writes[candidate_writes + len(Instrument) :]:
+    for scene, playing in rig.daw.writes[candidate_writes + len(TRACKS) :]:
         assert scene != playing
         assert scene != CHORUS_SCENE
 
@@ -925,7 +931,8 @@ VERSE_STOP, VERSE_FILL, VERSE_MAIN = 5, 7, 1
 class BarRig:
     """LONG with variant scenes, a chorus candidate and a cue queue, a beat at a time."""
 
-    def __init__(self, **kwargs: object) -> None:
+    def __init__(self, tracks: dict[Instrument, int] | None = None, **kwargs: object) -> None:
+        self.tracks = tracks or TRACKS
         self.daw = FakeDawAdapter(scenes=8)
         self.clock = BarClock(self.daw)
         self.clock.start()
@@ -935,7 +942,7 @@ class BarRig:
             self.daw,
             self.clock,
             ScoreBuffer(),
-            TRACKS,
+            self.tracks,
             self.log,
             seed=7,
             cues=self.queue,
@@ -986,7 +993,7 @@ def test_variants_are_written_ahead_fill_drums_first_each_with_legato_on() -> No
         ("stop", "KEY"),
     ]
     assert rig.daw.clip_legato(at(Instrument.DRUMS, VERSE_FILL))
-    assert all(rig.daw.clip_legato(at(instrument, VERSE_STOP)) for instrument in Instrument)
+    assert all(rig.daw.clip_legato(at(instrument, VERSE_STOP)) for instrument in TRACKS)
 
 
 def test_a_variant_is_never_written_in_a_tick_that_wrote_a_section() -> None:
@@ -1000,7 +1007,7 @@ def test_a_stop_fires_every_track_into_the_stop_variant_for_the_next_bar() -> No
     (applied,) = rig.of_kind("cue_applied")
     assert (applied.detail["cue_bar"], applied.detail["fired_bar"]) == (6, 7)
     assert applied.detail["scene"] == VERSE_STOP
-    assert rig.daw.fired_clips[:4] == [at(instrument, VERSE_STOP) for instrument in Instrument]
+    assert rig.daw.fired_clips[:4] == [at(instrument, VERSE_STOP) for instrument in TRACKS]
 
 
 def test_a_bar_after_the_stop_every_track_goes_back_to_the_groove_with_legato() -> None:
@@ -1008,12 +1015,12 @@ def test_a_bar_after_the_stop_every_track_goes_back_to_the_groove_with_legato() 
     (returned,) = rig.of_kind("variant_returned")
     assert returned.detail["via"] == "legato"
     assert returned.detail["fired_bar"] == 8
-    assert rig.daw.fired_clips[4:8] == [at(instrument, VERSE_MAIN) for instrument in Instrument]
+    assert rig.daw.fired_clips[4:8] == [at(instrument, VERSE_MAIN) for instrument in TRACKS]
     assert rig.calls_by_bar[7].count("set_clip_legato") == 4
     # Once it has landed, the main clips lose legato again — or the verse's scene would start
     # its next section mid-way.
     assert rig.calls_by_bar[8].count("set_clip_legato") == 4
-    assert not any(rig.daw.clip_legato(at(instrument, VERSE_MAIN)) for instrument in Instrument)
+    assert not any(rig.daw.clip_legato(at(instrument, VERSE_MAIN)) for instrument in TRACKS)
 
 
 def test_a_fill_fires_and_returns_only_the_drums() -> None:
@@ -1033,6 +1040,44 @@ def test_drums_and_bass_stops_guitar_and_keys_until_the_next_section() -> None:
     assert rig.daw.stopped_tracks == [TRACKS[Instrument.GUITAR], TRACKS[Instrument.KEYS]]
     assert rig.daw.fired_clips == []
     assert [e.detail["name"] for e in rig.of_kind("scene_fired")][2] == "chorus"
+
+
+def test_a_set_without_a_lead_track_never_receives_the_part() -> None:
+    """ADR-026's fifth voice is optional by construction, and this is where it is proved.
+
+    The rig's Set has the four tracks it had before the lead existed. Nothing is written
+    to a fifth, nothing is fired there, and — the part that was a real bug — the stop pad
+    still works: readiness counts the tracks the Set has, not the ones the band has.
+    """
+    rig = BarRig().play({25: CueKind.STOP})
+    assert all(address.track < 4 for address in rig.daw.fired_clips)
+    assert "LED" not in {str(e.detail["instrument"]) for e in rig.of_kind("variant_written")}
+    (applied,) = rig.of_kind("cue_applied")
+    assert applied.detail["cue"] == "stop"
+
+
+def test_a_set_with_a_lead_track_stops_it_with_the_rest() -> None:
+    rig = BarRig(tracks=FIVE_TRACKS).play({25: CueKind.STOP})
+    verse = [e.detail for e in rig.of_kind("variant_written") if e.detail["section"] == 1]
+    assert [(d["variant"], d["instrument"]) for d in verse] == [
+        ("fill", "DRM"),
+        ("stop", "DRM"),
+        ("stop", "BAS"),
+        ("stop", "GTR"),
+        ("stop", "KEY"),
+        ("stop", "LED"),
+    ]
+    (applied,) = rig.of_kind("cue_applied")
+    assert applied.detail["tracks"] == "DRM,BAS,GTR,KEY,LED"
+    assert ClipAddress(track=4, scene=VERSE_STOP) in rig.daw.fired_clips
+
+
+def test_drums_and_bass_drops_the_lead_too() -> None:
+    """A hook is one of the things "drums and bass" is asking to be rid of."""
+    rig = BarRig(tracks=FIVE_TRACKS).play({21: CueKind.DRUMS_AND_BASS, 25: CueKind.STOP})
+    stop = next(e for e in rig.of_kind("cue_applied") if e.detail["cue"] == "stop")
+    assert stop.detail["tracks"] == "DRM,BAS"
+    assert all(address.track not in (2, 3, 4) for address in rig.daw.fired_clips)
 
 
 def test_a_stop_while_guitar_and_keys_are_out_leaves_them_out() -> None:

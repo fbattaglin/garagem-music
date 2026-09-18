@@ -1,4 +1,4 @@
-# DRM=89 BAS=32 GTR=144 KEY=48; notes sha256 58303868e7e27aa5
+# DRM=89 BAS=32 GTR=144 KEY=48; notes sha256 ffaf6b51c7ba8666
 SEC verse bars=8 key=F# feel=straight8 bpm=96 dyn=2 tension=0.35
 CHD | F# | D#m | B | C# |
 DRM K:x.......x....... S:....x.......x... H:x.x.x.x.x.x.x.x. C:x...............

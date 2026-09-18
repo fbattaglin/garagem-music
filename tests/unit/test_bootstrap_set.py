@@ -35,7 +35,7 @@ bootstrap = _load_bootstrap()
 
 def matching_daw(**extra: object) -> FakeDawAdapter:
     base: dict[str, object] = {
-        "track_names": ("DRUMS", "BASS", "GTR", "KEYS"),
+        "track_names": ("DRUMS", "BASS", "GTR", "KEYS", "LEAD"),
         # As many as `session.toml` declares: ADR-022 lays out eight.
         "scenes": 8,
         "tempo_bpm": 132.0,
@@ -62,7 +62,7 @@ def test_a_matching_set_exits_zero(
 def test_a_diverged_set_exits_one_and_says_what_to_do(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    daw = matching_daw(track_names=("DRUMS", "BAIXO", "GTR", "KEYS"))
+    daw = matching_daw(track_names=("DRUMS", "BAIXO", "GTR", "KEYS", "LEAD"))
     assert run(daw, monkeypatch) == 1
 
     report = capsys.readouterr().err

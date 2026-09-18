@@ -8,7 +8,11 @@
 #
 # Template Set: ~/Music/Ableton/GARAGEM/garagem-phase1.als
 #
-# Ableton Live 12 Lite caps a Set at 8 tracks. Four is what Phase 1 needs.
+# Ableton Live 12 Lite caps a Set at 8 tracks. Four were what Phase 1 needed; ADR-026
+# added a fifth, LEAD, so the songwriter has somewhere to put a riff. A Set that still
+# has four plays exactly as it did — the writers map instruments through this file, so a
+# track that is not here never receives a part.
+#
 # `instrument` is informational: it tells the human which device to drop in. The check
 # is only that *some* device is present. Phase 1 played everything on Drift, because that
 # phase was about timing rather than timbre (ADR-013); ADR-025 gave the band its own
@@ -63,6 +67,15 @@ index = 3
 name = "KEYS"
 role = "keys"
 instrument = "Grand Piano"
+armed = false
+
+[[track]]
+index = 4
+name = "LEAD"
+role = "lead"
+# Core Library, Simpler-based, so every edition of Live can load it. A clean electric
+# against the muted rhythm guitar on track 2: the hook has to come through the band.
+instrument = "Guitar Electric Clean"
 armed = false
 
 # Two scenes minimum: ADR-001 writes into the one that is not playing, so with a single

@@ -6,12 +6,16 @@ deadline, is refused, or returns something the validator will not accept, this i
 function the scheduler calls instead — so it can never fail, never wait and never need a
 network.
 
-**One `Random`, created here, handed to each engine in the DSL's order.** The order —
-DRM, BAS, GTR, KEY — is mandated by `.claude/skills/garagem-dsl` for incremental parsing,
-and following it offline costs nothing and buys something: it is the same order Phase 3's
-parser will see, so an ordering bug shows up in a golden file rather than in a live
-stream. Because the engines share one generator, that order is also load-bearing for
-invariant 7: reordering the calls changes the music, and the golden tests would say so.
+**One `Random`, created here, handed to each engine in the DSL's order.** DRM, BAS, GTR,
+KEY is mandated by `.claude/skills/garagem-dsl` for incremental parsing, and following it
+offline costs nothing and buys something: it is the same order Phase 3's parser will see,
+so an ordering bug shows up in a golden file rather than in a live stream. Because the
+engines share one generator, that order is also load-bearing for invariant 7: reordering
+the calls changes the music, and the golden tests would say so.
+
+**LED goes behind them, and it is the only engine allowed to return early.** It is last,
+so the fact that it draws nothing from the generator when it rests cannot move any other
+part (`engines/lead.py`).
 """
 
 from __future__ import annotations
@@ -25,6 +29,7 @@ from garagem.engines.bass import play as play_bass
 from garagem.engines.drums import play as play_drums
 from garagem.engines.guitar import play as play_guitar
 from garagem.engines.keys import play as play_keys
+from garagem.engines.lead import play as play_lead
 
 # In the DSL's mandated emission order. Iterating this is what guarantees it.
 ENGINES: Final[tuple[tuple[Instrument, Callable[[Section, Random], Part]], ...]] = (
@@ -32,11 +37,18 @@ ENGINES: Final[tuple[tuple[Instrument, Callable[[Section, Random], Part]], ...]]
     (Instrument.BASS, play_bass),
     (Instrument.GUITAR, play_guitar),
     (Instrument.KEYS, play_keys),
+    (Instrument.LEAD, play_lead),
 )
 
 
 def play_section(section: Section, seed: int) -> SectionScore:
-    """Four parts and the seed that produced them. Pure, total, and offline."""
+    """Five parts and the seed that produced them. Pure, total, and offline.
+
+    Five parts, not five voices sounding: the lead is silent below its own dynamic
+    (`engines/lead.py`), and a part with no notes is how this system says "chose not to
+    play" — the same distinction `dsl/serialize.py` keeps between a line of rests and no
+    line at all.
+    """
     rng = Random(seed)
     parts = tuple(play(section, rng) for _, play in ENGINES)
     return SectionScore(section=section, parts=parts, seed=seed)

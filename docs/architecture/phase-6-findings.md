@@ -61,3 +61,69 @@ approved as it now stands**, and it is Phase 6's criterion 2.
 
 Worth keeping beside the verdict: the bass went from eight attacks a bar to four, which was the
 risk in the change, and nothing came back as thin.
+
+## 2. The fifth voice
+
+Built on 2026-09-17, with no model and no network. Stage B of
+[ADR-026](ADR-026-the-songwriter.md), and the reason it comes before any model work is
+that the songwriter needs a track to write a riff *on* — one that plays without a network
+like every other voice (invariant 2).
+
+### What the floor's lead plays
+
+`engines/lead.py`, and almost all of it is restraint:
+
+| | |
+|---|---|
+| **When** | Only at `dyn` 4 and up — a chorus, or a verse the density knob pushed there. |
+| **Where** | The second half of every other bar, and never the last bar, which is the fill's. |
+| **What** | One motif per section, chosen from a seeded table and played again on each answering bar with that bar's own chord. Degrees 1, 3 and 5 only. |
+| **How high** | G3–C6, above the guitar and starting where the bass stops. |
+
+**In sound:** the band states the bar, and in the second half of every other bar a clean
+guitar answers with a three-note figure falling to the root. Over one arranged song that
+is nine notes a chorus and nothing anywhere else. A chorus in D gets A–F♯–D; the same
+shape on E gets B–G–E, so the hook transposes with the harmony instead of repeating a
+pitch that stops fitting.
+
+**Why so little.** ADR-026 says it: a floor lead that played everywhere would fight the
+model's line rather than stand in for it. What is wanted here is a voice that is *present
+and optional*, not a soloist.
+
+### Optional by construction, and one bug that proved it
+
+A Set with four tracks never receives the part: every writer maps instruments through
+`session.toml`, so an instrument with no track is skipped. That was already true of the
+scheduler. **It was not true of the stop pad.** The bar-cue readiness check compared the
+tracks written against `TRACKS[STOP]` — the band's list — so on a four-track Set the stop
+would have waited forever for a lead that could never be written, and the pad would have
+gone dead rather than leadless. Readiness now counts the tracks the Set actually has
+(`bar_cues._expected`), and two tests hold the line: a four-track Set still stops, and a
+five-track Set stops the lead with the rest.
+
+### What moved, and what did not
+
+- **The notation did not move.** GARAGEM/0.1 still has four lines. `dsl.WIRE_INSTRUMENTS`
+  is that list by name, `serialize_section` writes it, and `parse_bar_line` refuses `LED`
+  rather than half understanding it. The live prompt, its cassettes and the regression
+  suite are untouched, which is what ADR-025's freeze requires.
+- **Every golden file gained a `LED` block and nothing else.** The eleven engine goldens:
+  17 lines added, 0 removed, 0 changed. The 29 musical-regression goldens changed by
+  exactly one character run each — their digest — and stripping the new `LED notes=0`
+  block from the rendering reproduces the old digest in **29 of 29**. No note, onset or
+  velocity moved. This is the deviation from criterion 6's letter, stated here rather
+  than smoothed over: the criterion said only the shuffle's goldens would move, and a
+  fifth voice moves every file that enumerates the band.
+- **The Set report now names the preset to load.** It used to say "drop Drift on it",
+  which has been wrong since ADR-025 gave the band its own instruments. It now reads the
+  instrument out of `session.toml` — and it is what Fabiano reads while adding track 4.
+- Suite: **2281 passed, 27 skipped**; `ruff` and `mypy` clean.
+
+### Unheard, and blocked on Live
+
+`bootstrap_set.py` reports what is left:
+
+    HUMAN: [missing_track] track 4 (LEAD) does not exist; it wants 'Guitar Electric Clean'
+
+Until that track is in `garagem-band.als`, `pytest -m live` cannot pass and the lead
+cannot be heard. The listening is the same short jam as Stage A, with the lead present.

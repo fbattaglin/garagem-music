@@ -83,7 +83,7 @@ def test_the_shipped_session_file_loads() -> None:
     """The real file, not a fixture: a spec nobody can load is worse than none."""
     spec = load_session(SHIPPED)
 
-    assert [track.name for track in spec.tracks] == ["DRUMS", "BASS", "GTR", "KEYS"]
+    assert [track.name for track in spec.tracks] == ["DRUMS", "BASS", "GTR", "KEYS", "LEAD"]
     assert spec.quantization is Quantization.BAR
     assert spec.tempo_bpm == 132.0
     assert len(spec.scenes) >= 2
@@ -400,13 +400,21 @@ def test_the_report_says_who_fixes_each_line_and_how() -> None:
     report = render_divergences(
         (
             Divergence("tempo", "120.0 BPM, expected 132.0", True),
-            Divergence("no_instrument", "track 1 (BASS) carries no device", False, track=1),
+            Divergence(
+                "no_instrument",
+                "track 1 (BASS) carries no device; it wants 'Electric Bass Raw'",
+                False,
+                track=1,
+            ),
         )
     )
 
     assert "fix: [tempo]" in report
     assert "HUMAN: [no_instrument]" in report
-    assert "Instruments -> Drift" in report
+    # The preset by name, not a generic "drop Drift on it": since ADR-025 every track
+    # wants a particular Core Library preset, and the report is what he reads in Live.
+    assert "'Electric Bass Raw'" in report
+    assert "load the preset named above" in report
 
 
 def test_a_track_says_which_notes_its_instrument_answers_to(tmp_path: Path) -> None:

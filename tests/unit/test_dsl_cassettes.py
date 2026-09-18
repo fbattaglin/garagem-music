@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from garagem.domain import Feel, Instrument, Section
-from garagem.dsl import parse_section, realise
+from garagem.domain import Feel, Section
+from garagem.dsl import WIRE_INSTRUMENTS, parse_section, realise
 from garagem.llm import EVENT_ADAPTER, StreamEvent
 from garagem.theory import parse_chart, repair, validate
 
@@ -77,7 +77,7 @@ def test_every_recorded_response_is_perfectly_conformant(name: str) -> None:
     """
     parsed = parse_section(recorded(name), BRIEFING)
     assert parsed.violations == ()
-    assert parsed.instruments() == frozenset(Instrument)
+    assert parsed.instruments() == frozenset(WIRE_INSTRUMENTS)
 
 
 def test_a_voicing_the_dsl_does_not_have_is_still_refused() -> None:

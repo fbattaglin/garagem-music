@@ -52,8 +52,20 @@ CHD: Final = "CHD"
 # neither list can claim a rule nobody implements.
 PARSE_RULES: Final[tuple[str, ...]] = ("section_mismatch", "schema")
 
-# The DSL's three-letter tags are `Instrument`'s own values, so this needs no table.
-BAR_TAGS: Final[tuple[str, ...]] = tuple(str(instrument) for instrument in Instrument)
+# The voices GARAGEM/0.1 has a line form for, which since ADR-026 is no longer every
+# voice the band has. `LEAD` plays and is not written: the live notation is frozen, and
+# the lead gets its `LED` line in the bake only. Until then a model that writes `LED` is
+# refused by name rather than half understood — naming it known here would promise a
+# parser that does not exist, and `serialize_section` would invent a line nobody reads.
+WIRE_INSTRUMENTS: Final[tuple[Instrument, ...]] = (
+    Instrument.DRUMS,
+    Instrument.BASS,
+    Instrument.GUITAR,
+    Instrument.KEYS,
+)
+
+# The DSL's three-letter tags are `Instrument`'s own values.
+BAR_TAGS: Final[tuple[str, ...]] = tuple(str(instrument) for instrument in WIRE_INSTRUMENTS)
 
 # Every `SEC` field `brief()` states, and therefore every one the model can be held to.
 SEC_FIELDS: Final[tuple[str, ...]] = ("bars", "key", "feel", "bpm", "dyn", "tension")

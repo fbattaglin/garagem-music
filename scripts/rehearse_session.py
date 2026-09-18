@@ -90,7 +90,13 @@ DEFAULT_LOG = ROOT / "bench" / "jam.jsonl"
 CATALOG = ROOT / "config" / "models.toml"
 BUDGET = ROOT / "config" / "budget.toml"
 
-TRACKS: Final = {Instrument.DRUMS: 0, Instrument.BASS: 1, Instrument.GUITAR: 2, Instrument.KEYS: 3}
+TRACKS: Final = {
+    Instrument.DRUMS: 0,
+    Instrument.BASS: 1,
+    Instrument.GUITAR: 2,
+    Instrument.KEYS: 3,
+    Instrument.LEAD: 4,
+}
 # The Set's layout (ADR-022), as `session.toml` names it.
 CANDIDATES: Final = {"chorus": 2}
 VARIANTS: Final = {"stop": {0: 4, 1: 5}, "fill": {0: 6, 1: 7}}

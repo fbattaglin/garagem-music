@@ -245,18 +245,20 @@ def test_different_seeds_change_the_notes_but_not_the_harmony() -> None:
     assert first.section.chart == second.section.chart
 
 
-def test_all_four_instruments_are_present() -> None:
+def test_all_five_instruments_are_present() -> None:
     assert play_section(a_section(), 7).instruments() == frozenset(Instrument)
 
 
 def test_the_parts_come_out_in_the_dsl_emission_order() -> None:
-    """DRM, BAS, GTR, KEY — the order Phase 3's incremental parser will see."""
+    """DRM, BAS, GTR, KEY — the order Phase 3's incremental parser will see — then LED,
+    which it never sees, behind them (ADR-026)."""
     parts = play_section(a_section(), 7).parts
     assert [part.instrument for part in parts] == [
         Instrument.DRUMS,
         Instrument.BASS,
         Instrument.GUITAR,
         Instrument.KEYS,
+        Instrument.LEAD,
     ]
 
 

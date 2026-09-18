@@ -80,6 +80,7 @@ TRACKS: Final[dict[Instrument, int]] = {
     Instrument.BASS: 1,
     Instrument.GUITAR: 2,
     Instrument.KEYS: 3,
+    Instrument.LEAD: 4,
 }
 
 

@@ -1,4 +1,4 @@
-# DRM=102 BAS=32 GTR=128 KEY=48; notes sha256 49125ef8d2458e86
+# DRM=102 BAS=32 GTR=128 KEY=48; notes sha256 56dc530885b03c07
 SEC chorus bars=8 key=C#m feel=halftime bpm=132 dyn=4 tension=0.7
 CHD | A | B | C#m | C#m |
 DRM K:x.....x.x..x.... S:........x....... H:x.x.x.x.x.x.x.x. C:x...............
