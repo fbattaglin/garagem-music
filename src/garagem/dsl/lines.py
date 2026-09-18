@@ -97,6 +97,14 @@ REGISTERS: Final[frozenset[str]] = frozenset({"low", "mid", "high"})
 # beside it that could disagree with it.
 _DEGREE: Final = re.compile(r"^(\d+)=(\d+)$")
 
+# **Degrees run to 14, not to 7**, and a musician would say so first: 8 is the root an
+# octave up, 9 the ninth, 13 the thirteenth. The first two paid bakes of the songwriter
+# each lost sections to `deg:...=8` — a hook reaching the octave, which is the most
+# ordinary thing a melody does — and the second lost a whole song's theme to it
+# (`phase-6-findings.md` §5, §7). The cap was 7 because `degree_to_pitch` takes 1..7; that
+# is a fact about one function, not about music, and `realise` now does the division.
+TOP_DEGREE: Final = DEGREES * 2
+
 
 # ------------------------------------------------------------------------------ the lines
 
@@ -499,8 +507,8 @@ def _degrees(text: str, line: str, *, tag: str) -> tuple[tuple[int, int], ...]:
         slot, degree = int(match.group(1)), int(match.group(2))
         if not 1 <= slot <= SIXTEENTHS_PER_BAR:
             raise LineError(f"{tag}: slot {slot} is outside 1..{SIXTEENTHS_PER_BAR}, in {line!r}")
-        if not 1 <= degree <= DEGREES:
-            raise LineError(f"{tag}: degree {degree} is outside 1..{DEGREES}, in {line!r}")
+        if not 1 <= degree <= TOP_DEGREE:
+            raise LineError(f"{tag}: degree {degree} is outside 1..{TOP_DEGREE}, in {line!r}")
         if slot - 1 in found:
             raise LineError(f"{tag}: slot {slot} is given two degrees, in {line!r}")
         found[slot - 1] = degree

@@ -19,12 +19,15 @@ states its `n`.
 - [x] **The shuffle has its own vocabulary**, and the verdict on it is recorded verbatim.
       *"Achei que teve muito mais alma. Muito bom."* — 2026-09-17, one shuffle jam
       (`phase-6-findings.md` §1).
-- [ ] **The bake writes pitched material**
-      - ≥90% of baked sections conformant on the first pass, `n` stated;
-      - ≥80% approved by the validator without repair, `n` stated;
-      - beside them, as description and never as a target (ADR-019): the share of sections whose
-        bass moves inside the bar, and whose chorus carries a lead line.
-- [ ] **Cost per song inside a declared budget**, estimated before the bake.
+- [x] **The bake writes pitched material** — met 2026-09-17, `setlists/songwriter.json`
+      - **18 of 18 = 100%** conformant on the first pass, `n` = 18;
+      - **18 of 18 = 100%** approved by the validator without repair;
+      - description, never a target (ADR-019): the bass moves inside the bar in 18 of 18,
+        9 of 9 choruses carry a lead line, the lead sounds in 66 of 144 bars, 0 takes drifted.
+      - Two earlier paid bakes came back at 89% and were reported as not met, each for one
+        notation defect (`phase-6-findings.md` §5, §7). Neither was re-scored after its fix.
+- [x] **Cost per song inside a declared budget** — **$0.094 a song**, inside ADR-026's
+      declared $0.10–0.15, against an estimate of ~$0.27 written before the bake.
 - [ ] **By ear:** one whole song from the songwriter, played and curated, the verdict verbatim.
 - [ ] **Nothing regresses:** the live prompt and its cassettes untouched, the musical regression
       suite green, and the only golden files that move are the shuffle's.

@@ -300,8 +300,10 @@ Write the song's material as bar lines, and nothing else. No SEC line and no CHD
 this is not a section, it is what the sections will be made of.
 
 deg: is a degree per struck slot. The slots you name are the slots that sound; there is
-no separate rhythm to write. A degree is 1 to 7 of whatever chord the bar is on, so the
-same riff transposes through the whole song: 1 is the root, 3 the third, 5 the fifth.
+no separate rhythm to write. A degree is of whatever chord the bar is on, so the same riff
+transposes through the whole song: 1 is the root, 3 the third, 5 the fifth. Degrees run 1
+to 14, counted the way a musician counts them — 8 is the root an octave up, 9 the ninth,
+13 the thirteenth — so a line can climb past the octave without changing oct=.
 
 BAS is the bass, one note at a time, oct=2. LED is the lead voice, oct=4, and hold= names
 the slots whose note rings on until the next one. A LED line with an empty deg: is a bar
@@ -373,8 +375,9 @@ The DRM voices are K kick, S snare, H hi-hat and C crash. A voice you leave out 
 for that bar.
 
 BAS and LED write deg:, a degree per struck slot — the slots you name are the slots that
-sound, and there is no rhy: beside them. A degree is 1 to 7 of that bar's chord, so the
-material transposes with the harmony. LED hold= names the slots that ring on. A LED line
+sound, and there is no rhy: beside them. A degree is of that bar's chord, so the material
+transposes with the harmony, and degrees run 1 to 14: 8 is the root an octave up, 9 the
+ninth, 13 the thirteenth. LED hold= names the slots that ring on. A LED line
 with an empty deg: is a bar the lead sits out, and most bars should be: the hook is worth
 more when it is not always there.
 

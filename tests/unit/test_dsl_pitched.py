@@ -127,12 +127,12 @@ def test_a_lead_written_the_bass_s_way_is_refused_by_name() -> None:
     [
         ("LED oct=4 deg:0=5", "outside 1..16"),
         ("LED oct=4 deg:17=5", "outside 1..16"),
-        ("LED oct=4 deg:9=0", "outside 1..7"),
-        ("LED oct=4 deg:9=8", "outside 1..7"),
+        ("LED oct=4 deg:9=0", r"outside 1\.\.14"),
+        ("LED oct=4 deg:9=15", r"outside 1\.\.14"),
         ("LED oct=4 deg:9", "is not slot=degree"),
         ("LED oct=4 deg:9=5,9=3", "two degrees"),
         ("LED deg:9=5", "missing oct"),
-        ("BAS oct=2 deg:9=9", "outside 1..7"),
+        ("BAS oct=2 deg:9=99", r"outside 1\.\.14"),
     ],
 )
 def test_what_the_notation_will_not_read(line: str, why: str) -> None:
@@ -239,3 +239,44 @@ def test_the_pitched_round_trip_keeps_every_pitch_the_bass_played() -> None:
         before = {note.pitch % 12 for note in original.part(instrument).notes}
         after = {note.pitch % 12 for note in back.part(instrument).notes}
         assert before == after, instrument
+
+
+# ------------------------------------------------------------------- past the octave
+
+
+def test_a_degree_may_climb_past_the_octave() -> None:
+    """8 is the root an octave up, the way a musician counts. Two paid bakes lost sections
+    to `deg:...=8` before the notation allowed it (`phase-6-findings.md` §5, §7)."""
+    line = lead("LED oct=4 deg:1=1,5=8,9=13")
+    assert line.degrees == ((0, 1), (4, 8), (8, 13))
+
+
+def test_fifteen_is_still_outside_the_notation() -> None:
+    with pytest.raises(LineError, match=r"outside 1\.\.14"):
+        parse_bar_line("LED oct=4 deg:1=15")
+
+
+def test_the_octave_sounds_an_octave_above_the_root() -> None:
+    section = a_section(bars=1, chart=parse_chart("| Em |"))
+    dsl = (
+        "SEC chorus bars=1 key=Em feel=straight8 bpm=132 dyn=4 tension=0.5\n"
+        "CHD | Em |\n"
+        "LED oct=4 deg:1=1,5=8,9=10\n"
+    )
+    notes = realise(parsed_from(dsl, section), 7, straighten=False).part(Instrument.LEAD).notes
+    root, octave, tenth = (note.pitch for note in notes)
+    assert octave == root + 12
+    # Degree 10 is degree 3 an octave up: a third above the octave.
+    assert tenth > octave
+    assert (tenth - root) % 12 == (tenth - octave) % 12
+
+
+def test_a_bass_riff_may_reach_the_octave_too() -> None:
+    section = a_section(bars=1, chart=parse_chart("| Em |"))
+    dsl = (
+        "SEC chorus bars=1 key=Em feel=straight8 bpm=132 dyn=4 tension=0.5\n"
+        "CHD | Em |\n"
+        "BAS oct=2 deg:1=1,9=8\n"
+    )
+    notes = realise(parsed_from(dsl, section), 7, straighten=False).part(Instrument.BASS).notes
+    assert notes[1].pitch % 12 == notes[0].pitch % 12

@@ -290,7 +290,10 @@ def test_a_theme_the_notation_cannot_read_is_dropped_rather_than_pasted_into_eve
     song = PLANNED[0]
     nonsense = {bake.theme_brief(**bake.theme_fields(song)): "LED oct=4 deg:99=5\nBAS wat"}
     provider = guarded(BakedProvider(nonsense, name="fake"))
-    assert asyncio.run(bake.theme_shot(provider, MODEL, song)) == ""
+    theme, why = asyncio.run(bake.theme_shot(provider, MODEL, song))
+    assert theme == ""
+    # And it says why: a fallback that cannot name its reason cannot be fixed.
+    assert "99" in why
 
 
 def test_a_song_with_no_theme_still_bakes_its_sections() -> None:

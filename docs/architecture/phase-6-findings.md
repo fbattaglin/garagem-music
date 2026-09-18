@@ -413,3 +413,66 @@ agree.
 
 `SONGWRITER_USAGE` is the first bake's median, 425 tokens in and 1286 out, replacing the
 900/1000 guess that came in 17% under. The estimate for the three-song setlist reads ~$0.27.
+
+## 7. The second and third bakes: the notation was short of an octave
+
+### What the second bake said
+
+The rewritten theme prompt worked — three distinct themes — and the bake still came back
+at **16 of 18 = 89%**, the same rate for a different reason, plus **one song's theme
+missing entirely.** All three failures were one line form:
+
+    LED oct=4 deg:1=1,3=3,5=5,7=8,9=7,11=5,12=3,13=1,14=3,15=5,16=7
+                                ^^^
+
+**Degree 8 — the octave.** The most ordinary thing a melody does, and the notation capped
+degrees at 7. The cap was never a musical decision: `degree_to_pitch` takes 1..7 because a
+scale has seven notes, and the line form inherited that number without anyone asking what
+a *melody* needs. A musician counts past it — 8 is the root an octave up, 9 the ninth, 13
+the thirteenth — and the model counted the way a musician does.
+
+It cost song 2 its whole theme, because `theme_shot` drops a theme whose lines will not
+parse, which is right: a bad theme is pasted into every section of the song and paid for
+eighteen times.
+
+**And the fallback could not say why.** `theme_shot` returned a bare string, so a missing
+theme printed `missed` and nothing else; the diagnosis cost another call. It now returns
+the reason and the bake prints it. A fallback that cannot name its reason cannot be fixed.
+
+### The fix, and the test that caught its own bug
+
+`TOP_DEGREE = DEGREES * 2`, and `realise._at_degree` does the division — the octave belongs
+to the notation, not to `theory/`, which is right to say a scale has seven degrees.
+
+While fixing it, `--themes-only` tripped
+`test_every_script_that_streams_more_than_once_reuses_its_loop`: an `asyncio.run` inside a
+`for`, which had already killed the adapter's HTTP client once in this session. The test
+was written after the first time this happened and it caught the second.
+
+### The third bake, which is the one that counts
+
+`setlists/songwriter.json`, 2026-09-17, `claude-sonnet-5`, **$0.2817**.
+
+| criterion 3 | | |
+|---|---|---|
+| Conformant on the first pass | **18 of 18 = 100%** | met, against ≥90% |
+| Approved by the validator without repair | **18 of 18 = 100%** | met, against ≥80% |
+
+Description, never a target (ADR-019): the bass moves inside the bar in **18 of 18**,
+**9 of 9** choruses carry a lead line, the lead sounds in **66 of 144** bars, and **0**
+takes drifted.
+
+**Criterion 4 is met:** $0.2817 for three songs is **$0.094 a song**, inside ADR-026's
+declared $0.10–0.15, against an estimate of ~$0.27 written before the bake — 4% under.
+
+The three themes, each its own song, and the third reaching the octave the notation had
+been refusing:
+
+    Seven      BAS 1,3,5,7,9,11,13,15 · LED enters on 8, holds the fifth
+    Swing low  BAS 1,4,7,10,13,16 · LED enters on 7, holds the fifth, rests bar 2
+    Half light BAS 1,7,10 · LED 4=5,6=6,8=8 — the octave, held
+
+**What the phase spent to get here: $0.855** over three bakes and one themes-only check.
+Two of those bakes were paid for a defect each, and both defects were the notation's rather
+than the model's. The themes-only check found the second one for $0.0073, which is the
+lesson worth keeping: **ask for the cheap half first.**

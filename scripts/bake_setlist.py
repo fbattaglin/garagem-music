@@ -273,8 +273,8 @@ def estimate(
 # ---------------------------------------------------------------------------- one section
 
 
-async def theme_shot(provider: LLMProvider, model: ModelSpec, song: Planned) -> str:
-    """One call for the song's material (ADR-026). The empty string when it does not arrive.
+async def theme_shot(provider: LLMProvider, model: ModelSpec, song: Planned) -> tuple[str, str]:
+    """One call for the song's material (ADR-026). `(theme, why it is empty)`.
 
     A song without a theme still bakes: its sections are written with nothing above the
     briefing, the floor plays its lead, and the music degrades rather than stopping — P2,
@@ -283,6 +283,11 @@ async def theme_shot(provider: LLMProvider, model: ModelSpec, song: Planned) -> 
     **Every line is parsed before the theme is kept.** A theme is pasted into every section
     prompt of the song, so material the notation cannot read would be repeated into every
     call and paid for each time.
+
+    **And the reason comes back with it.** The first version returned a bare string, so when
+    a theme went missing in the second paid bake there was nothing to read: the diagnosis
+    cost another call. A fallback that cannot say why it fell back is a fallback nobody can
+    fix (`phase-6-findings.md` §7).
     """
     request = theme_request_for(model, **theme_fields(song))
     decoder = StringField()
@@ -294,19 +299,20 @@ async def theme_shot(provider: LLMProvider, model: ModelSpec, song: Planned) -> 
 
     try:
         await asyncio.wait_for(drain(), timeout=request.deadline_s)
-    except (TimeoutError, ProviderError, DslError, CircuitOpenError, BudgetError):
-        return ""
+    except TimeoutError:
+        return "", f"deadline_missed after {request.deadline_s:.0f}s"
+    except (ProviderError, DslError, CircuitOpenError, BudgetError) as error:
+        return "", f"{type(error).__name__}: {str(error)[:120]}"
 
-    theme = decoder.value().strip()
-    lines = [line.strip() for line in theme.splitlines() if line.strip()]
+    lines = [line.strip() for line in decoder.value().splitlines() if line.strip()]
     if not lines:
-        return ""
-    try:
-        for line in lines:
+        return "", "the model wrote nothing"
+    for line in lines:
+        try:
             parse_bar_line(line)
-    except DslError:
-        return ""
-    return "\n".join(lines)
+        except DslError as error:
+            return "", str(error)[:160]
+    return "\n".join(lines), ""
 
 
 async def shoot(
@@ -414,9 +420,9 @@ async def bake(
         missed: list[Missed] = []
         theme = ""
         if songwriter:
-            theme = await theme_shot(provider, model, song)
-            lines = len(theme.splitlines()) if theme else 0
-            emit(f"  song {number} theme   {f'{lines} bar lines' if theme else 'missed'}\n")
+            theme, why = await theme_shot(provider, model, song)
+            told = f"{len(theme.splitlines())} bar lines" if theme else f"missed: {why}"
+            emit(f"  song {number} theme   {told}\n")
         for index in song.asked:
             section = song.form[index]
             outcome, retried = await asked_twice(
@@ -643,7 +649,7 @@ def main() -> int:
 
 async def themes(
     provider: LLMProvider, model: ModelSpec, planned: list[Planned]
-) -> list[tuple[Planned, str]]:
+) -> list[tuple[Planned, tuple[str, str]]]:
     """Every song's material, on **one** event loop.
 
     One loop, not one per song: the adapter's HTTP client binds to the loop it was first
@@ -653,7 +659,7 @@ async def themes(
     if isinstance(provider, Warmable):
         with suppress(ProviderError):
             await provider.warm()
-    return [(song, await theme_shot(provider, model, song)) for song in planned]
+    return [(song, (await theme_shot(provider, model, song))) for song in planned]
 
 
 def main_themes(provider: LLMProvider, model: ModelSpec, planned: list[Planned]) -> int:
@@ -663,9 +669,10 @@ def main_themes(provider: LLMProvider, model: ModelSpec, planned: list[Planned])
     The theme is what every section of a song is written against, so a bad one is paid for
     eighteen times over. Three calls cost about a cent; the bake that follows costs thirty.
     """
-    for number, (song, theme) in enumerate(asyncio.run(themes(provider, model, planned)), 1):
+    written = asyncio.run(themes(provider, model, planned))
+    for number, (song, (theme, why)) in enumerate(written, 1):
         sys.stderr.write(f"\n{number}. {song.spec.title} ({song.spec.feel}):\n")
-        sys.stderr.write(f"{theme or '  (missed)'}\n")
+        sys.stderr.write(f"{theme or f'  missed: {why}'}\n")
     spent = provider.governor.snapshot() if isinstance(provider, GuardedProvider) else None
     if spent is not None:
         sys.stderr.write(f"\nno file written; spent ${spent.spent_usd:.4f}\n")

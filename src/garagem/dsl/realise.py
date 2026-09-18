@@ -75,7 +75,7 @@ from garagem.dsl.stream import ORDER, ParsedSection
 from garagem.engines.groove import fill_for, groove_for
 from garagem.engines.humanise import humanise, separate
 from garagem.theory.percussion import CLOSED_HAT, CRASH, GHOST_VELOCITY, KICK, SNARE
-from garagem.theory.scales import degree_to_pitch
+from garagem.theory.scales import DEGREES, degree_to_pitch
 from garagem.theory.voicings import RANGES, Register, fit_to_range, voice, voice_lead
 
 # Deliberately a second copy of the engines' levels rather than a shared import. See the
@@ -430,7 +430,7 @@ def _bass(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
             degree = per_slot.get(slot, line.degree)
             notes.append(
                 Note(
-                    pitch=_inside(degree_to_pitch(chord, degree, line.octave), low, high),
+                    pitch=_inside(_at_degree(chord, degree, line.octave), low, high),
                     start_beats=beats_of(offset + slot, section.feel),
                     duration_beats=BASS_BEATS,
                     velocity=GHOST_VELOCITY - 1 if ghost else _accented(velocity, slot),
@@ -467,7 +467,7 @@ def _lead(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
             held = beats_of(offset + after, section.feel) - at
             notes.append(
                 Note(
-                    pitch=_inside(degree_to_pitch(chord, degree, line.octave), low, high),
+                    pitch=_inside(_at_degree(chord, degree, line.octave), low, high),
                     start_beats=at,
                     duration_beats=max(LEAD_BEATS, held) if slot in line.holds else LEAD_BEATS,
                     velocity=_accented(velocity, slot),
@@ -531,6 +531,17 @@ def _above_the_bass(pitches: tuple[int, ...]) -> tuple[int, ...]:
 
 def _accented(velocity: int, slot: int) -> int:
     return min(127, max(1, velocity + (DOWNBEAT_ACCENT if slot % 4 == 0 else 0)))
+
+
+def _at_degree(chord: Chord, degree: int, octave: int) -> int:
+    """Degree 1..14 of `chord`, where 8 is the root an octave up and 14 the seventh above it.
+
+    `degree_to_pitch` takes 1..7 because a scale has seven notes; a melody counts past
+    them, and the notation lets it (`dsl/lines.TOP_DEGREE`). The division belongs here
+    rather than in `theory/`, which is right to say that a scale has seven degrees.
+    """
+    step, octaves = (degree - 1) % DEGREES, (degree - 1) // DEGREES
+    return degree_to_pitch(chord, step + 1, octave + octaves)
 
 
 def _inside(pitch: int, low: int, high: int) -> int:
