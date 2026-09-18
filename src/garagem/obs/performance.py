@@ -121,18 +121,21 @@ def render_checks(
 # --------------------------------------------------------------- Phase 5: from a setlist
 
 
-def setlist_checks(
-    events: Sequence[Event], *, minimum_seconds: float, share_floor: int | None = None
-) -> tuple[Check, ...]:
+def setlist_checks(events: Sequence[Event], *, share_floor: int | None = None) -> tuple[Check, ...]:
     """One song played from a setlist, against Phase 5's criteria (ADR-024, ADR-025).
 
     Phase 4's report asks what a generated session answers — deadlines, spend, staleness —
     and a song from disk makes no call to have any of that. What it has to show instead is
     that it played to its end, that nothing could have reached a network, and how much of it
     came from the setlist rather than from the floor.
+
+    **A song is not held to its baked length.** A jump cuts bars and `end` finishes the song
+    early, both on purpose, so the conducted song that ran 175 s of a 218 s form was conducted
+    rather than broken. Ten minutes is the *session's* line, and `setlist_session_checks` is
+    where it is read.
     """
     ended = _last(events, "session_ended")
-    checks = [_continuous(events, ended, minimum_seconds), _offline(events, ended)]
+    checks = [_played_out(events, ended), _offline(events, ended)]
     if any(event.kind == "cue_received" for event in events):
         checks.append(_next_bar(events))
     if share_floor is not None:
@@ -329,6 +332,23 @@ def _network(events: Sequence[Event], ended: Event | None) -> Check:
     )
     met = finished and not beats_lost and not unhandled and not _unanswered(events)
     return Check(criterion=criterion, met=met, evidence=evidence)
+
+
+def _played_out(events: Sequence[Event], ended: Event | None) -> Check:
+    """The song reached its own end, however long the conducting left it, and lost no beat."""
+    criterion = "played to its end, with no beat lost"
+    fires = [event for event in events if event.kind == "scene_fired"]
+    lost = [event for event in events if event.kind == "beat_lost"]
+    if ended is None or not fires:
+        return Check(criterion=criterion, met=False, evidence="the log has no ending to read")
+    seconds = (ended.at_beats - fires[0].at_beats) * 60.0 / float(str(ended.detail["bpm"]))
+    finished = bool(ended.detail["finished"])
+    evidence = (
+        f"{seconds:.0f} s, {len(fires) - 1} section changes, "
+        f"{'played to its end' if finished else 'stopped early'}, "
+        f"{len(lost)} beat{'s' if len(lost) != 1 else ''} lost"
+    )
+    return Check(criterion=criterion, met=finished and not lost, evidence=evidence)
 
 
 def _offline(events: Sequence[Event], ended: Event | None) -> Check:

@@ -735,7 +735,7 @@ def main() -> int:
         if scheduler is not None and setlist is not None:
             sys.stderr.write(
                 render_checks(
-                    setlist_checks(log.events, minimum_seconds=seconds, share_floor=args.share),
+                    setlist_checks(log.events, share_floor=args.share),
                     model_share(log.events),
                     phase="Phase 5",
                     wrote="from the setlist:",

@@ -36,9 +36,7 @@ def a_session(path: Path, songs: int = 3, *, beats: float = 230 * BPM / 60) -> P
     """Three songs from a setlist, one run each, as `jam.py --setlist` logs them."""
     log = EventLog(path)
     for song in range(1, songs + 1):
-        log.record(
-            "setlist_loaded", 0.0, setlist="first", song=song, title="t", serving="baked"
-        )
+        log.record("setlist_loaded", 0.0, setlist="first", song=song, title="t", serving="baked")
         for section in range(4):
             log.record("section_generated", float(section), section=section, source="buffer")
             log.record("section_written", float(section), section=section, seed=section)

@@ -341,7 +341,7 @@ def a_song_from_disk(
 
 
 def test_a_song_from_disk_meets_phase_fives_lines() -> None:
-    checks = setlist_checks(a_song_from_disk(), minimum_seconds=218.0, share_floor=2)
+    checks = setlist_checks(a_song_from_disk(), share_floor=2)
     assert all(check.met for check in checks), [c for c in checks if not c.met]
     assert "2 of 4 sections played came from a take" in check(checks, "at least 2").evidence
 
@@ -349,28 +349,42 @@ def test_a_song_from_disk_meets_phase_fives_lines() -> None:
 def test_a_song_that_spent_money_is_not_offline() -> None:
     log = a_song_from_disk()
     log[-1] = ended(at=220 * BPM / 60, spend={"spent_usd": "0.0035"})
-    assert not check(setlist_checks(log, minimum_seconds=218.0), "no network").met
+    assert not check(setlist_checks(log), "no network").met
 
 
 def test_a_song_served_by_an_adapter_is_not_offline() -> None:
     log = a_song_from_disk(serving="anthropic")
-    assert not check(setlist_checks(log, minimum_seconds=218.0), "no network").met
+    assert not check(setlist_checks(log), "no network").met
 
 
 def test_a_call_lost_to_a_network_is_not_offline() -> None:
     log = a_song_from_disk()
     log.insert(2, e("fallback", 8.0, section=1, reason="ProviderUnavailableError"))
-    assert not check(setlist_checks(log, minimum_seconds=218.0), "no network").met
+    assert not check(setlist_checks(log), "no network").met
 
 
 def test_too_little_of_the_song_from_the_setlist_is_not_met() -> None:
-    checks = setlist_checks(a_song_from_disk(takes=1), minimum_seconds=218.0, share_floor=2)
+    checks = setlist_checks(a_song_from_disk(takes=1), share_floor=2)
     assert not check(checks, "at least 2").met
+
+
+def test_a_song_conducted_short_of_its_baked_length_still_played_to_its_end() -> None:
+    """`end` on pad 8 and a jump both cut bars on purpose (`phase-5-findings.md` §13)."""
+    log = a_song_from_disk(beats=175 * BPM / 60)
+    found = check(setlist_checks(log), "played to its end")
+    assert found.met
+    assert "175 s" in found.evidence
+
+
+def test_a_song_that_stopped_early_is_not_played_out() -> None:
+    log = a_song_from_disk()
+    log[-1] = ended(at=100.0, finished=False, spend={"spent_usd": "0.0000"})
+    assert not check(setlist_checks(log), "played to its end").met
 
 
 def test_a_setlist_song_is_not_judged_on_deadlines_or_spend() -> None:
     """A song from disk makes no call, so Phase 4's model criteria say nothing about it."""
-    criteria = [c.criterion for c in setlist_checks(a_song_from_disk(), minimum_seconds=218.0)]
+    criteria = [c.criterion for c in setlist_checks(a_song_from_disk())]
     assert not any("deadline" in c or "budget" in c for c in criteria)
 
 
@@ -435,7 +449,7 @@ def test_a_song_nobody_touched_breaks_the_conducted_line() -> None:
 
 def test_the_report_says_which_phase_it_read() -> None:
     printed = render_checks(
-        setlist_checks(a_song_from_disk(), minimum_seconds=218.0),
+        setlist_checks(a_song_from_disk()),
         model_share(a_song_from_disk()),
         phase="Phase 5",
         wrote="from the setlist:",

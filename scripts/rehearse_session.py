@@ -380,7 +380,7 @@ def main() -> int:
     if baked is not None:
         sys.stderr.write(
             render_checks(
-                setlist_checks(log.events, minimum_seconds=args.seconds),
+                setlist_checks(log.events),
                 model_share(log.events),
                 phase="Phase 5",
                 wrote="from the setlist:",

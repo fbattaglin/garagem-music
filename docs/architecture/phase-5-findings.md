@@ -654,3 +654,54 @@ which is the heaviest conducting this project has recorded.
 below the prediction, so that how much he conducts does not decide whether the criterion is met.
 `scripts/setlist_report.py --share 20` reads it back from the log, and exits 1 if any line is
 missed.
+
+## 13. The Wi-Fi-off session
+
+Played on 2026-09-17 with the Wi-Fi off: the three songs of `setlists/first.json` one after
+another, each its own `jam.py --setlist` run, conducted from the MiniLab. Read back by
+`scripts/setlist_report.py --share 20`, which exits 0.
+
+| | Song 1, Seven | Song 2, Swing low | Song 3, Half light |
+|---|---|---|---|
+| Played | 214 s | 175 s | 235 s |
+| Beats lost | 0 | 0 | 0 |
+| From the setlist's takes | 7 of 16 | 9 of 13 | 9 of 17 |
+| Controls | 160 | 108 | 167 |
+| Bar cues on the next bar | 9 of 9 | 6 of 6 | 7 of 7 |
+| Marks | keep ×4 | keep ×1 | keep ×3, veto ×2 |
+
+- **625 s in all, 0 beats lost, every song played to its end.**
+- **No network:** each song's takes answered from disk, nothing was spent, no adapter was built.
+- **25 of the 46 sections played came from a take**, against the line of 20 fixed before the
+  session (§12). The floor alone scores 0.
+- **Song 2 ran 175 s of a 218 s form because it was conducted that way** — `end` on pad 8 at bar
+  83. A jump does the same by cutting bars. The per-song report no longer holds a song to its
+  baked length, because both are conducting rather than a fault; ten minutes is the session's
+  line.
+
+### The verdict, verbatim
+
+> *"A musica número dois começou de forma bagunçada. Ela também foi sem dúvidas a menos
+> interessante e mais mecanica delas"*
+
+— song two started messily, and was without doubt the least interesting and most mechanical of
+the three. Nothing was said about songs 1 and 3.
+
+**Song 2's start was mechanically identical to the other two.** The log was read bar by bar: the
+intro was written and fired at bar 1, the first take at bar 5, no beat was lost, and no cue
+arrived before bar 11. So what was heard is the music, not the transport.
+
+**Song 2 is the shuffle, and the shuffle is where the band has the least to play with.** Stated
+as a reading of the tables rather than as a measurement:
+- `engines/groove.py` keeps the hats on eighths at every dynamic in a shuffle, so `dyn` barely
+  changes the drums;
+- `engines/bass.py` pulses eighths, `engines/guitar.py` strums eighths and `engines/keys.py`
+  stabs quarters, in shuffle exactly as in straight eighths;
+- every model shuffle take is straightened onto those same eighths (§3), which is the fix
+  Fabiano preferred 5 of 5 and which leaves nothing off the grid.
+
+So in a shuffle, the whole band lands on one swung eighth-note grid and nothing syncopates. That
+is a vocabulary gap, and it is the kind of thing Phase 6 exists for: a riff, a bass line that
+moves and bars that differ inside a phrase. It is recorded here, not fixed here.
+
+Suite: **2241 passed, 27 skipped**; `ruff` and `mypy` clean.

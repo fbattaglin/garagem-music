@@ -1428,7 +1428,7 @@
           "output_tokens": 213,
           "cost_usd": "0.003268",
           "digest": "a45e36ee94d81fc9",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 5,
@@ -2142,7 +2142,7 @@
           "output_tokens": 215,
           "cost_usd": "0.00327",
           "digest": "3c92da614faf0c99",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 5,
@@ -2184,7 +2184,7 @@
           "output_tokens": 190,
           "cost_usd": "0.003023",
           "digest": "9d21a30217a57b37",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 6,
