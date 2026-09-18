@@ -116,14 +116,14 @@ DEFAULT_CAP_USD: Final = Decimal("1.00")
 MEASURED_USAGE: Final = Usage(input_tokens=295, output_tokens=235)
 PESSIMISTIC_INPUT_TOKENS: Final = 700
 
-# The songwriter's section call, **estimated and not yet measured** — said plainly because
-# ADR-026's criterion 4 asks for the estimate to be written down before the bake, and an
-# estimate presented as a measurement is worse than no estimate. Its basis: the superset
-# writes one line per bar per instrument, five instruments, eight bars, so about 40 lines
-# against the live path's five; the input carries the song's material as well as the
-# briefing. What the bake actually spends is printed beside this when it finishes.
-SONGWRITER_USAGE: Final = Usage(input_tokens=900, output_tokens=1000)
-THEME_USAGE: Final = Usage(input_tokens=450, output_tokens=200)
+# **Measured on 2026-09-17**, over the 18 sections of the first songwriter bake: median 425
+# tokens in and 1286 out (`phase-6-findings.md` §5). The guess this replaces was 900 in and
+# 1000 out, which came in 17% under what the bake actually spent — the sections are longer
+# than the shape of the answer suggested, and the input is shorter because the cached
+# system block is not counted twice.
+SONGWRITER_USAGE: Final = Usage(input_tokens=425, output_tokens=1286)
+# Derived from the same bake: $0.0152 for three themes, at this model's prices.
+THEME_USAGE: Final = Usage(input_tokens=700, output_tokens=300)
 
 
 def _every_name(*bases: type[Exception]) -> frozenset[str]:
@@ -518,7 +518,7 @@ def paid_provider(
     """The real adapter once `--yes` is given, or the exit code to stop with."""
     expected, bound = estimate(model, calls, songwriter=songwriter, songs=songs)
     basis = (
-        "at the usage ADR-026 estimated, which is not yet measured"
+        "at the usage the first songwriter bake measured"
         if songwriter
         else "at the usage Phase 4 measured"
     )
@@ -546,6 +546,11 @@ def main() -> int:
         "--plain",
         action="store_true",
         help="the live path's prompt, with no theme and no pitches (the bake before ADR-026)",
+    )
+    parser.add_argument(
+        "--themes-only",
+        action="store_true",
+        help="ask only for each song's material and print it; writes no file, costs a cent",
     )
     parser.add_argument(
         "--rebake-vetoed",
@@ -578,6 +583,9 @@ def main() -> int:
     minutes = sum(s.total_seconds() for song in planned for s in song.form) / 60
 
     songwriter = not args.plain
+    if args.themes_only and args.plain:
+        sys.stderr.write("--themes-only is the songwriter's first stage; --plain has none.\n")
+        return 1
 
     for number, song in enumerate(planned, start=1):
         seconds = sum(section.total_seconds() for section in song.form)
@@ -607,6 +615,8 @@ def main() -> int:
         inner, provider_name = paid, "anthropic"
 
     provider = guarded(inner, catalog, args.cap_usd)
+    if args.themes_only:
+        return main_themes(provider, model, planned)
     songs = asyncio.run(bake(provider, model, planned, songwriter=songwriter))
     setlist = Setlist(
         name=spec.name,
@@ -628,6 +638,37 @@ def main() -> int:
     for baked in songs:
         for miss in baked.missed:
             sys.stderr.write(f"  {baked.title}, section {miss.section + 1}: {miss.reason}\n")
+    return 0
+
+
+async def themes(
+    provider: LLMProvider, model: ModelSpec, planned: list[Planned]
+) -> list[tuple[Planned, str]]:
+    """Every song's material, on **one** event loop.
+
+    One loop, not one per song: the adapter's HTTP client binds to the loop it was first
+    used on, and `asyncio.run` per song closed it under the next call — "Event loop is
+    closed" on the second theme. `bake` had it right and this did not.
+    """
+    if isinstance(provider, Warmable):
+        with suppress(ProviderError):
+            await provider.warm()
+    return [(song, await theme_shot(provider, model, song)) for song in planned]
+
+
+def main_themes(provider: LLMProvider, model: ModelSpec, planned: list[Planned]) -> int:
+    """`--themes-only`: the first stage alone, printed, so the material can be read before
+    the sections are paid for.
+
+    The theme is what every section of a song is written against, so a bad one is paid for
+    eighteen times over. Three calls cost about a cent; the bake that follows costs thirty.
+    """
+    for number, (song, theme) in enumerate(asyncio.run(themes(provider, model, planned)), 1):
+        sys.stderr.write(f"\n{number}. {song.spec.title} ({song.spec.feel}):\n")
+        sys.stderr.write(f"{theme or '  (missed)'}\n")
+    spent = provider.governor.snapshot() if isinstance(provider, GuardedProvider) else None
+    if spent is not None:
+        sys.stderr.write(f"\nno file written; spent ${spent.spent_usd:.4f}\n")
     return 0
 
 

@@ -356,3 +356,60 @@ Criterion 5 is not asked for yet: playing a setlist whose three songs share a ho
 spend a listening session on a prompt defect rather than on the songwriter. The bake stands
 as evidence and as a working end-to-end path — 18 of 18, five voices, pitched material,
 inside budget — and the next bake is the one that answers criterion 3 and criterion 5.
+
+## 6. Both defects fixed, and the cheap check that says so
+
+### An empty voice is a bar of rests
+
+`_grid("")` now returns a bar of rests instead of asking for sixteen characters. The
+reversal is argued in `tests/unit/test_dsl_lines.py`, against the decision it overturns
+("`K:` is as likely a dropped field as an intended rest"), on three grounds:
+
+- **evidence** — both non-conformant sections of the paid bake were this and nothing else,
+  in streams that were not truncated, with more lines arriving after them;
+- **a hole in the notation** — in the positions spelling there was *no way* to say an
+  instrument rests a bar. The grid form has sixteen dots; lines are positional, so the
+  instrument cannot leave the line out. The `LED` line added the day before spells a rest
+  exactly this way, so the notation contradicted itself;
+- **refusing is the more expensive mistake** — a refused line does not cost that bar a
+  rest, it costs the *line*, and `_for_bar` wraps another bar's line into its place, so
+  every bar after it is wrong rather than one.
+
+It is not the widening P4 refuses: a fifteen-character grid is ambiguous and stays refused;
+an empty list is not.
+
+**Not credited to the bake that exposed it.** The 89% stands as measured. The next bake's
+rate is its own, with its own `n`.
+
+### The theme prompt now shows two songs that are not yours
+
+`SYSTEM_THEME` carries **two** contrasting examples, labelled as other songs, followed by
+*"Neither of those is your song, and your material must not be either of them"*, and a line
+on what each feel does to where the notes fall.
+
+`--themes-only` asks for the first stage alone and prints it: **three calls, $0.0073, no
+file written.** The theme is what every section of a song is written against, so a bad one
+is paid for eighteen times over; a cent to read it first is the cheapest check in the phase.
+
+Asked again with the new prompt, on the same three songs:
+
+| song | bass | lead |
+|---|---|---|
+| Seven, straight8 | `1,3,5,7,9,11,13,15` with a flat seventh in it | enters off the beat, `8,10,12`, holding the root |
+| Swing low, shuffle | `1,4,7,10,13,16` — three sixteenths apart | **rests bar 1**, answers in bar 2 |
+| Half light, halftime | `1,9,12` — the bar left open | a long phrase from slot 5, holding at 11 |
+
+Three songs, three riffs, three hooks, none of them either example, and degrees 6 and 7
+appear where the old theme only ever used 1, 3 and 5.
+
+**The shuffle theme is written the way a model writes a shuffle** — an attack every three
+sixteenths, the same figure `phase-4-findings.md` §16 found on the hat and ADR-024's
+straightening exists to remove. Straightening handles it, and Stage C's degree map travels
+with it: `1,4,7,10,13,16` becomes `1,3,7,9,13,15` with each slot keeping its degree. That
+is the first time the new notation and an old fix have met on real model output, and they
+agree.
+
+### The estimate is a measurement now
+
+`SONGWRITER_USAGE` is the first bake's median, 425 tokens in and 1286 out, replacing the
+900/1000 guess that came in 17% under. The estimate for the three-song setlist reads ~$0.27.

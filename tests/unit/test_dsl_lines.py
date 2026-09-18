@@ -16,7 +16,7 @@ import re
 
 import pytest
 
-from garagem.domain import Feel, Instrument, Section, render_grid
+from garagem.domain import Feel, Instrument, Section, render_grid, render_positions
 from garagem.dsl import brief
 from garagem.dsl.errors import LineError
 from garagem.dsl.lines import (
@@ -343,10 +343,32 @@ def test_slots_out_of_order_or_repeated_are_normalised() -> None:
     assert parse_bar_line("DRM K:7,1,1,4") == parse_bar_line("DRM K:1,4,7")
 
 
-def test_an_empty_voice_is_refused_rather_than_read_as_silence() -> None:
-    """`K:` is as likely a dropped field as an intended rest. Leave the voice out."""
-    with pytest.raises(LineError):
-        parse_bar_line("DRM K: S:5")
+def test_an_empty_voice_is_a_bar_of_rests() -> None:
+    """Reversed on 2026-09-17, with a measurement behind it (`phase-6-findings.md` §5).
+
+    It used to be refused, and the argument was good: "`K:` is as likely a dropped field as
+    an intended rest." What changed is evidence and a hole in the notation.
+
+    **The evidence.** Both non-conformant sections of the songwriter's first paid bake were
+    this and nothing else — `KEY voi=sus2 rhy:` and `DRM ... H:` — in streams that were not
+    truncated, with more lines arriving after them.
+
+    **The hole.** In the positions spelling there is *no other way* to say an instrument
+    rests a bar. The grid form has sixteen dots; positions had nothing, and lines are
+    positional per bar, so the instrument cannot simply leave the line out. The `LED` line
+    ADR-026 added spells a rest exactly this way, so the notation was contradicting itself.
+
+    **And refusing is the more expensive mistake.** A refused line does not cost that bar a
+    rest; it costs the line, and `_for_bar` then wraps some *other* bar's line into its
+    place — so every bar after it is wrong, not one.
+    """
+    line = parse_bar_line("DRM K: S:5")
+    assert isinstance(line, DrumLine)
+    assert not any(line.kick)
+    assert render_positions(line.snare) == "5"
+    rest = parse_bar_line("KEY voi=sus2 rhy: reg=mid")
+    assert isinstance(rest, ChordLine)
+    assert not any(rest.rhythm)
 
 
 def test_the_grid_form_keeps_every_one_of_its_error_messages() -> None:

@@ -548,9 +548,23 @@ def _grid(text: str, line: str) -> Grid:
     15-character grid still fails with "a grid is 16 characters, got 15" rather than being
     re-read as a malformed position list, and the regression test pinning the real
     21-character failure still fails there.
+
+    **An empty value is a bar of rests**, not a grid of zero characters. In the positions
+    spelling `rhy:` with nothing after it says one thing and only one thing: nothing was
+    struck. The first paid bake of the songwriter lost both of its two non-conformant
+    sections to exactly that — `KEY voi=sus2 rhy:` and `DRM ... H:` — and the `LED` line
+    added the day before already spells a rest that way, so the notation was contradicting
+    itself between two of its own lines (`phase-6-findings.md` §5).
+
+    **This is not the widening P4 refuses.** A fifteen-character grid is ambiguous: which
+    slot went missing cannot be recovered, and guessing would put a note where nobody wrote
+    one. An empty list is not ambiguous. It is the same distinction the `power` alias is
+    allowed by and a short grid is refused by.
     """
+    if not text:
+        return tuple(False for _ in range(SIXTEENTHS_PER_BAR))
     try:
-        if any(character in text for character in (ATTACK, REST)) or not text:
+        if any(character in text for character in (ATTACK, REST)):
             return parse_grid(text)
         return parse_positions(text)
     except ValueError as error:

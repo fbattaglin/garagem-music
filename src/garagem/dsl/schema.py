@@ -275,6 +275,20 @@ TOOL_THEME: Final = ToolSchema(
 # into each of them as text, not interpolated**. Two whole strings, for the reason
 # `SYSTEM_ARRANGED` is whole: a cache prefix assembled from pieces is a cache prefix that
 # moves when any piece does.
+# **Rewritten on 2026-09-17, after the first paid bake returned the previous version's
+# example almost verbatim for all three songs** (`phase-6-findings.md` §5). Two of three
+# themes were byte-identical to it and the third differed in five slots — one riff and one
+# hook for three feels and three keys.
+#
+# `phase-3-findings.md` §11 found that an instruction losing to its example is what happens
+# when the two disagree, and the fix then was to make the example *be* the thing asked for.
+# Here that fix is the defect: the example was a complete, valid, plausible answer, so
+# returning it was both the cheapest move and a correct one. Nothing made a copy wrong.
+#
+# So this version shows **two** examples, says out loud that they belong to other songs,
+# and asks for material this song's feel and key would produce and the other two would not.
+# Whether that is enough is a measurement — `bake_setlist.py --themes-only` asks for the
+# themes alone, three calls and about a cent.
 SYSTEM_THEME: Final = """You are the songwriter in GARAGEM. You write the material a song
 is built out of, before any of its sections exist.
 
@@ -283,12 +297,7 @@ Answer only through the write_theme tool, in the GARAGEM DSL.
 A bar is 16 sixteenths, numbered 1 to 16. Slot 1 is the downbeat.
 
 Write the song's material as bar lines, and nothing else. No SEC line and no CHD line:
-this is not a section, it is what the section will be made of.
-
-    BAS oct=2 deg:1=1,4=1,7=5,11=1,14=5
-    BAS oct=2 deg:1=1,4=1,7=5,11=3,14=1
-    LED oct=4 deg:9=5,11=3,13=1 hold=13
-    LED oct=4 deg:
+this is not a section, it is what the sections will be made of.
 
 deg: is a degree per struck slot. The slots you name are the slots that sound; there is
 no separate rhythm to write. A degree is 1 to 7 of whatever chord the bar is on, so the
@@ -298,9 +307,31 @@ BAS is the bass, one note at a time, oct=2. LED is the lead voice, oct=4, and ho
 the slots whose note rings on until the next one. A LED line with an empty deg: is a bar
 the lead sits out — write those, because a hook that never stops is not a hook.
 
+Here is the material of two **other** songs, so you can see the shape of an answer.
+
+A straight-eight rock song in E minor:
+
+    BAS oct=2 deg:1=1,4=1,7=5,11=1,14=5
+    BAS oct=2 deg:1=1,4=1,7=5,11=3,14=1
+    LED oct=4 deg:9=5,11=3,13=1 hold=13
+    LED oct=4 deg:
+
+A halftime song in G major, where the bar is emptier and the hook is longer:
+
+    BAS oct=2 deg:1=1,9=5
+    BAS oct=2 deg:1=1,9=3,15=5
+    LED oct=4 deg:3=1 hold=3
+    LED oct=4 deg:1=3,7=5,13=1 hold=13
+
+**Neither of those is your song, and your material must not be either of them.** Write
+what this song's feel and key would produce and the other two would not. The feel decides
+where the notes fall: a shuffle leans on the swung offbeats, halftime leaves the middle of
+the bar open, straight eighths can push against the beat.
+
 Write two to four bars. Give the song one bass riff and one lead hook, and make them fit
-together: if the bass is busy the hook should be sparse, and the other way round. This
-material comes back in every section, so it has to be worth hearing again."""
+together: where the bass is busy the hook should be sparse, and the other way round. This
+material comes back in every section of the song, so it has to be worth hearing again —
+and it has to be recognisable as this song and not another one."""
 
 
 SYSTEM_SONGWRITER: Final = """You are the band in GARAGEM, playing a song somebody has
