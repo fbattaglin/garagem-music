@@ -547,7 +547,7 @@
           "output_tokens": 1311,
           "cost_usd": "0.02105175",
           "digest": "e8bfdf6a139c6170",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 2,
@@ -673,7 +673,7 @@
           "output_tokens": 1486,
           "cost_usd": "0.0165592",
           "digest": "f6d92e736224ba65",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 9,
@@ -757,7 +757,7 @@
           "output_tokens": 1467,
           "cost_usd": "0.0163692",
           "digest": "5c7f89759163c4a9",
-          "status": "unmarked"
+          "status": "kept"
         }
       ],
       "missed": [],
@@ -1304,7 +1304,7 @@
           "output_tokens": 1182,
           "cost_usd": "0.0134682",
           "digest": "97792a4bec6a8dab",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 2,
@@ -1388,7 +1388,7 @@
           "output_tokens": 1341,
           "cost_usd": "0.0150612",
           "digest": "c930060975e24e39",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 4,
@@ -1430,7 +1430,7 @@
           "output_tokens": 1257,
           "cost_usd": "0.0142212",
           "digest": "d7999b5e33a27cbb",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 5,
@@ -1472,7 +1472,7 @@
           "output_tokens": 1242,
           "cost_usd": "0.0140622",
           "digest": "b10f1d88db8409f1",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 14,
@@ -2187,7 +2187,7 @@
           "output_tokens": 1083,
           "cost_usd": "0.0124062",
           "digest": "0596b4552dbe95bb",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 6,
@@ -2229,7 +2229,7 @@
           "output_tokens": 1263,
           "cost_usd": "0.0142032",
           "digest": "c51488488cb117d2",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 14,

@@ -476,3 +476,67 @@ been refusing:
 Two of those bakes were paid for a defect each, and both defects were the notation's rather
 than the model's. The themes-only check found the second one for $0.0073, which is the
 lesson worth keeping: **ask for the cheap half first.**
+
+## 8. By ear: three songs from the songwriter
+
+Played on 2026-09-20, all three songs of `setlists/songwriter.json` from disk, conducted
+from the MiniLab. Criterion 5.
+
+> *"Acho que elas são diferentes nas suas próprias formas e gostei do resultado. Acredito
+> que eles have their own groove também. Mas sendo super crítico, me parece que a música
+> número três foi mais chatinha e repetitiva entre elas, mas não necessariamente acredito
+> que seja uma música ruim.*
+>
+> *Dá para se perceber uma estrutura na música e alguns elementos repetitivos
+> (especialmente na música #3). Achei a guitarra bem legal e ela dá uma cor às músicas, mas
+> acredito que ela tem potencial para muito mais no futuro. Como a possibilidade de fazer
+> solos."*
+
+**The phase's own question, answered.** ADR-025 found that the model's role had narrowed
+until it picked one-bar rhythms out of the floor's own vocabulary, and that section for
+section it came out at parity over 36 blind pairs. Three songs written with pitched
+material and a theme each are heard as *three different songs with their own grooves*, and
+the thing the phase was built to add — something that comes back — is heard: *"dá para se
+perceber uma estrutura na música e alguns elementos repetitivos."*
+
+He struck **keep** nine times across the three songs and **veto** none.
+
+### The repetition in song 3 is the arranger's, not the songwriter's
+
+Worth separating, because the obvious reading — the songwriter wrote a repetitive song —
+is the wrong one. The three songs' forms come from `engines/arranger.py`'s transition
+table, which has been there since Phase 2 and which the songwriter never sees:
+
+| song | bridges at | longest unbroken verse/chorus run |
+|---|---|---|
+| Seven | 3 | 11 sections |
+| Swing low | 3 **and 9** | **5 sections** |
+| Half light | 2 | **12 sections** |
+
+**The one song he did not call repetitive is the only one with a bridge in the middle.**
+`TRANSITIONS` gives `VERSE → (CHORUS 6, BRIDGE 1)` and `CHORUS → (VERSE 5, BRIDGE 3)`, so a
+bridge is rare and, once the walk is past it, the song settles into verse-chorus for as
+long as it lasts. Song 3's only bridge falls at section 2, three sections in, leaving
+twelve of alternation after it.
+
+`n` = 3, which is an anecdote and is written down as one. But it is a *checkable* anecdote
+with a named cause, and the cause is a table in a file rather than anything the model wrote.
+**Left open for a later phase**, beside the fill: the form has no rule about how long a song
+may alternate before it needs relief.
+
+### The lead: approved again, and asked for more, specifically
+
+Stage B's verdict was *"de bom gosto e adiciona uma cor"*, with a wish attached: *"mais do
+que isso"*. It is the same wish, now with a shape — **solos**. That is not what the floor's
+lead is for, and it is not what a per-bar `LED` line reaches either: a solo is a phrase
+that lasts longer than a bar and answers the section rather than the bar. Naming it here so
+it is planned rather than rediscovered.
+
+### The share line, which is not a criterion of this phase
+
+Song 3's run reported *"11 of 16 sections played came from a take"* against the `--share 12`
+asked for on the command line. That is Phase 5's line, and 12 was a number chosen for this
+run rather than a pre-registered one. The cause is in the same log: **59 controls, the
+knobs moved 34 times**, and a knob moves the briefing so a baked take no longer answers it
+(ADR-025, `setlist.reachable`). The take is not lost, its briefing is: the floor plays that
+section, which is the design working. 222 s, 15 section changes, **0 beats lost**.

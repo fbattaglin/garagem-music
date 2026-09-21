@@ -28,9 +28,16 @@ states its `n`.
         notation defect (`phase-6-findings.md` §5, §7). Neither was re-scored after its fix.
 - [x] **Cost per song inside a declared budget** — **$0.094 a song**, inside ADR-026's
       declared $0.10–0.15, against an estimate of ~$0.27 written before the bake.
-- [ ] **By ear:** one whole song from the songwriter, played and curated, the verdict verbatim.
-- [ ] **Nothing regresses:** the live prompt and its cassettes untouched, the musical regression
-      suite green, and the only golden files that move are the shuffle's.
+- [x] **By ear:** three whole songs from the songwriter, played and curated on 2026-09-20,
+      the verdict verbatim (`phase-6-findings.md` §8). Nine keeps, no vetoes.
+      *"Acho que elas são diferentes nas suas próprias formas e gostei do resultado …
+      Dá para se perceber uma estrutura na música e alguns elementos repetitivos."*
+- [x] **Nothing regresses** — met 2026-09-20, with the deviation below stated rather than
+      smoothed over.
+      - The live prompt is **byte-identical**: across the whole phase not one line was
+        removed from `dsl/schema.py`, only added. The cassettes are untouched.
+      - The musical regression suite is green, and the whole suite is at 2335 passed.
+      - **Deviation:** golden files other than the shuffle's moved. See below.
       - **Deviation, 2026-09-17, Stage B.** The last clause is already broken and stays
         written as agreed. Adding a fifth voice moves every golden that enumerates the band:
         11 engine goldens gained a `LED` block (17 lines added, 0 removed) and 29 regression
@@ -103,6 +110,18 @@ states its `n`.
     level (ADR-024 §4), one take per briefing in `answers()`, and curation marks rather than
     chooses.
   - Suite at **2331 passed, 27 skipped**; `ruff` and `mypy` clean.
+- **The phase is heard and every criterion is met** (`phase-6-findings.md` §8). Three songs
+  from `setlists/songwriter.json` played from disk and conducted on 2026-09-20; nine takes
+  kept, none vetoed. *"Elas são diferentes nas suas próprias formas … dá para se perceber
+  uma estrutura na música e alguns elementos repetitivos."*
+  - **Left open, with a named cause:** song 3 was heard as the repetitive one, and the
+    cause is `engines/arranger.py`'s transition table, not the songwriter. It is the only
+    song whose single bridge falls at section 2, leaving twelve sections of verse-chorus
+    after it; the song he did *not* call repetitive is the only one with a bridge in the
+    middle. `n` = 3, an anecdote with a checkable cause.
+  - **Left open:** the lead could do more, and he named what — **solos**. A solo is a
+    phrase longer than a bar, which neither the floor's lead nor a per-bar `LED` line
+    reaches.
 - **The first paid bake is done and says two things** (`phase-6-findings.md` §5).
   `setlists/songwriter.json`, the same three songs as `first.json`, 18 of 18 delivered for
   **$0.2808** against a $0.24 estimate.
