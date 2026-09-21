@@ -46,7 +46,6 @@ from typing import Final
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from bench_sections import draw
 
 from garagem.daw import (
     AbletonOSCAdapter,
@@ -89,6 +88,9 @@ DEFAULT_CORPUS: Final = (
 # (§15), so the four-bar intros in the earlier rounds are no longer in it.
 CORPUS_SEED: Final = 7
 CORPUS_DRAWN: Final = 30
+# The briefings those rounds were drawn from, frozen rather than regenerated. See
+# `load_corpus`.
+CORPUS_FILE: Final = ROOT / "bench" / "calibration-corpus.json"
 
 # Pre-registered here, in the source, before the first listen. The metric is credited when
 # the take it scores cleaner is the one preferred.
@@ -153,10 +155,17 @@ def load_corpus(logs: list[Path]) -> list[Scored]:
     """Every section this project has on disk, realised offline and scored.
 
     The briefing is not in the log — a `Shot` carries the section's name, bars and tempo
-    but not its key, chart or feel — so it is regenerated from the same seeded function
-    the bench rig drew it from. That the two agree is checked, not assumed.
+    but not its key, chart or feel — so it is read from `bench/calibration-corpus.json`,
+    which holds the population these rounds were drawn from. That the two agree is checked,
+    not assumed (`_align`).
+
+    **It used to replay `bench_sections.draw`**, which walks `arranger.arrange`. That made a
+    rig for reading *history* depend on a table that is free to change, and ADR-027's relief
+    rule changed it: every row after position 23 stopped aligning. The rows are DSL paid for
+    during Phase 3 and cannot be recorded again, so the population is written down instead of
+    regenerated, once, and this function reads it.
     """
-    drawn = draw(CORPUS_DRAWN, CORPUS_SEED)
+    drawn = frozen_corpus()
     out: list[Scored] = []
     for log in logs:
         if not log.exists():
@@ -183,6 +192,16 @@ def load_corpus(logs: list[Path]) -> list[Scored]:
                 )
             )
     return out
+
+
+def frozen_corpus(path: Path | None = None) -> list[Section]:
+    """The population Phase 3's rounds were drawn from, as written down on 2026-09-20.
+
+    Not regenerated. See `load_corpus` for why, and `bench/calibration-corpus.json`'s own
+    `why` field, which says the same thing to whoever opens the file.
+    """
+    raw = json.loads((path or CORPUS_FILE).read_text(encoding="utf-8"))
+    return [Section.model_validate(section) for section in raw["sections"]]
 
 
 def _align(

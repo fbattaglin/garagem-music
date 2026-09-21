@@ -69,14 +69,13 @@ def test_the_corpus_reconstructs_and_is_large_enough() -> None:
     assert {item.source for item in corpus} == set(cal.DEFAULT_CORPUS)
 
 
-def test_a_row_the_draw_does_not_contain_fails_loudly() -> None:
+def test_a_row_the_corpus_does_not_contain_fails_loudly() -> None:
     """Silently mispairing a briefing would score a section against the wrong chart."""
-    drawn = cal.draw(cal.CORPUS_DRAWN, cal.CORPUS_SEED)
     with pytest.raises(ValueError, match=r"the arranger has moved|does not contain"):
-        cal._align(drawn, 0, {"section": "nope", "bars": 3, "bpm": 77.0}, "x.jsonl", 0)
+        cal._align(cal.frozen_corpus(), 0, {"section": "nope", "bars": 3, "bpm": 77.0}, "x", 0)
 
 
-def test_the_draw_is_read_unfiltered() -> None:
+def test_the_corpus_is_read_unfiltered() -> None:
     """`briefings` applies `worth_asking`, and that filter moved when MIN_DEADLINE_S did.
 
     The earlier rounds asked for four-bar intros that today's filter removes, so aligning
@@ -84,9 +83,32 @@ def test_the_draw_is_read_unfiltered() -> None:
     """
     from bench_sections import briefings
 
-    assert len(cal.draw(cal.CORPUS_DRAWN, cal.CORPUS_SEED)) > len(
-        briefings(cal.CORPUS_DRAWN, cal.CORPUS_SEED)
-    )
+    corpus = cal.frozen_corpus()
+    assert len(corpus) == cal.CORPUS_DRAWN
+    assert len(corpus) > len(briefings(cal.CORPUS_DRAWN, cal.CORPUS_SEED))
+
+
+def test_the_corpus_is_written_down_and_not_regenerated() -> None:
+    """The whole point of the file, pinned (ADR-027, `phase-7-findings.md` §1).
+
+    `load_corpus` used to rebuild each row's briefing by replaying `bench_sections.draw`,
+    which walks `arranger.arrange` — a rig for reading *history* depending on a table that
+    is free to change. ADR-027's relief rule changed it and every row after position 23
+    stopped aligning. These rows are DSL paid for during Phase 3 and cannot be recorded
+    again, so the population is a file now.
+
+    The literals below are that file's first rows. If they ever move, somebody regenerated
+    a population that is supposed to be frozen.
+    """
+    corpus = cal.frozen_corpus()
+    assert [(s.name, s.bars, s.bpm) for s in corpus[:4]] == [
+        ("intro", 4, 110.0),
+        ("verse", 8, 132.0),
+        ("chorus", 8, 96.0),
+        ("verse", 8, 150.0),
+    ]
+    assert cal.CORPUS_FILE.exists()
+    assert "cannot be recorded" in json.loads(cal.CORPUS_FILE.read_text(encoding="utf-8"))["why"]
 
 
 # --------------------------------------------------------------------------- the pairing

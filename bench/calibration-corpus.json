@@ -1,0 +1,899 @@
+{
+  "why": "The population Phase 3's recorded rounds were drawn from, frozen on 2026-09-20 before ADR-027's relief rule moved the arranger. The rows in bench/sections-*.jsonl carry no briefing, and they cannot be recorded again. Read by scripts/calibrate_metrics.py; written once and never again.",
+  "seed": 7,
+  "drawn": 30,
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 4,
+      "key": 0,
+      "scale": "major",
+      "feel": "straight8",
+      "bpm": 110.0,
+      "dyn": 1,
+      "tension": 0.2,
+      "chart": {
+        "chords": [
+          {
+            "root": 0,
+            "quality": "maj"
+          },
+          {
+            "root": 0,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "key": 5,
+      "scale": "minor",
+      "feel": "straight8",
+      "bpm": 132.0,
+      "dyn": 2,
+      "tension": 0.35,
+      "chart": {
+        "chords": [
+          {
+            "root": 5,
+            "quality": "min"
+          },
+          {
+            "root": 5,
+            "quality": "min"
+          },
+          {
+            "root": 1,
+            "quality": "maj"
+          },
+          {
+            "root": 3,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 10,
+      "scale": "minor",
+      "feel": "straight8",
+      "bpm": 96.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 3,
+            "quality": "min"
+          },
+          {
+            "root": 6,
+            "quality": "maj"
+          },
+          {
+            "root": 8,
+            "quality": "maj"
+          },
+          {
+            "root": 10,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "key": 3,
+      "scale": "major",
+      "feel": "straight8",
+      "bpm": 150.0,
+      "dyn": 2,
+      "tension": 0.35,
+      "chart": {
+        "chords": [
+          {
+            "root": 3,
+            "quality": "maj"
+          },
+          {
+            "root": 0,
+            "quality": "min"
+          },
+          {
+            "root": 8,
+            "quality": "maj"
+          },
+          {
+            "root": 10,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 8,
+      "scale": "minor",
+      "feel": "straight16",
+      "bpm": 110.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 1,
+            "quality": "min"
+          },
+          {
+            "root": 4,
+            "quality": "maj"
+          },
+          {
+            "root": 6,
+            "quality": "maj"
+          },
+          {
+            "root": 8,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "key": 1,
+      "scale": "minor",
+      "feel": "straight16",
+      "bpm": 132.0,
+      "dyn": 2,
+      "tension": 0.35,
+      "chart": {
+        "chords": [
+          {
+            "root": 1,
+            "quality": "min"
+          },
+          {
+            "root": 9,
+            "quality": "maj"
+          },
+          {
+            "root": 4,
+            "quality": "maj"
+          },
+          {
+            "root": 11,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 6,
+      "scale": "major",
+      "feel": "straight16",
+      "bpm": 96.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 6,
+            "quality": "maj"
+          },
+          {
+            "root": 11,
+            "quality": "maj"
+          },
+          {
+            "root": 1,
+            "quality": "maj"
+          },
+          {
+            "root": 1,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 11,
+      "scale": "minor",
+      "feel": "straight16",
+      "bpm": 150.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 7,
+            "quality": "maj"
+          },
+          {
+            "root": 9,
+            "quality": "maj"
+          },
+          {
+            "root": 11,
+            "quality": "min"
+          },
+          {
+            "root": 11,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 4,
+      "scale": "minor",
+      "feel": "shuffle",
+      "bpm": 110.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 0,
+            "quality": "maj"
+          },
+          {
+            "root": 2,
+            "quality": "maj"
+          },
+          {
+            "root": 4,
+            "quality": "min"
+          },
+          {
+            "root": 4,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "key": 9,
+      "scale": "major",
+      "feel": "shuffle",
+      "bpm": 132.0,
+      "dyn": 2,
+      "tension": 0.35,
+      "chart": {
+        "chords": [
+          {
+            "root": 9,
+            "quality": "maj"
+          },
+          {
+            "root": 6,
+            "quality": "min"
+          },
+          {
+            "root": 2,
+            "quality": "maj"
+          },
+          {
+            "root": 4,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 2,
+      "scale": "minor",
+      "feel": "shuffle",
+      "bpm": 96.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 10,
+            "quality": "maj"
+          },
+          {
+            "root": 0,
+            "quality": "maj"
+          },
+          {
+            "root": 2,
+            "quality": "min"
+          },
+          {
+            "root": 2,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge",
+      "bars": 8,
+      "key": 7,
+      "scale": "minor",
+      "feel": "shuffle",
+      "bpm": 150.0,
+      "dyn": 3,
+      "tension": 0.55,
+      "chart": {
+        "chords": [
+          {
+            "root": 3,
+            "quality": "maj"
+          },
+          {
+            "root": 10,
+            "quality": "maj"
+          },
+          {
+            "root": 0,
+            "quality": "min"
+          },
+          {
+            "root": 5,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "key": 0,
+      "scale": "major",
+      "feel": "halftime",
+      "bpm": 110.0,
+      "dyn": 2,
+      "tension": 0.35,
+      "chart": {
+        "chords": [
+          {
+            "root": 0,
+            "quality": "maj"
+          },
+          {
+            "root": 9,
+            "quality": "min"
+          },
+          {
+            "root": 5,
+            "quality": "maj"
+          },
+          {
+            "root": 7,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 5,
+      "scale": "minor",
+      "feel": "halftime",
+      "bpm": 132.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 10,
+            "quality": "min"
+          },
+          {
+            "root": 1,
+            "quality": "maj"
+          },
+          {
+            "root": 3,
+            "quality": "maj"
+          },
+          {
+            "root": 5,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 10,
+      "scale": "minor",
+      "feel": "halftime",
+      "bpm": 96.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 6,
+            "quality": "maj"
+          },
+          {
+            "root": 8,
+            "quality": "maj"
+          },
+          {
+            "root": 10,
+            "quality": "min"
+          },
+          {
+            "root": 10,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 3,
+      "scale": "major",
+      "feel": "halftime",
+      "bpm": 150.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 8,
+            "quality": "maj"
+          },
+          {
+            "root": 10,
+            "quality": "maj"
+          },
+          {
+            "root": 3,
+            "quality": "maj"
+          },
+          {
+            "root": 3,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 8,
+      "scale": "minor",
+      "feel": "straight8",
+      "bpm": 110.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 1,
+            "quality": "min"
+          },
+          {
+            "root": 4,
+            "quality": "maj"
+          },
+          {
+            "root": 6,
+            "quality": "maj"
+          },
+          {
+            "root": 8,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "key": 1,
+      "scale": "minor",
+      "feel": "straight8",
+      "bpm": 132.0,
+      "dyn": 2,
+      "tension": 0.35,
+      "chart": {
+        "chords": [
+          {
+            "root": 1,
+            "quality": "min"
+          },
+          {
+            "root": 1,
+            "quality": "min"
+          },
+          {
+            "root": 9,
+            "quality": "maj"
+          },
+          {
+            "root": 11,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "key": 6,
+      "scale": "major",
+      "feel": "straight8",
+      "bpm": 96.0,
+      "dyn": 2,
+      "tension": 0.35,
+      "chart": {
+        "chords": [
+          {
+            "root": 6,
+            "quality": "maj"
+          },
+          {
+            "root": 3,
+            "quality": "min"
+          },
+          {
+            "root": 11,
+            "quality": "maj"
+          },
+          {
+            "root": 1,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge",
+      "bars": 8,
+      "key": 11,
+      "scale": "minor",
+      "feel": "straight8",
+      "bpm": 150.0,
+      "dyn": 3,
+      "tension": 0.55,
+      "chart": {
+        "chords": [
+          {
+            "root": 4,
+            "quality": "min"
+          },
+          {
+            "root": 9,
+            "quality": "maj"
+          },
+          {
+            "root": 2,
+            "quality": "maj"
+          },
+          {
+            "root": 7,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge",
+      "bars": 8,
+      "key": 4,
+      "scale": "minor",
+      "feel": "straight16",
+      "bpm": 110.0,
+      "dyn": 3,
+      "tension": 0.55,
+      "chart": {
+        "chords": [
+          {
+            "root": 9,
+            "quality": "min"
+          },
+          {
+            "root": 2,
+            "quality": "maj"
+          },
+          {
+            "root": 7,
+            "quality": "maj"
+          },
+          {
+            "root": 0,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 9,
+      "scale": "major",
+      "feel": "straight16",
+      "bpm": 132.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 9,
+            "quality": "maj"
+          },
+          {
+            "root": 2,
+            "quality": "maj"
+          },
+          {
+            "root": 4,
+            "quality": "maj"
+          },
+          {
+            "root": 4,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 2,
+      "scale": "minor",
+      "feel": "straight16",
+      "bpm": 96.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 10,
+            "quality": "maj"
+          },
+          {
+            "root": 0,
+            "quality": "maj"
+          },
+          {
+            "root": 2,
+            "quality": "min"
+          },
+          {
+            "root": 2,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "key": 7,
+      "scale": "minor",
+      "feel": "straight16",
+      "bpm": 150.0,
+      "dyn": 2,
+      "tension": 0.35,
+      "chart": {
+        "chords": [
+          {
+            "root": 7,
+            "quality": "min"
+          },
+          {
+            "root": 7,
+            "quality": "min"
+          },
+          {
+            "root": 3,
+            "quality": "maj"
+          },
+          {
+            "root": 5,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge",
+      "bars": 8,
+      "key": 0,
+      "scale": "major",
+      "feel": "shuffle",
+      "bpm": 110.0,
+      "dyn": 3,
+      "tension": 0.55,
+      "chart": {
+        "chords": [
+          {
+            "root": 9,
+            "quality": "min"
+          },
+          {
+            "root": 5,
+            "quality": "maj"
+          },
+          {
+            "root": 0,
+            "quality": "maj"
+          },
+          {
+            "root": 7,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge",
+      "bars": 8,
+      "key": 5,
+      "scale": "minor",
+      "feel": "shuffle",
+      "bpm": 132.0,
+      "dyn": 3,
+      "tension": 0.55,
+      "chart": {
+        "chords": [
+          {
+            "root": 1,
+            "quality": "maj"
+          },
+          {
+            "root": 8,
+            "quality": "maj"
+          },
+          {
+            "root": 10,
+            "quality": "min"
+          },
+          {
+            "root": 3,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 10,
+      "scale": "minor",
+      "feel": "shuffle",
+      "bpm": 96.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 3,
+            "quality": "min"
+          },
+          {
+            "root": 6,
+            "quality": "maj"
+          },
+          {
+            "root": 8,
+            "quality": "maj"
+          },
+          {
+            "root": 10,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "key": 3,
+      "scale": "major",
+      "feel": "shuffle",
+      "bpm": 150.0,
+      "dyn": 2,
+      "tension": 0.35,
+      "chart": {
+        "chords": [
+          {
+            "root": 3,
+            "quality": "maj"
+          },
+          {
+            "root": 0,
+            "quality": "min"
+          },
+          {
+            "root": 8,
+            "quality": "maj"
+          },
+          {
+            "root": 10,
+            "quality": "maj"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 8,
+      "scale": "minor",
+      "feel": "halftime",
+      "bpm": 110.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 4,
+            "quality": "maj"
+          },
+          {
+            "root": 6,
+            "quality": "maj"
+          },
+          {
+            "root": 8,
+            "quality": "min"
+          },
+          {
+            "root": 8,
+            "quality": "min"
+          }
+        ]
+      }
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "key": 1,
+      "scale": "minor",
+      "feel": "halftime",
+      "bpm": 132.0,
+      "dyn": 4,
+      "tension": 0.7,
+      "chart": {
+        "chords": [
+          {
+            "root": 9,
+            "quality": "maj"
+          },
+          {
+            "root": 11,
+            "quality": "maj"
+          },
+          {
+            "root": 1,
+            "quality": "min"
+          },
+          {
+            "root": 1,
+            "quality": "min"
+          }
+        ]
+      }
+    }
+  ]
+}

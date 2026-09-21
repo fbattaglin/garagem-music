@@ -79,6 +79,25 @@ TRANSITIONS: Final[dict[str, tuple[tuple[str, int], ...]]] = {
     BRIDGE: ((CHORUS, 7), (VERSE, 1)),
 }
 
+# Kinds that break a run of verse and chorus.
+RELIEF: Final[frozenset[str]] = frozenset({BRIDGE})
+
+# How many sections of verse and chorus alone may pass before the next one must be
+# something else (ADR-027).
+#
+# **The table above makes a long alternation likely, and it was heard.** A bridge is rare —
+# one weight in seven out of a verse, three in eight out of a chorus — so once the walk is
+# past one, the song alternates for as long as it lasts. Of the songwriter's three songs,
+# the one Fabiano heard as *"mais chatinha e repetitiva"* ran **twelve** sections that way,
+# and the one he did *not* single out is the only one with a bridge in the middle, running
+# **five** (`phase-6-findings.md` §8).
+#
+# **Six, from those two numbers and nothing else:** just above what was heard to work. It is
+# a musical choice settled by ear rather than a threshold derived from anything (ADR-019),
+# and a rule rather than a weight because a weight would make a long run *less likely* and
+# this one has to be impossible.
+RELIEF_AFTER: Final = 6
+
 # Chart shapes as scale degrees, per modality. Two per kind, so a seed has something to
 # choose and a song does not always use the same four chords.
 MINOR_CHARTS: Final[dict[str, tuple[tuple[int, ...], ...]]] = {
@@ -126,15 +145,40 @@ def arrange(brief: SongBrief, seed: int) -> tuple[Section, ...]:
     rng = Random(seed)
 
     kinds = [INTRO]
+    run = 0
     seconds = _seconds(brief, INTRO)
     while seconds < brief.minimum_seconds:
-        options, weights = zip(*TRANSITIONS[kinds[-1]], strict=True)
-        kind = rng.choices(options, weights=weights, k=1)[0]
+        kind = _following(kinds[-1], run, rng)
         kinds.append(kind)
+        run = _run_after(run, kind)
         seconds += _seconds(brief, kind)
     kinds.append(OUTRO)
 
     return tuple(_section(brief, kind, charts, rng) for kind in kinds)
+
+
+def _following(last: str, run: int, rng: Random) -> str:
+    """The next kind of section: the weighted walk, and the one rule it has.
+
+    `run` is how many sections of verse and chorus alone have just passed. At `RELIEF_AFTER`
+    the walk is overruled and the next kind is one that breaks the run — **chosen from the
+    same table with the same weights**, so which relief the song gets is still the song's own
+    choice and only its *timing* is forced.
+
+    One draw either way, so a seed's stream stays aligned whichever branch it takes.
+    """
+    choices = TRANSITIONS[last]
+    if run >= RELIEF_AFTER:
+        relieving = tuple(pair for pair in choices if pair[0] in RELIEF)
+        choices = relieving or choices
+    options, weights = zip(*choices, strict=True)
+    chosen: str = rng.choices(options, weights=weights, k=1)[0]
+    return chosen
+
+
+def _run_after(run: int, kind: str) -> int:
+    """The run of verse-and-chorus-only sections, after `kind` is added to the form."""
+    return run + 1 if kind in (VERSE, CHORUS) else 0
 
 
 def with_climax(form: Sequence[Section]) -> tuple[Section, ...]:
@@ -187,13 +231,16 @@ def continue_from(reference: Section, kind: str, seed: int, seconds: float) -> t
     kinds: list[str] = []
     elapsed = 0.0
     last = kind
+    # The section jumped to counts towards the run: a tail that starts on a chorus has
+    # already used one of its six.
+    run = _run_after(0, kind)
     while last in TRANSITIONS:
-        options, weights = zip(*TRANSITIONS[last], strict=True)
-        following = rng.choices(options, weights=weights, k=1)[0]
+        following = _following(last, run, rng)
         length = _seconds(brief, following)
         if abs(budget - (elapsed + length)) >= abs(budget - elapsed):
             break
         kinds.append(following)
+        run = _run_after(run, following)
         elapsed += length
         last = following
     kinds.append(OUTRO)

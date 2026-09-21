@@ -41,7 +41,19 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
 
 ### Where the phase actually is
 
-- **Nothing built yet.** ADR-027 is written; Stage A is next.
+- **Stage A is built: the form gets relief** (`phase-7-findings.md` §1). After six sections
+  of verse and chorus alone, the next kind is forced to be something else — the kind still
+  chosen from `TRANSITIONS` with its own weights, so only the *timing* is forced. Seed 23,
+  the song heard as repetitive, falls from twelve sections of alternation to six and gains a
+  bridge in the middle. Worst run over 200 seeds: 6.
+  - It turned 21 tests red in two measurement rigs, and both were right: each rebuilt its
+    population by replaying a generator that is free to change. The Phase 3 calibration
+    corpus is frozen in `bench/calibration-corpus.json` because it cannot be recorded again;
+    the regression set already carried its own briefings, and its guard now checks the
+    recording against itself. **2 of 29 briefings had moved.**
+  - No golden file changed. Suite at **2378 passed, 27 skipped**; `ruff` and `mypy` clean.
+  - **Unheard.** The listening is one jam on seed 23 and the verdict quoted.
+- **Stage B is next: the solo section.**
 
 ## Phase 6 — closed
 

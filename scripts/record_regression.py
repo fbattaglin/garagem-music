@@ -131,12 +131,35 @@ def _bench() -> ModuleType:
 
 
 def the_set() -> list[tuple[str, Section, int]]:
-    """Every briefing with its id and its seed, in the order it is recorded."""
+    """Every briefing with its id and its seed, in the order it would be recorded.
+
+    **A fresh draw, and only `record_set` uses it.** Reading an existing recording goes
+    through `load_set`, which carries its own briefings — see `identifies`.
+    """
     briefings: Callable[[int, int], list[Section]] = _bench().briefings
     return [
         (f"{index:02d}-{section.name}-{section.feel}-{section.bpm:g}", section, SEED + index)
         for index, section in enumerate(briefings(DRAWN, SEED))
     ]
+
+
+def identifies(entry: Recorded, index: int) -> bool:
+    """Whether a recorded briefing still says what it is: its id, its order, its seed.
+
+    **This replaced re-drawing the set and comparing.** The set used to be checked by
+    replaying `bench_sections.draw`, which walks `arranger.arrange` — so a change to the
+    form invalidated a recording of the *model*, which the form has nothing to do with.
+    ADR-027's relief rule moved 2 of 29 briefings and the solo section will move more.
+
+    Nothing is lost by dropping the comparison: a `Recorded` carries its own `Section`, so
+    the recording *is* its population, and what has to be true is that it is internally
+    consistent. Whether the population still resembles what the arranger produces today is
+    a question for whoever records the next set, deliberately, not a reason for CI to go red
+    (`phase-7-findings.md` §1).
+    """
+    section = entry.section
+    expected = f"{index:02d}-{section.name}-{section.feel}-{section.bpm:g}"
+    return entry.id == expected and entry.seed == SEED + index
 
 
 def cassette_of(folder: Path, entry: Recorded) -> Path:

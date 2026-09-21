@@ -25,7 +25,7 @@ from garagem.engines import (
     play_section,
     with_climax,
 )
-from garagem.engines.arranger import CHORUS, INTRO, OUTRO
+from garagem.engines.arranger import BRIDGE, CHORUS, INTRO, OUTRO, RELIEF_AFTER, VERSE
 from garagem.theory import TheoryError, render_chord, validate
 
 THREE_MINUTES = 180.0
@@ -51,6 +51,48 @@ def seconds_of(brief: SongBrief, seed: int) -> float:
 
 def test_the_same_seed_gives_the_same_song() -> None:
     assert arrange(a_brief(), 7) == arrange(a_brief(), 7)
+
+
+def longest_alternation(form: tuple[Section, ...]) -> int:
+    """The longest run of sections that are only verse and chorus."""
+    longest = run = 0
+    for section in form:
+        run = run + 1 if section.name in (VERSE, CHORUS) else 0
+        longest = max(longest, run)
+    return longest
+
+
+@pytest.mark.parametrize("seed", range(40))
+def test_no_song_alternates_verse_and_chorus_without_relief(seed: int) -> None:
+    """ADR-027's one rule on the walk, over every seed and both modalities.
+
+    The complaint it answers is Fabiano's, on the song this seed writes: *"a música número
+    três foi mais chatinha e repetitiva"*. Of the songwriter's three songs it ran twelve
+    sections of verse-chorus, and the one he did not single out ran five
+    (`phase-6-findings.md` §8).
+    """
+    for scale in ("minor", "major"):
+        assert longest_alternation(arrange(a_brief(scale=scale), seed)) <= RELIEF_AFTER
+
+
+def test_the_song_heard_as_repetitive_gets_its_relief() -> None:
+    """Seed 23, `Half light`, the one he named. Twelve sections of alternation became six,
+    and the bridge it gains lands in the middle — which is where song 2, the song he did
+    *not* call repetitive, had one."""
+    brief = a_brief(key=7, scale="major", feel=Feel.HALFTIME, minimum_seconds=200.0)
+    form = with_climax(arrange(brief, 23))
+    assert longest_alternation(form) == 6
+    bridges = [index for index, section in enumerate(form) if section.name == BRIDGE]
+    assert len(bridges) == 2
+    assert 6 <= bridges[-1] <= len(form) - 4, "the relief lands in the song, not at its edge"
+
+
+def test_relief_is_forced_in_timing_only_and_never_in_kind() -> None:
+    """The rule overrules *when*, not *what*: the kind still comes from `TRANSITIONS`, with
+    its own weights, so a table nobody has argued with is still the thing that decides."""
+    for seed in range(60):
+        for section in arrange(a_brief(), seed):
+            assert section.name in {INTRO, OUTRO, VERSE, CHORUS, BRIDGE}
 
 
 def test_different_seeds_give_different_songs() -> None:
