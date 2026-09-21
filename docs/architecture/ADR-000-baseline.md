@@ -293,6 +293,7 @@ Cache hits cost 10% of base input at Anthropic; the Batch API gives a further 50
 | [ADR-024](ADR-024-the-model-writes-fabiano-chooses.md) | **The model writes, Fabiano chooses**: the floor plays live, the model's takes reach the stage through setlists curated with KEEP/VETO | **New** — answers ADR-023's question; amends §7's Phase 5 and ADR-021 §3 |
 | [ADR-025](ADR-025-the-model-composes-offline.md) | **The model composes offline, and the band gets its sound**: live generation frozen, instruments before more listening, voice out of Phase 5, Phase 6 becomes the songwriter | **New** — amends §7's Phases 5 and 6 and ADR-024 §6 |
 | [ADR-026](ADR-026-the-songwriter.md) | **The songwriter**: a fifth voice, pitched material in a bake-only notation, a theme per song, and Phase 6's exit criteria | **New** — fills in §7's Phase 6 |
+| [ADR-027](ADR-027-the-arrangement.md) | **The arrangement**: a solo section, a relief rule in the form, and a fill that is announced | **New** — amends §7's Phase 7 |
 
 ADR-001 is written down in [`ADR-001-clip-ahead-and-quantised-launch.md`](ADR-001-clip-ahead-and-quantised-launch.md).
 
@@ -424,6 +425,12 @@ and written down with its criteria in [ADR-026](ADR-026-the-songwriter.md).
 ### **Phase 7+ — Extensions**
 
 Architecture C (local symbolic engine + M4L for sample-accurate scheduling) · a **multimodal listening loop** (sending captured audio via BlackHole for analysis by a multimodal model) · swing and microtiming via the Groove Pool · jazz.
+
+**Amended by [ADR-027](ADR-027-the-arrangement.md): Phase 7 is the arrangement.** None of the
+extensions above is it. Phase 6 gave the band its material and its closing verdict asked for
+three things that are all about *where things go in time* — a solo section, relief in a form
+that alternates verse-chorus too long, and a fill that is announced rather than bolted on.
+The extensions stay on the list and none of them is scheduled.
 
 ---
 

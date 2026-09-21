@@ -1,10 +1,72 @@
 # Roadmap status
 
-**Current phase: 6 — the songwriter.** The model composes whole songs offline, with pitched
-material; the floor and the curated setlist play
-([ADR-025](ADR-025-the-model-composes-offline.md)).
+**Current phase: 7 — the arrangement.** The band has its material; this phase decides where
+things go in time — a solo section, relief in the form, and a fill that is announced
+([ADR-027](ADR-027-the-arrangement.md)).
 
-## Phase 6 exit criteria
+## Phase 7 exit criteria
+
+[ADR-027](ADR-027-the-arrangement.md), agreed with Fabiano on 2026-09-20 **before anything is
+measured or baked**. Each rate states its `n`.
+
+- [ ] **No form alternates without relief** — a property over every seed the strategies
+      generate: no run longer than `RELIEF_AFTER` sections of verse and chorus alone. And the
+      verdict on seed 23, the song heard as repetitive, recorded verbatim.
+- [ ] **The band has a solo section and plays it without a network** — `validate` clean over
+      every briefing and seed with a solo in it, `pytest -m live` green, verdict verbatim.
+- [ ] **The fill is announced** — the section's own `FILL` ending carries a pickup in the bar
+      before it; the pad cue keeps ADR-022 and changes only its entry and its return. Verdict
+      verbatim from one conducted jam.
+- [ ] **The bake writes solos** — ≥90% of baked sections conformant on the first pass and
+      ≥80% approved without repair, `n` stated. The same bar as ADR-026, because it was met at
+      100% and lowering it would be a metric moved. Beside them, as description and never as a
+      target (ADR-019): the share of solo sections whose lead plays in every bar.
+- [ ] **Cost per song inside a declared budget**, estimated before the bake, cap unchanged.
+- [ ] **By ear:** one session from the new bake, played and curated, the verdict verbatim.
+- [ ] **Nothing regresses** — the live prompt and its cassettes untouched, the musical
+      regression suite green, and the golden files that move are the arranger's own,
+      deliberately, with the diff read before it is kept.
+
+### What the phase builds
+
+1. **Relief in the form** — one rule in `arranger.arrange`, no new weights.
+2. **The solo section** — a fifth kind, its charts, its ending, and the floor's own solo.
+3. **The fill announced** — a pickup in the bar before a section's own fill; the pad cue's
+   entry and return, inside ADR-022.
+4. **The songwriter's solo** — a one-cent probe first, the notation only if the probe asks.
+5. **Bake a session, play it, judge it.**
+
+**Left open, and named so it is not rediscovered:** a pad for "next: solo" (all eight are
+assigned), `--takes N` (still without a consumer), and live generation (frozen, ADR-025).
+
+### Where the phase actually is
+
+- **Nothing built yet.** ADR-027 is written; Stage A is next.
+
+## Phase 6 — closed
+
+Closed on 2026-09-20 with every criterion met, and **one deviation written down rather than
+waived** (criterion 6's golden-file clause; see below).
+
+Re-verified at the gate on 2026-09-20:
+- `uv run pytest -q` → **2335 passed, 27 live-marked skipped**.
+- `uv run pytest -m live -q` → **27 passed**, against the five-track `garagem-band.als`.
+- `uv run python scripts/bootstrap_set.py` → `session.toml: the Set matches.`
+- `ruff check .`, `ruff format --check .` and `mypy` clean over 198 source files.
+- Criteria 3 and 4 re-measured from `setlists/songwriter.json` rather than read from this
+  file: **18 of 18 = 100.0%** conformant, **18 of 18 = 100.0%** approved without repair,
+  0 takes drifted, **$0.0939 a song**.
+- Not one line was removed from `src/garagem/dsl/schema.py` in the whole phase, and
+  `cassettes/` is untouched. The live blocks are unchanged since 2026-09-01.
+- The gate also caught a documentation error: two bakes were dated by the session rather
+  than by their files. Corrected.
+
+**What the phase cost: $0.855**, over three paid bakes and one themes-only check. Two of the
+three bakes were consumed by defects in *our own notation* — no way to say "this instrument
+rests this bar", and no degree above 7, so a melody could not reach the octave. Neither 89%
+was re-scored after its fix.
+
+## Phase 6 exit criteria, as met
 
 [ADR-026](ADR-026-the-songwriter.md), agreed with Fabiano on 2026-09-17 **before anything was
 measured or baked**, from [ADR-025](ADR-025-the-model-composes-offline.md)'s re-scoping. Each rate
