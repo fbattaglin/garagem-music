@@ -290,10 +290,14 @@ curated, and its verdict is criterion 5.
 
 ## 5. The first paid bake, and the two things it says
 
-Baked on 2026-09-17 by `claude-sonnet-5`, into `setlists/songwriter.json`: the same three
-songs as `first.json`, same keys, same feels, same seeds, so the forms are identical and
-the only thing that differs is who wrote the material. **18 of 18 sections delivered, for
-$0.2808.**
+Baked late on 2026-09-17 by `claude-sonnet-5`, into what is now
+`setlists/songwriter-one-theme.json`: the same three songs as `first.json`, same keys, same
+feels, same seeds, so the forms are identical and the only thing that differs is who wrote
+the material. **18 of 18 sections delivered, for $0.2808.**
+
+*(A bake's `baked_on` is UTC, so this one's file reads 2026-09-18 while the session was the
+evening of the 17th. The file is the record; the dates in this document are the session's,
+and where the two differ this note is why.)*
 
 ### Criterion 3, measured. One of its two rates is not met.
 
@@ -451,7 +455,9 @@ was written after the first time this happened and it caught the second.
 
 ### The third bake, which is the one that counts
 
-`setlists/songwriter.json`, 2026-09-17, `claude-sonnet-5`, **$0.2817**.
+`setlists/songwriter.json`, 2026-09-18, `claude-sonnet-5`, **$0.2817**. The two bakes it
+replaces are kept beside it as evidence: `songwriter-one-theme.json` and
+`songwriter-no-octave.json`.
 
 | criterion 3 | | |
 |---|---|---|

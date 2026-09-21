@@ -19,15 +19,18 @@ states its `n`.
 - [x] **The shuffle has its own vocabulary**, and the verdict on it is recorded verbatim.
       *"Achei que teve muito mais alma. Muito bom."* — 2026-09-17, one shuffle jam
       (`phase-6-findings.md` §1).
-- [x] **The bake writes pitched material** — met 2026-09-17, `setlists/songwriter.json`
+- [x] **The bake writes pitched material** — met 2026-09-18, `setlists/songwriter.json`
       - **18 of 18 = 100%** conformant on the first pass, `n` = 18;
       - **18 of 18 = 100%** approved by the validator without repair;
       - description, never a target (ADR-019): the bass moves inside the bar in 18 of 18,
         9 of 9 choruses carry a lead line, the lead sounds in 66 of 144 bars, 0 takes drifted.
       - Two earlier paid bakes came back at 89% and were reported as not met, each for one
         notation defect (`phase-6-findings.md` §5, §7). Neither was re-scored after its fix.
-- [x] **Cost per song inside a declared budget** — **$0.094 a song**, inside ADR-026's
-      declared $0.10–0.15, against an estimate of ~$0.27 written before the bake.
+- [x] **Cost per song inside a declared budget** — met 2026-09-18. **$0.094 a song**
+      ($0.2817 for three), inside ADR-026's declared $0.10–0.15, against an estimate of
+      ~$0.27 printed before the call was sent. `bake_setlist.py` cannot bake without
+      printing it: `paid_provider` estimates, then stops unless `--yes`. The bake's own cap
+      is unchanged at $1.00.
 - [x] **By ear:** three whole songs from the songwriter, played and curated on 2026-09-20,
       the verdict verbatim (`phase-6-findings.md` §8). Nine keeps, no vetoes.
       *"Acho que elas são diferentes nas suas próprias formas e gostei do resultado …
