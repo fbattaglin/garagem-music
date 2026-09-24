@@ -9,9 +9,10 @@ things go in time — a solo section, relief in the form, and a fill that is ann
 [ADR-027](ADR-027-the-arrangement.md), agreed with Fabiano on 2026-09-20 **before anything is
 measured or baked**. Each rate states its `n`.
 
-- [ ] **No form alternates without relief** — a property over every seed the strategies
+- [x] **No form alternates without relief** — a property over every seed the strategies
       generate: no run longer than `RELIEF_AFTER` sections of verse and chorus alone. And the
-      verdict on seed 23, the song heard as repetitive, recorded verbatim.
+      verdict on seed 23, the song heard as repetitive, recorded verbatim: *"Achei que teve um
+      bom improvement comparado com a versao anterior"* (2026-09-23, `phase-7-findings.md` §1).
 - [ ] **The band has a solo section and plays it without a network** — `validate` clean over
       every briefing and seed with a solo in it, `pytest -m live` green, verdict verbatim.
 - [ ] **The fill is announced** — the section's own `FILL` ending carries a pickup in the bar
@@ -52,8 +53,26 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
     the regression set already carried its own briefings, and its guard now checks the
     recording against itself. **2 of 29 briefings had moved.**
   - No golden file changed. Suite at **2378 passed, 27 skipped**; `ruff` and `mypy` clean.
-  - **Unheard.** The listening is one jam on seed 23 and the verdict quoted.
-- **Stage B is next: the solo section.**
+  - **Heard on 2026-09-23**, one jam on seed 23: *"Achei que teve um bom improvement comparado
+    com a versao anterior. Podemos seguir com a etapà B"*. Criterion 1 met; the threshold
+    stays at six.
+- **Stage B is built: the band has a solo section** (`phase-7-findings.md` §2). A fifth kind at
+  8 bars, `dyn` 3, tension 0.65, after a chorus and back into one, in `RELIEF`. `dyn` 3 rather
+  than the planned 4, so the Phase 4 property that a chorus steps up in both `dyn` and tension
+  stays true — a new kind does not get an approved one relaxed to make room for it. The floor
+  plays it: two runs alternating, every bar line a chord tone by construction, the last bar
+  left to the drummer.
+  - **3 376 solo sections over 3 200 arranged songs: 0 violations**, and the lead in 27 008 of
+    27 008 bars. Neither knob can silence it or break it anywhere in its travel.
+  - **A sweep found what 100 unit tests did not.** At 5 steps of compass the widest line spans
+    19 semitones and needs an 11-semitone window inside the lead's 29 — narrower than the
+    octave it has to land on, so some keys had no octave and the floor raised instead of
+    playing. `TOP_STEP` is 4, and the window is now pinned as arithmetic, not as a sample.
+  - No golden file moved; two were added. The live prompt is byte-identical, and the only
+    prompt change is four bake-only lines. Suite at **2440 passed, 27 skipped**.
+  - **Unheard, and `pytest -m live` unrun.** The listening is one jam on seed 5, in the key and
+    feel of `Half light`: two solos, at 1:20 and 2:32.
+- **Stage C is next: the fill arrives.**
 
 ## Phase 6 — closed
 

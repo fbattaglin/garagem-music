@@ -25,7 +25,18 @@ from garagem.engines import (
     play_section,
     with_climax,
 )
-from garagem.engines.arranger import BRIDGE, CHORUS, INTRO, OUTRO, RELIEF_AFTER, VERSE
+from garagem.engines.arranger import (
+    BRIDGE,
+    CHORUS,
+    INTRO,
+    MAJOR_CHARTS,
+    MINOR_CHARTS,
+    OUTRO,
+    RELIEF,
+    RELIEF_AFTER,
+    SOLO,
+    VERSE,
+)
 from garagem.theory import TheoryError, render_chord, validate
 
 THREE_MINUTES = 180.0
@@ -76,15 +87,22 @@ def test_no_song_alternates_verse_and_chorus_without_relief(seed: int) -> None:
 
 
 def test_the_song_heard_as_repetitive_gets_its_relief() -> None:
-    """Seed 23, `Half light`, the one he named. Twelve sections of alternation became six,
-    and the bridge it gains lands in the middle — which is where song 2, the song he did
-    *not* call repetitive, had one."""
+    """Seed 23, `Half light`, the one he named — and heard again on 2026-09-23 as *"um bom
+    improvement comparado com a versao anterior"* (`phase-7-findings.md` §1).
+
+    **What is pinned is the relief, not the song.** Twelve sections of alternation became six,
+    and something that is neither a verse nor a chorus lands in the middle rather than only
+    near the edges — which is what separated song 2 from song 3 in Phase 6. Which kind of
+    relief, and how many, is the walk's own business, and it moved again the moment ADR-027
+    gave a chorus a solo to choose.
+    """
     brief = a_brief(key=7, scale="major", feel=Feel.HALFTIME, minimum_seconds=200.0)
     form = with_climax(arrange(brief, 23))
     assert longest_alternation(form) == 6
-    bridges = [index for index, section in enumerate(form) if section.name == BRIDGE]
-    assert len(bridges) == 2
-    assert 6 <= bridges[-1] <= len(form) - 4, "the relief lands in the song, not at its edge"
+    relieved = [index for index, section in enumerate(form) if section.name in RELIEF]
+    assert any(6 <= index <= len(form) - 4 for index in relieved), (
+        "the relief lands in the song, not only at its edges"
+    )
 
 
 def test_relief_is_forced_in_timing_only_and_never_in_kind() -> None:
@@ -92,7 +110,49 @@ def test_relief_is_forced_in_timing_only_and_never_in_kind() -> None:
     its own weights, so a table nobody has argued with is still the thing that decides."""
     for seed in range(60):
         for section in arrange(a_brief(), seed):
-            assert section.name in {INTRO, OUTRO, VERSE, CHORUS, BRIDGE}
+            assert section.name in {INTRO, OUTRO, VERSE, CHORUS, BRIDGE, SOLO}
+
+
+# --------------------------------------------------------------------------------- solo
+
+
+def test_a_solo_only_ever_follows_a_chorus() -> None:
+    """It is the answer to the song's loudest statement, so it cannot arrive before one."""
+    for seed in range(120):
+        for scale in ("minor", "major"):
+            form = arrange(a_brief(scale=scale), seed)
+            for before, after in pairwise(form):
+                if after.name == SOLO:
+                    assert before.name == CHORUS
+
+
+def test_a_solo_section_leaves_the_chorus_room_to_step_up() -> None:
+    """ADR-027's reason for a section of its own: the solo has the stage, not a fight with
+    the loudest thing in the song. The Phase 4 property that a chorus is a step up in both
+    `dyn` and tension was not relaxed to fit it in — this is what keeps it true."""
+    assert SHAPES[SOLO].dyn < SHAPES[CHORUS].dyn
+    assert SHAPES[SOLO].tension < SHAPES[CHORUS].tension
+    assert SHAPES[SOLO].tension > SHAPES[BRIDGE].tension
+
+
+def test_some_songs_get_a_solo_and_not_all_of_them() -> None:
+    """A weight of 2 in 10 out of a chorus. A kind that never came up, or always did, would
+    be a table entry that is really a coin with one side."""
+    with_solo = sum(
+        1
+        for seed in range(120)
+        if any(section.name == SOLO for section in arrange(a_brief(), seed))
+    )
+    assert 0 < with_solo < 120
+
+
+def test_a_solos_chart_moves_under_it() -> None:
+    """Four different chords, one a bar: a solo with one chord under it has nothing to play
+    *over*, which is the whole reason the kind has its own charts."""
+    for charts in (MINOR_CHARTS, MAJOR_CHARTS):
+        for shape in charts[SOLO]:
+            assert len(shape) == 4
+            assert len(set(shape)) >= 3
 
 
 def test_different_seeds_give_different_songs() -> None:

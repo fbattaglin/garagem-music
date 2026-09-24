@@ -24,6 +24,7 @@ from garagem.theory import (
     nearest_in,
     pitch_classes,
     pitch_of,
+    scale_pitch,
     steps_of,
 )
 
@@ -116,6 +117,44 @@ def test_a_degree_that_is_not_a_chord_tone_comes_from_the_implied_scale() -> Non
 def test_a_degree_outside_one_to_seven_is_refused(degree: int) -> None:
     with pytest.raises(TheoryError, match=re.escape("a degree is 1..7")):
         degree_to_pitch(EM, degree, octave=2)
+
+
+# ------------------------------------------------------------------------- scale_pitch
+
+
+def test_a_step_counts_up_the_key_and_not_up_a_chord() -> None:
+    """What the solo needs and `degree_to_pitch` cannot give it: one line through the key,
+    whatever chord the bar happens to be on (`engines/lead.py`)."""
+    assert scale_pitch(C, "major", 0, 4) == 60
+    assert scale_pitch(C, "major", 2, 4) == 64
+    assert scale_pitch(C, "minor", 2, 4) == 63
+
+
+def test_a_step_past_the_scale_takes_the_octave_with_it() -> None:
+    """Which is what lets a melodic line be one arithmetic sequence rather than a pile of
+    octave cases."""
+    assert scale_pitch(C, "major", 7, 4) == 72
+    assert scale_pitch(C, "major", 8, 4) == 74
+    assert scale_pitch(C, "major", 14, 4) == 84
+
+
+def test_a_negative_step_goes_down_the_scale() -> None:
+    assert scale_pitch(C, "major", -1, 4) == 59
+    assert scale_pitch(C, "major", -7, 4) == 48
+
+
+def test_a_step_counts_entries_so_a_pentatonic_works_too() -> None:
+    """Five to the octave, not seven: `degree_to_pitch` refuses these scales and this one
+    does not have to, because nothing here asks for a fourth to land on."""
+    assert scale_pitch(C, "pentatonic_minor", 5, 4) == 72
+    assert scale_pitch(C, "pentatonic_minor", 1, 4) == 63
+
+
+def test_a_step_is_always_a_note_of_its_scale() -> None:
+    for scale in SCALES:
+        allowed = pitch_classes(C, scale)
+        for step in range(-14, 15):
+            assert scale_pitch(C, scale, step, 4) % 12 in allowed, (scale, step)
 
 
 # ---------------------------------------------------------------------------- nearest_in

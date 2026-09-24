@@ -7612,3 +7612,234 @@
 {"at_beats":489.0,"kind":"cue_received","detail":{"bar":122,"drained_bar":122,"macro":"tension","value":0.906}}
 {"at_beats":492.0,"kind":"macro_changed","detail":{"density":1.0,"tension":0.906,"dyn_offset":2,"tension_offset":0.25,"from_section":17}}
 {"at_beats":496.0,"kind":"session_ended","detail":{"finished":true,"bpm":132.0,"spent_usd":"0.000","estimated_usd":"0","target_usd":"0.3","cap_usd":"1.0","killed":false}}
+{"at_beats":0.0,"kind":"fallback","detail":{"section":0,"seed":23,"reason":"not_in_buffer"}}
+{"at_beats":3.0,"kind":"section_written","detail":{"section":0,"scene":0,"seed":23,"briefing":"intro 4 bars dyn=1 tension=0.20","notes":58,"ms":1709.8,"ending":"fill"}}
+{"at_beats":3.0,"kind":"section_measured","detail":{"section":0,"seed":23,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.917,"kit_collision":1.0}}
+{"at_beats":3.0,"kind":"scene_fired","detail":{"scene":0,"section":0,"name":"intro","slack_bars":0,"first":true}}
+{"at_beats":4.0,"kind":"fallback","detail":{"section":1,"seed":24,"reason":"not_in_buffer"}}
+{"at_beats":7.0,"kind":"section_written","detail":{"section":1,"scene":1,"seed":24,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":126,"ms":1729.9,"ending":"fill"}}
+{"at_beats":7.0,"kind":"section_measured","detail":{"section":1,"seed":24,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.964,"kit_collision":1.0}}
+{"at_beats":16.0,"kind":"scene_fired","detail":{"scene":1,"section":1,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":24.0,"kind":"fallback","detail":{"section":2,"seed":25,"reason":"not_in_buffer"}}
+{"at_beats":29.0,"kind":"section_written","detail":{"section":2,"scene":0,"seed":25,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":164,"ms":2497.6,"ending":"fill"}}
+{"at_beats":29.0,"kind":"section_measured","detail":{"section":2,"seed":25,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.333,"density_against_tension":0.958,"kit_collision":0.971}}
+{"at_beats":48.0,"kind":"scene_fired","detail":{"scene":0,"section":2,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":56.0,"kind":"fallback","detail":{"section":3,"seed":26,"reason":"not_in_buffer"}}
+{"at_beats":59.0,"kind":"section_written","detail":{"section":3,"scene":1,"seed":26,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1419.2,"ending":"build"}}
+{"at_beats":59.0,"kind":"section_measured","detail":{"section":3,"seed":26,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":80.0,"kind":"scene_fired","detail":{"scene":1,"section":3,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":88.0,"kind":"fallback","detail":{"section":4,"seed":27,"reason":"not_in_buffer"}}
+{"at_beats":91.0,"kind":"section_written","detail":{"section":4,"scene":0,"seed":27,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1457.0,"ending":"fill"}}
+{"at_beats":91.0,"kind":"section_measured","detail":{"section":4,"seed":27,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":112.0,"kind":"scene_fired","detail":{"scene":0,"section":4,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":120.0,"kind":"fallback","detail":{"section":5,"seed":28,"reason":"not_in_buffer"}}
+{"at_beats":123.0,"kind":"section_written","detail":{"section":5,"scene":1,"seed":28,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1455.5,"ending":"build"}}
+{"at_beats":123.0,"kind":"section_measured","detail":{"section":5,"seed":28,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":144.0,"kind":"scene_fired","detail":{"scene":1,"section":5,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":152.0,"kind":"fallback","detail":{"section":6,"seed":29,"reason":"not_in_buffer"}}
+{"at_beats":155.0,"kind":"section_written","detail":{"section":6,"scene":0,"seed":29,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1427.5,"ending":"fill"}}
+{"at_beats":155.0,"kind":"section_measured","detail":{"section":6,"seed":29,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":176.0,"kind":"scene_fired","detail":{"scene":0,"section":6,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":184.0,"kind":"fallback","detail":{"section":7,"seed":30,"reason":"not_in_buffer"}}
+{"at_beats":187.0,"kind":"section_written","detail":{"section":7,"scene":1,"seed":30,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1428.0,"ending":"build"}}
+{"at_beats":187.0,"kind":"section_measured","detail":{"section":7,"seed":30,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":208.0,"kind":"scene_fired","detail":{"scene":1,"section":7,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":216.0,"kind":"fallback","detail":{"section":8,"seed":31,"reason":"not_in_buffer"}}
+{"at_beats":219.0,"kind":"section_written","detail":{"section":8,"scene":0,"seed":31,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1436.0,"ending":"fill"}}
+{"at_beats":219.0,"kind":"section_measured","detail":{"section":8,"seed":31,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":240.0,"kind":"scene_fired","detail":{"scene":0,"section":8,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":248.0,"kind":"fallback","detail":{"section":9,"seed":32,"reason":"not_in_buffer"}}
+{"at_beats":251.0,"kind":"section_written","detail":{"section":9,"scene":1,"seed":32,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":159,"ms":1484.7,"ending":"stop"}}
+{"at_beats":251.0,"kind":"section_measured","detail":{"section":9,"seed":32,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.364,"density_against_tension":0.938,"kit_collision":1.0}}
+{"at_beats":272.0,"kind":"scene_fired","detail":{"scene":1,"section":9,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":280.0,"kind":"fallback","detail":{"section":10,"seed":33,"reason":"not_in_buffer"}}
+{"at_beats":283.0,"kind":"section_written","detail":{"section":10,"scene":0,"seed":33,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1477.4,"ending":"fill"}}
+{"at_beats":283.0,"kind":"section_measured","detail":{"section":10,"seed":33,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":304.0,"kind":"scene_fired","detail":{"scene":0,"section":10,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":312.0,"kind":"fallback","detail":{"section":11,"seed":34,"reason":"not_in_buffer"}}
+{"at_beats":315.0,"kind":"section_written","detail":{"section":11,"scene":1,"seed":34,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1459.6,"ending":"build"}}
+{"at_beats":315.0,"kind":"section_measured","detail":{"section":11,"seed":34,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":336.0,"kind":"scene_fired","detail":{"scene":1,"section":11,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":344.0,"kind":"fallback","detail":{"section":12,"seed":35,"reason":"not_in_buffer"}}
+{"at_beats":347.0,"kind":"section_written","detail":{"section":12,"scene":0,"seed":35,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1435.4,"ending":"fill"}}
+{"at_beats":347.0,"kind":"section_measured","detail":{"section":12,"seed":35,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":368.0,"kind":"scene_fired","detail":{"scene":0,"section":12,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":376.0,"kind":"fallback","detail":{"section":13,"seed":36,"reason":"not_in_buffer"}}
+{"at_beats":379.0,"kind":"section_written","detail":{"section":13,"scene":1,"seed":36,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1487.4,"ending":"build"}}
+{"at_beats":379.0,"kind":"section_measured","detail":{"section":13,"seed":36,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":400.0,"kind":"scene_fired","detail":{"scene":1,"section":13,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":408.0,"kind":"fallback","detail":{"section":14,"seed":37,"reason":"not_in_buffer"}}
+{"at_beats":411.0,"kind":"section_written","detail":{"section":14,"scene":0,"seed":37,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1439.1,"ending":"fill"}}
+{"at_beats":411.0,"kind":"section_measured","detail":{"section":14,"seed":37,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":432.0,"kind":"scene_fired","detail":{"scene":0,"section":14,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":440.0,"kind":"fallback","detail":{"section":15,"seed":38,"reason":"not_in_buffer"}}
+{"at_beats":443.0,"kind":"section_written","detail":{"section":15,"scene":1,"seed":38,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":159,"ms":1495.1,"ending":"stop"}}
+{"at_beats":443.0,"kind":"section_measured","detail":{"section":15,"seed":38,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.364,"density_against_tension":0.938,"kit_collision":1.0}}
+{"at_beats":464.0,"kind":"scene_fired","detail":{"scene":1,"section":15,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":472.0,"kind":"fallback","detail":{"section":16,"seed":39,"reason":"not_in_buffer"}}
+{"at_beats":475.0,"kind":"section_written","detail":{"section":16,"scene":0,"seed":39,"briefing":"chorus 8 bars dyn=5 tension=0.80","notes":298,"ms":1466.1,"ending":"fill"}}
+{"at_beats":475.0,"kind":"section_measured","detail":{"section":16,"seed":39,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.333,"density_against_tension":0.962,"kit_collision":0.792}}
+{"at_beats":496.0,"kind":"scene_fired","detail":{"scene":0,"section":16,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":504.0,"kind":"fallback","detail":{"section":17,"seed":40,"reason":"not_in_buffer"}}
+{"at_beats":507.0,"kind":"section_written","detail":{"section":17,"scene":1,"seed":40,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":126,"ms":1470.6,"ending":"fill"}}
+{"at_beats":507.0,"kind":"section_measured","detail":{"section":17,"seed":40,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.964,"kit_collision":1.0}}
+{"at_beats":528.0,"kind":"scene_fired","detail":{"scene":1,"section":17,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":536.0,"kind":"fallback","detail":{"section":18,"seed":41,"reason":"not_in_buffer"}}
+{"at_beats":541.0,"kind":"section_written","detail":{"section":18,"scene":0,"seed":41,"briefing":"outro 4 bars dyn=2 tension=0.15","notes":57,"ms":2536.4,"ending":"final"}}
+{"at_beats":541.0,"kind":"section_measured","detail":{"section":18,"seed":41,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.571,"density_against_tension":0.857,"kit_collision":1.0}}
+{"at_beats":560.0,"kind":"scene_fired","detail":{"scene":0,"section":18,"name":"outro","slack_bars":1,"first":false}}
+{"at_beats":584.0,"kind":"session_ended","detail":{"finished":true,"bpm":132.0}}
+{"at_beats":0.0,"kind":"fallback","detail":{"section":0,"seed":23,"reason":"not_in_buffer"}}
+{"at_beats":5.0,"kind":"section_written","detail":{"section":0,"scene":0,"seed":23,"briefing":"intro 4 bars dyn=1 tension=0.20","notes":58,"ms":2517.2,"ending":"fill"}}
+{"at_beats":5.0,"kind":"section_measured","detail":{"section":0,"seed":23,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.917,"kit_collision":1.0}}
+{"at_beats":5.0,"kind":"scene_fired","detail":{"scene":0,"section":0,"name":"intro","slack_bars":0,"first":true}}
+{"at_beats":8.0,"kind":"fallback","detail":{"section":1,"seed":24,"reason":"not_in_buffer"}}
+{"at_beats":11.0,"kind":"section_written","detail":{"section":1,"scene":1,"seed":24,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":126,"ms":1469.6,"ending":"fill"}}
+{"at_beats":11.0,"kind":"section_measured","detail":{"section":1,"seed":24,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.964,"kit_collision":1.0}}
+{"at_beats":20.0,"kind":"scene_fired","detail":{"scene":1,"section":1,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":28.0,"kind":"fallback","detail":{"section":2,"seed":25,"reason":"not_in_buffer"}}
+{"at_beats":33.0,"kind":"section_written","detail":{"section":2,"scene":0,"seed":25,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":164,"ms":2478.6,"ending":"fill"}}
+{"at_beats":33.0,"kind":"section_measured","detail":{"section":2,"seed":25,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.333,"density_against_tension":0.958,"kit_collision":0.971}}
+{"at_beats":52.0,"kind":"scene_fired","detail":{"scene":0,"section":2,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":60.0,"kind":"fallback","detail":{"section":3,"seed":26,"reason":"not_in_buffer"}}
+{"at_beats":63.0,"kind":"section_written","detail":{"section":3,"scene":1,"seed":26,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1483.1,"ending":"build"}}
+{"at_beats":63.0,"kind":"section_measured","detail":{"section":3,"seed":26,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":84.0,"kind":"scene_fired","detail":{"scene":1,"section":3,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":92.0,"kind":"fallback","detail":{"section":4,"seed":27,"reason":"not_in_buffer"}}
+{"at_beats":95.0,"kind":"section_written","detail":{"section":4,"scene":0,"seed":27,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1437.4,"ending":"fill"}}
+{"at_beats":95.0,"kind":"section_measured","detail":{"section":4,"seed":27,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":116.0,"kind":"scene_fired","detail":{"scene":0,"section":4,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":124.0,"kind":"fallback","detail":{"section":5,"seed":28,"reason":"not_in_buffer"}}
+{"at_beats":127.0,"kind":"section_written","detail":{"section":5,"scene":1,"seed":28,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1487.4,"ending":"build"}}
+{"at_beats":127.0,"kind":"section_measured","detail":{"section":5,"seed":28,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":148.0,"kind":"scene_fired","detail":{"scene":1,"section":5,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":156.0,"kind":"fallback","detail":{"section":6,"seed":29,"reason":"not_in_buffer"}}
+{"at_beats":159.0,"kind":"section_written","detail":{"section":6,"scene":0,"seed":29,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1457.9,"ending":"fill"}}
+{"at_beats":159.0,"kind":"section_measured","detail":{"section":6,"seed":29,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":180.0,"kind":"scene_fired","detail":{"scene":0,"section":6,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":188.0,"kind":"fallback","detail":{"section":7,"seed":30,"reason":"not_in_buffer"}}
+{"at_beats":191.0,"kind":"section_written","detail":{"section":7,"scene":1,"seed":30,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1405.0,"ending":"build"}}
+{"at_beats":191.0,"kind":"section_measured","detail":{"section":7,"seed":30,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":212.0,"kind":"scene_fired","detail":{"scene":1,"section":7,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":220.0,"kind":"fallback","detail":{"section":8,"seed":31,"reason":"not_in_buffer"}}
+{"at_beats":223.0,"kind":"section_written","detail":{"section":8,"scene":0,"seed":31,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1466.9,"ending":"fill"}}
+{"at_beats":223.0,"kind":"section_measured","detail":{"section":8,"seed":31,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":244.0,"kind":"scene_fired","detail":{"scene":0,"section":8,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":252.0,"kind":"fallback","detail":{"section":9,"seed":32,"reason":"not_in_buffer"}}
+{"at_beats":255.0,"kind":"section_written","detail":{"section":9,"scene":1,"seed":32,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":159,"ms":1435.3,"ending":"stop"}}
+{"at_beats":255.0,"kind":"section_measured","detail":{"section":9,"seed":32,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.364,"density_against_tension":0.938,"kit_collision":1.0}}
+{"at_beats":276.0,"kind":"scene_fired","detail":{"scene":1,"section":9,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":284.0,"kind":"fallback","detail":{"section":10,"seed":33,"reason":"not_in_buffer"}}
+{"at_beats":287.0,"kind":"section_written","detail":{"section":10,"scene":0,"seed":33,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1406.5,"ending":"fill"}}
+{"at_beats":287.0,"kind":"section_measured","detail":{"section":10,"seed":33,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":308.0,"kind":"scene_fired","detail":{"scene":0,"section":10,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":316.0,"kind":"fallback","detail":{"section":11,"seed":34,"reason":"not_in_buffer"}}
+{"at_beats":319.0,"kind":"section_written","detail":{"section":11,"scene":1,"seed":34,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1451.9,"ending":"build"}}
+{"at_beats":319.0,"kind":"section_measured","detail":{"section":11,"seed":34,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":340.0,"kind":"scene_fired","detail":{"scene":1,"section":11,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":348.0,"kind":"fallback","detail":{"section":12,"seed":35,"reason":"not_in_buffer"}}
+{"at_beats":351.0,"kind":"section_written","detail":{"section":12,"scene":0,"seed":35,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1465.9,"ending":"fill"}}
+{"at_beats":351.0,"kind":"section_measured","detail":{"section":12,"seed":35,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":372.0,"kind":"scene_fired","detail":{"scene":0,"section":12,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":380.0,"kind":"fallback","detail":{"section":13,"seed":36,"reason":"not_in_buffer"}}
+{"at_beats":383.0,"kind":"section_written","detail":{"section":13,"scene":1,"seed":36,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1414.6,"ending":"build"}}
+{"at_beats":383.0,"kind":"section_measured","detail":{"section":13,"seed":36,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":404.0,"kind":"scene_fired","detail":{"scene":1,"section":13,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":412.0,"kind":"fallback","detail":{"section":14,"seed":37,"reason":"not_in_buffer"}}
+{"at_beats":415.0,"kind":"section_written","detail":{"section":14,"scene":0,"seed":37,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1436.1,"ending":"fill"}}
+{"at_beats":415.0,"kind":"section_measured","detail":{"section":14,"seed":37,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":436.0,"kind":"scene_fired","detail":{"scene":0,"section":14,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":444.0,"kind":"fallback","detail":{"section":15,"seed":38,"reason":"not_in_buffer"}}
+{"at_beats":447.0,"kind":"section_written","detail":{"section":15,"scene":1,"seed":38,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":159,"ms":1483.6,"ending":"stop"}}
+{"at_beats":447.0,"kind":"section_measured","detail":{"section":15,"seed":38,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.364,"density_against_tension":0.938,"kit_collision":1.0}}
+{"at_beats":468.0,"kind":"scene_fired","detail":{"scene":1,"section":15,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":476.0,"kind":"fallback","detail":{"section":16,"seed":39,"reason":"not_in_buffer"}}
+{"at_beats":479.0,"kind":"section_written","detail":{"section":16,"scene":0,"seed":39,"briefing":"chorus 8 bars dyn=5 tension=0.80","notes":298,"ms":1434.6,"ending":"fill"}}
+{"at_beats":479.0,"kind":"section_measured","detail":{"section":16,"seed":39,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.333,"density_against_tension":0.962,"kit_collision":0.792}}
+{"at_beats":500.0,"kind":"scene_fired","detail":{"scene":0,"section":16,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":508.0,"kind":"fallback","detail":{"section":17,"seed":40,"reason":"not_in_buffer"}}
+{"at_beats":511.0,"kind":"section_written","detail":{"section":17,"scene":1,"seed":40,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":126,"ms":1435.1,"ending":"fill"}}
+{"at_beats":511.0,"kind":"section_measured","detail":{"section":17,"seed":40,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.964,"kit_collision":1.0}}
+{"at_beats":532.0,"kind":"scene_fired","detail":{"scene":1,"section":17,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":540.0,"kind":"fallback","detail":{"section":18,"seed":41,"reason":"not_in_buffer"}}
+{"at_beats":545.0,"kind":"section_written","detail":{"section":18,"scene":0,"seed":41,"briefing":"outro 4 bars dyn=2 tension=0.15","notes":57,"ms":2407.2,"ending":"final"}}
+{"at_beats":545.0,"kind":"section_measured","detail":{"section":18,"seed":41,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.571,"density_against_tension":0.857,"kit_collision":1.0}}
+{"at_beats":564.0,"kind":"scene_fired","detail":{"scene":0,"section":18,"name":"outro","slack_bars":1,"first":false}}
+{"at_beats":588.0,"kind":"session_ended","detail":{"finished":true,"bpm":132.0}}
+{"at_beats":0.0,"kind":"fallback","detail":{"section":0,"seed":23,"reason":"not_in_buffer"}}
+{"at_beats":5.0,"kind":"section_written","detail":{"section":0,"scene":0,"seed":23,"briefing":"intro 4 bars dyn=1 tension=0.20","notes":58,"ms":2497.0,"ending":"fill"}}
+{"at_beats":5.0,"kind":"section_measured","detail":{"section":0,"seed":23,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":1.0,"density_against_tension":0.917,"kit_collision":1.0}}
+{"at_beats":5.0,"kind":"scene_fired","detail":{"scene":0,"section":0,"name":"intro","slack_bars":0,"first":true}}
+{"at_beats":8.0,"kind":"fallback","detail":{"section":1,"seed":24,"reason":"not_in_buffer"}}
+{"at_beats":11.0,"kind":"section_written","detail":{"section":1,"scene":1,"seed":24,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":126,"ms":1447.3,"ending":"fill"}}
+{"at_beats":11.0,"kind":"section_measured","detail":{"section":1,"seed":24,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.964,"kit_collision":1.0}}
+{"at_beats":20.0,"kind":"scene_fired","detail":{"scene":1,"section":1,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":28.0,"kind":"fallback","detail":{"section":2,"seed":25,"reason":"not_in_buffer"}}
+{"at_beats":33.0,"kind":"section_written","detail":{"section":2,"scene":0,"seed":25,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":164,"ms":2447.0,"ending":"fill"}}
+{"at_beats":33.0,"kind":"section_measured","detail":{"section":2,"seed":25,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.333,"density_against_tension":0.958,"kit_collision":0.971}}
+{"at_beats":52.0,"kind":"scene_fired","detail":{"scene":0,"section":2,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":60.0,"kind":"fallback","detail":{"section":3,"seed":26,"reason":"not_in_buffer"}}
+{"at_beats":63.0,"kind":"section_written","detail":{"section":3,"scene":1,"seed":26,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1426.6,"ending":"build"}}
+{"at_beats":63.0,"kind":"section_measured","detail":{"section":3,"seed":26,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":84.0,"kind":"scene_fired","detail":{"scene":1,"section":3,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":92.0,"kind":"fallback","detail":{"section":4,"seed":27,"reason":"not_in_buffer"}}
+{"at_beats":95.0,"kind":"section_written","detail":{"section":4,"scene":0,"seed":27,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1407.2,"ending":"fill"}}
+{"at_beats":95.0,"kind":"section_measured","detail":{"section":4,"seed":27,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":116.0,"kind":"scene_fired","detail":{"scene":0,"section":4,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":124.0,"kind":"fallback","detail":{"section":5,"seed":28,"reason":"not_in_buffer"}}
+{"at_beats":127.0,"kind":"section_written","detail":{"section":5,"scene":1,"seed":28,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1488.5,"ending":"build"}}
+{"at_beats":127.0,"kind":"section_measured","detail":{"section":5,"seed":28,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":148.0,"kind":"scene_fired","detail":{"scene":1,"section":5,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":156.0,"kind":"fallback","detail":{"section":6,"seed":29,"reason":"not_in_buffer"}}
+{"at_beats":159.0,"kind":"section_written","detail":{"section":6,"scene":0,"seed":29,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1448.4,"ending":"fill"}}
+{"at_beats":159.0,"kind":"section_measured","detail":{"section":6,"seed":29,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":180.0,"kind":"scene_fired","detail":{"scene":0,"section":6,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":188.0,"kind":"fallback","detail":{"section":7,"seed":30,"reason":"not_in_buffer"}}
+{"at_beats":191.0,"kind":"section_written","detail":{"section":7,"scene":1,"seed":30,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1416.4,"ending":"build"}}
+{"at_beats":191.0,"kind":"section_measured","detail":{"section":7,"seed":30,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":212.0,"kind":"scene_fired","detail":{"scene":1,"section":7,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":220.0,"kind":"fallback","detail":{"section":8,"seed":31,"reason":"not_in_buffer"}}
+{"at_beats":223.0,"kind":"section_written","detail":{"section":8,"scene":0,"seed":31,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1477.6,"ending":"fill"}}
+{"at_beats":223.0,"kind":"section_measured","detail":{"section":8,"seed":31,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":244.0,"kind":"scene_fired","detail":{"scene":0,"section":8,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":252.0,"kind":"fallback","detail":{"section":9,"seed":32,"reason":"not_in_buffer"}}
+{"at_beats":255.0,"kind":"section_written","detail":{"section":9,"scene":1,"seed":32,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":159,"ms":1435.2,"ending":"stop"}}
+{"at_beats":255.0,"kind":"section_measured","detail":{"section":9,"seed":32,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.364,"density_against_tension":0.938,"kit_collision":1.0}}
+{"at_beats":276.0,"kind":"scene_fired","detail":{"scene":1,"section":9,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":284.0,"kind":"fallback","detail":{"section":10,"seed":33,"reason":"not_in_buffer"}}
+{"at_beats":287.0,"kind":"section_written","detail":{"section":10,"scene":0,"seed":33,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1485.4,"ending":"fill"}}
+{"at_beats":287.0,"kind":"section_measured","detail":{"section":10,"seed":33,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":308.0,"kind":"scene_fired","detail":{"scene":0,"section":10,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":316.0,"kind":"fallback","detail":{"section":11,"seed":34,"reason":"not_in_buffer"}}
+{"at_beats":319.0,"kind":"section_written","detail":{"section":11,"scene":1,"seed":34,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1454.8,"ending":"build"}}
+{"at_beats":319.0,"kind":"section_measured","detail":{"section":11,"seed":34,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":340.0,"kind":"scene_fired","detail":{"scene":1,"section":11,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":348.0,"kind":"fallback","detail":{"section":12,"seed":35,"reason":"not_in_buffer"}}
+{"at_beats":351.0,"kind":"section_written","detail":{"section":12,"scene":0,"seed":35,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1417.0,"ending":"fill"}}
+{"at_beats":351.0,"kind":"section_measured","detail":{"section":12,"seed":35,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":372.0,"kind":"scene_fired","detail":{"scene":0,"section":12,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":380.0,"kind":"fallback","detail":{"section":13,"seed":36,"reason":"not_in_buffer"}}
+{"at_beats":383.0,"kind":"section_written","detail":{"section":13,"scene":1,"seed":36,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":137,"ms":1453.3,"ending":"build"}}
+{"at_beats":383.0,"kind":"section_measured","detail":{"section":13,"seed":36,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.862,"kit_collision":0.919}}
+{"at_beats":404.0,"kind":"scene_fired","detail":{"scene":1,"section":13,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":412.0,"kind":"fallback","detail":{"section":14,"seed":37,"reason":"not_in_buffer"}}
+{"at_beats":415.0,"kind":"section_written","detail":{"section":14,"scene":0,"seed":37,"briefing":"chorus 8 bars dyn=4 tension=0.70","notes":223,"ms":1417.3,"ending":"fill"}}
+{"at_beats":415.0,"kind":"section_measured","detail":{"section":14,"seed":37,"harmonic_conformance":1.0,"register_spread":0.976,"bass_kick_alignment":0.5,"density_against_tension":0.981,"kit_collision":0.75}}
+{"at_beats":436.0,"kind":"scene_fired","detail":{"scene":0,"section":14,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":444.0,"kind":"fallback","detail":{"section":15,"seed":38,"reason":"not_in_buffer"}}
+{"at_beats":447.0,"kind":"section_written","detail":{"section":15,"scene":1,"seed":38,"briefing":"bridge 8 bars dyn=3 tension=0.55","notes":159,"ms":1466.8,"ending":"stop"}}
+{"at_beats":447.0,"kind":"section_measured","detail":{"section":15,"seed":38,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.364,"density_against_tension":0.938,"kit_collision":1.0}}
+{"at_beats":468.0,"kind":"scene_fired","detail":{"scene":1,"section":15,"name":"bridge","slack_bars":1,"first":false}}
+{"at_beats":476.0,"kind":"fallback","detail":{"section":16,"seed":39,"reason":"not_in_buffer"}}
+{"at_beats":479.0,"kind":"section_written","detail":{"section":16,"scene":0,"seed":39,"briefing":"chorus 8 bars dyn=5 tension=0.80","notes":298,"ms":1456.4,"ending":"fill"}}
+{"at_beats":479.0,"kind":"section_measured","detail":{"section":16,"seed":39,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.333,"density_against_tension":0.962,"kit_collision":0.792}}
+{"at_beats":500.0,"kind":"scene_fired","detail":{"scene":0,"section":16,"name":"chorus","slack_bars":1,"first":false}}
+{"at_beats":508.0,"kind":"fallback","detail":{"section":17,"seed":40,"reason":"not_in_buffer"}}
+{"at_beats":511.0,"kind":"section_written","detail":{"section":17,"scene":1,"seed":40,"briefing":"verse 8 bars dyn=2 tension=0.35","notes":126,"ms":1405.1,"ending":"fill"}}
+{"at_beats":511.0,"kind":"section_measured","detail":{"section":17,"seed":40,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.5,"density_against_tension":0.964,"kit_collision":1.0}}
+{"at_beats":532.0,"kind":"scene_fired","detail":{"scene":1,"section":17,"name":"verse","slack_bars":1,"first":false}}
+{"at_beats":540.0,"kind":"fallback","detail":{"section":18,"seed":41,"reason":"not_in_buffer"}}
+{"at_beats":545.0,"kind":"section_written","detail":{"section":18,"scene":0,"seed":41,"briefing":"outro 4 bars dyn=2 tension=0.15","notes":57,"ms":2467.1,"ending":"final"}}
+{"at_beats":545.0,"kind":"section_measured","detail":{"section":18,"seed":41,"harmonic_conformance":1.0,"register_spread":1.0,"bass_kick_alignment":0.571,"density_against_tension":0.857,"kit_collision":1.0}}
+{"at_beats":564.0,"kind":"scene_fired","detail":{"scene":0,"section":18,"name":"outro","slack_bars":1,"first":false}}
+{"at_beats":588.0,"kind":"session_ended","detail":{"finished":true,"bpm":132.0}}

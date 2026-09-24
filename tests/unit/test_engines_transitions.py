@@ -25,7 +25,7 @@ from garagem.domain import (
 )
 from garagem.dsl import parse_section, realise
 from garagem.engines import SongBrief, arrange, play_section, with_climax
-from garagem.engines.arranger import BRIDGE, CHORUS, INTRO, OUTRO, VERSE
+from garagem.engines.arranger import BRIDGE, CHORUS, INTRO, OUTRO, SOLO, VERSE
 from garagem.engines.groove import fill_for
 from garagem.engines.transitions import (
     FINAL_TAIL_BARS,
@@ -112,6 +112,20 @@ def test_a_verse_builds_into_a_chorus() -> None:
 
 def test_a_bridge_stops_before_a_chorus() -> None:
     endings = endings_for(form_of(INTRO, VERSE, CHORUS, BRIDGE, CHORUS, VERSE, CHORUS, OUTRO))
+    assert endings[3] is Ending.STOP
+
+
+def test_a_solo_builds_back_into_a_chorus() -> None:
+    """The roll under the solo's last bars is the band coming up under its last phrase."""
+    endings = endings_for(form_of(INTRO, VERSE, CHORUS, SOLO, CHORUS, VERSE, CHORUS, OUTRO))
+    assert endings[3] is Ending.BUILD
+
+
+def test_the_stop_is_still_saved_for_the_last_chorus_after_a_solo() -> None:
+    """`endings_for` overrules the table for the peak, and a new kind in the table does not
+    get to take that back: the solo builds when it is mid-song and stops when it is the step
+    into the last chorus."""
+    endings = endings_for(form_of(INTRO, VERSE, CHORUS, SOLO, CHORUS, OUTRO))
     assert endings[3] is Ending.STOP
 
 

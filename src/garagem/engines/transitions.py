@@ -51,7 +51,7 @@ from garagem.domain import (
     beats_of,
     parse_grid,
 )
-from garagem.engines.arranger import BRIDGE, CHORUS, VERSE
+from garagem.engines.arranger import BRIDGE, CHORUS, SOLO, VERSE
 from garagem.engines.groove import fill_for
 from garagem.engines.humanise import MIN_DURATION_BEATS, RELEASE_BEATS, humanise, separate
 from garagem.theory.percussion import CRASH, GHOST_VELOCITY, HATS, KICK, SNARE
@@ -74,6 +74,10 @@ ENDINGS: Final[dict[tuple[str, str], Ending]] = {
     (VERSE, CHORUS): Ending.BUILD,
     # A bridge exists to set up a chorus, and a stop is the bluntest way to say it is here.
     (BRIDGE, CHORUS): Ending.STOP,
+    # A solo hands the song back, and it hands it back rising: the roll under the last bars
+    # is the band coming up under the soloist's last phrase. The stop is still saved for the
+    # last chorus, whatever came before it — `endings_for` sees to that.
+    (SOLO, CHORUS): Ending.BUILD,
 }
 
 # Two bars of an eight-bar section swell, and one of anything shorter: a two-bar build in a

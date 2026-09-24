@@ -37,6 +37,7 @@ INTRO: Final = "intro"
 VERSE: Final = "verse"
 CHORUS: Final = "chorus"
 BRIDGE: Final = "bridge"
+SOLO: Final = "solo"
 OUTRO: Final = "outro"
 
 
@@ -67,6 +68,13 @@ SHAPES: Final[dict[str, Shape]] = {
     VERSE: Shape(bars=8, dyn=2, tension=0.35),
     CHORUS: Shape(bars=8, dyn=4, tension=0.70),
     BRIDGE: Shape(bars=8, dyn=3, tension=0.55),
+    # **A solo is not the loudest thing in the song, and that is the point** (ADR-027). The
+    # chorus keeps `dyn` 4 so it still steps up from here, which is the Phase 4 property
+    # `test_tension_rises_into_every_chorus` pins — a new kind should not need an approved
+    # one relaxed to make room for it. And the band leaves the room: the solo is the one
+    # voice nothing else is covering, so the section it owns plays under a chorus rather
+    # than at one. Tension above a bridge's, because the section is a peak and not a rest.
+    SOLO: Shape(bars=8, dyn=3, tension=0.65),
     OUTRO: Shape(bars=4, dyn=2, tension=0.15),
 }
 
@@ -75,12 +83,16 @@ SHAPES: Final[dict[str, Shape]] = {
 TRANSITIONS: Final[dict[str, tuple[tuple[str, int], ...]]] = {
     INTRO: ((VERSE, 1),),
     VERSE: ((CHORUS, 6), (BRIDGE, 1)),
-    CHORUS: ((VERSE, 5), (BRIDGE, 3)),
+    # A solo goes after a chorus and nowhere else: it is the answer to the song's loudest
+    # statement, and a solo out of a verse would arrive before the song had made one.
+    CHORUS: ((VERSE, 5), (BRIDGE, 3), (SOLO, 2)),
     BRIDGE: ((CHORUS, 7), (VERSE, 1)),
+    SOLO: ((CHORUS, 7), (VERSE, 1)),
 }
 
-# Kinds that break a run of verse and chorus.
-RELIEF: Final[frozenset[str]] = frozenset({BRIDGE})
+# Kinds that break a run of verse and chorus. A solo breaks it by existing, which is half of
+# why ADR-027 put the solo in a section of its own.
+RELIEF: Final[frozenset[str]] = frozenset({BRIDGE, SOLO})
 
 # How many sections of verse and chorus alone may pass before the next one must be
 # something else (ADR-027).
@@ -105,6 +117,10 @@ MINOR_CHARTS: Final[dict[str, tuple[tuple[int, ...], ...]]] = {
     VERSE: ((1, 6, 3, 7), (1, 1, 6, 7)),
     CHORUS: ((6, 7, 1, 1), (4, 6, 7, 1)),
     BRIDGE: ((4, 7, 3, 6), (6, 3, 4, 7)),
+    # Four chords, one a bar, all different: a solo needs the harmony to move under it or
+    # there is nothing to play *over*. The first is the andalusian cadence, which rock has
+    # been soloing over for sixty years.
+    SOLO: ((1, 7, 6, 5), (1, 4, 5, 1)),
     OUTRO: ((1, 6, 1, 1), (1, 7, 1, 1)),
 }
 
@@ -113,6 +129,7 @@ MAJOR_CHARTS: Final[dict[str, tuple[tuple[int, ...], ...]]] = {
     VERSE: ((1, 5, 6, 4), (1, 6, 4, 5)),
     CHORUS: ((4, 5, 1, 1), (1, 4, 5, 5)),
     BRIDGE: ((6, 4, 1, 5), (2, 5, 1, 6)),
+    SOLO: ((1, 4, 5, 4), (6, 4, 5, 1)),
     OUTRO: ((1, 4, 1, 1), (1, 5, 1, 1)),
 }
 

@@ -50,6 +50,7 @@ from garagem.theory.scales import (
     nearest_in,
     pitch_classes,
     pitch_of,
+    scale_pitch,
     steps_of,
 )
 from garagem.theory.validator import (
@@ -134,6 +135,7 @@ __all__ = [
     "render_chord",
     "render_key",
     "repair",
+    "scale_pitch",
     "steps_of",
     "validate",
     "voice",

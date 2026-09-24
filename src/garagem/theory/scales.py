@@ -81,6 +81,23 @@ def pitch_of(pitch_class: int, octave: int) -> int:
     return pitch
 
 
+def scale_pitch(key: int, scale: str, step: int, octave: int) -> int:
+    """The pitch `step` steps up the scale from `key` in `octave`. C major step 7 is C5.
+
+    **Counted in the key's own scale, not in a chord's.** `degree_to_pitch` asks each chord
+    what scale it implies, which is right for a bass playing the chord and wrong for a line
+    that moves through the key across a chord change: under a chart that argues with its key
+    the same written degree would mean two different notes in two bars.
+
+    `step` may be negative or larger than the scale, and the octave follows it, so a melodic
+    line is one arithmetic sequence rather than a sequence plus a pile of octave cases. Works
+    for a pentatonic as well as a seven-note scale: it counts entries, not semitones.
+    """
+    steps = steps_of(scale)
+    octaves, index = divmod(step, len(steps))
+    return pitch_of(key, octave) + steps[index] + SEMITONES_PER_OCTAVE * octaves
+
+
 def degree_to_pitch(chord: Chord, degree: int, octave: int) -> int:
     """Degree `1..DEGREES` of `chord`, as an absolute MIDI pitch in `octave`.
 

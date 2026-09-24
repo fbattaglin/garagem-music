@@ -381,6 +381,11 @@ ninth, 13 the thirteenth. LED hold= names the slots that ring on. A LED line
 with an empty deg: is a bar the lead sits out, and most bars should be: the hook is worth
 more when it is not always there.
 
+**A solo section is the lead's.** In one, the LED line plays in every bar and the rest of the
+band gets out of its way — thinner guitar, fewer keys, the drums holding the groove. The hook
+becomes a line that moves rather than a figure that repeats, and it is the only section where
+that is true.
+
 GTR and KEY write voi= and rhy:, as before. voi= is one of exactly these six, and nothing
 else:
     pow     root and fifth, no third

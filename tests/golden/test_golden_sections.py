@@ -1,6 +1,6 @@
 """Invariant 7, made visible: the same seed produces the same bytes, or the diff says so.
 
-Four fixed briefings, two seeds each, serialised twice — once as the DSL a model would
+Five fixed briefings, two seeds each, serialised twice — once as the DSL a model would
 read, once as every note exactly — and compared against files in `data/`. If a refactor
 changes one velocity, this fails and the diff names the note.
 
@@ -29,8 +29,9 @@ from garagem.theory import parse_chart
 DATA = Path(__file__).parent / "data"
 UPDATE = os.environ.get("GARAGEM_UPDATE_GOLDEN") == "1"
 
-# Four briefings chosen to cover the corners the engines branch on: a quiet shuffle, the
-# Phase 1 progression, a loud sixteenth chorus, and a halftime bridge in a major key.
+# Five briefings chosen to cover the corners the engines branch on: a quiet shuffle, the
+# Phase 1 progression, a loud sixteenth chorus, a halftime bridge in a major key, and the
+# one section kind where the lead is the point rather than the garnish (ADR-027).
 BRIEFINGS: dict[str, Section] = {
     "verse-shuffle": Section(
         name="verse",
@@ -75,6 +76,19 @@ BRIEFINGS: dict[str, Section] = {
         dyn=3,
         tension=0.55,
         chart=parse_chart("| Am | F | C | G |"),
+    ),
+    # The arranger's own solo shape and its first minor chart, four bars of it: call, answer,
+    # call, and the note the solo lands on while the drummer takes the last bar.
+    "solo-straight8": Section(
+        name="solo",
+        bars=4,
+        key=4,
+        scale="minor",
+        feel=Feel.STRAIGHT8,
+        bpm=132.0,
+        dyn=3,
+        tension=0.65,
+        chart=parse_chart("| Em | D | C | Bm |"),
     ),
 }
 

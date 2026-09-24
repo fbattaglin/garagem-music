@@ -12,11 +12,41 @@ from random import Random
 
 import pytest
 
-from garagem.domain import SIXTEENTHS_PER_BAR, Chart, Chord, Feel, Instrument, Quality, Section
-from garagem.engines import play_section
-from garagem.engines.lead import BUSY, LEAD_DYN, QUIET, answering_bars
+from garagem.domain import (
+    PITCH_CLASSES,
+    SIXTEENTHS_PER_BAR,
+    Chart,
+    Chord,
+    Feel,
+    Instrument,
+    Quality,
+    Section,
+)
+from garagem.engines import SHAPES, diatonic, play_section
+from garagem.engines.arranger import SOLO
+from garagem.engines.lead import (
+    BUSY,
+    CHORD_STEPS,
+    LAND_BEATS,
+    LEAD_DYN,
+    LEAD_OCTAVE,
+    QUIET,
+    RUNS,
+    TOP_STEP,
+    answering_bars,
+)
 from garagem.engines.lead import play as play_lead
-from garagem.theory import RANGES, parse_chart, validate
+from garagem.theory import (
+    DEGREES,
+    RANGES,
+    SCALES,
+    parse_chart,
+    pitch_classes,
+    pitch_of,
+    scale_pitch,
+    steps_of,
+    validate,
+)
 from garagem.theory.validator import grid_slots, nearest_slot
 
 PROGRESSION = parse_chart("| Em | C | G | D |")
@@ -138,7 +168,7 @@ def test_a_chord_with_no_third_never_gets_one(quality: Quality) -> None:
     allowed = chart.chords[0].pitch_classes()
     for seed in range(20):
         for note in play_lead(section, Random(seed)).notes:
-            assert note.pitch % 12 in allowed, quality
+            assert note.pitch % PITCH_CLASSES in allowed, quality
 
 
 @pytest.mark.parametrize("quality", list(Quality))
@@ -200,3 +230,208 @@ def test_it_is_reproducible_from_its_seed() -> None:
 @pytest.mark.parametrize("dyn", [4, 5])
 def test_the_band_with_a_lead_needs_no_repairer(feel: Feel, dyn: int) -> None:
     assert validate(play_section(a_section(feel=feel, dyn=dyn), 7)) == ()
+
+
+# ------------------------------------------------------------------------------- the solo
+
+SOLO_CHART = parse_chart("| Em | D | C | Bm |")
+
+
+def a_solo(**extra: object) -> Section:
+    """A solo section as the arranger writes one, over its own first chart."""
+    return a_section(
+        **{
+            "name": SOLO,
+            "dyn": SHAPES[SOLO].dyn,
+            "tension": SHAPES[SOLO].tension,
+            "chart": SOLO_CHART,
+            **extra,
+        }
+    )
+
+
+def bar_slots(section: Section, seed: int = 7) -> dict[int, list[int]]:
+    """Which sixteenth of its own bar each note was written on, bar by bar.
+
+    Off the grid rather than off the beat: humanisation moves an attack by a few milliseconds
+    either way, and a note pulled that far before a bar line is still in the bar it was
+    written in. `bars_played` divides by four and is fine for the hook, which never goes
+    near a bar line — the solo lands exactly on one.
+    """
+    slots = grid_slots(section)
+    played: dict[int, list[int]] = {}
+    for note in play_lead(section, Random(seed)).notes:
+        index = slots.index(nearest_slot(slots, note.start_beats))
+        played.setdefault(index // SIXTEENTHS_PER_BAR, []).append(index % SIXTEENTHS_PER_BAR)
+    return played
+
+
+@pytest.mark.parametrize("feel", list(Feel))
+def test_a_solo_plays_in_every_bar(feel: Feel) -> None:
+    """The one thing that makes the section a solo rather than a bridge with a hook over it.
+
+    ADR-027 gave the solo a section of its own so it would have the stage; a solo that rested
+    every other bar would be the hook with a new name.
+    """
+    for seed in range(8):
+        assert set(bar_slots(a_solo(feel=feel), seed)) == set(range(8)), (feel, seed)
+
+
+def test_the_knobs_cannot_silence_a_solo() -> None:
+    """The density knob may take the hook away — that is what it is for (ADR-021) — but a solo
+    section with nothing in it is not a quieter section, it is an empty one. Invariant 2 says
+    it has to sound with the network off, and that is not conditional on a knob."""
+    for dyn in range(1, LEAD_DYN + 1):
+        assert set(bar_slots(a_solo(dyn=dyn))) == set(range(8)), dyn
+
+
+def test_a_solo_lands_on_the_downbeat_of_the_fill_bar_and_holds() -> None:
+    """The last bar is the drummer's. The solo resolves into it and gets out of the way."""
+    section = a_solo()
+    assert bar_slots(section)[section.bars - 1] == [0]
+    held = max(play_lead(section, Random(7)).notes, key=lambda note: note.start_beats)
+    assert held.duration_beats == LAND_BEATS
+
+
+def test_a_solo_says_something_and_says_it_again() -> None:
+    """A call and an answer, alternating: bars 1 and 3 are the same phrase, and bar 2 is not.
+
+    One run eight times is a riff; eight different runs are eight beginnings. The rhythm is
+    what is compared, because the pitches cannot repeat — each bar re-roots on its own chord,
+    which is what makes the repeat worth hearing.
+    """
+    played = bar_slots(a_solo())
+    assert played[0] == played[2] == played[4]
+    assert played[1] == played[3] == played[5]
+    assert played[0] != played[1]
+
+
+def test_every_attack_in_a_solo_is_on_an_eighth() -> None:
+    """The rule Stage A of Phase 6 put the whole band under, and the solo is not exempt."""
+    for feel in Feel:
+        for slots in bar_slots(a_solo(feel=feel)).values():
+            assert all(slot % 2 == 0 for slot in slots), feel
+
+
+def test_a_solo_lands_on_a_chord_tone_at_every_bar_line() -> None:
+    """Which is the whole legality argument, and it is by construction (ADR-027).
+
+    A run opens and closes on 0, 2 or 4 steps above the bar's anchor, and the anchor is the
+    chord's root as a step of the key — so over the diatonic chart the arranger writes, those
+    are the root, the third and the fifth.
+    """
+    section = a_solo()
+    slots = grid_slots(section)
+    for note in play_lead(section, Random(7)).notes:
+        index = slots.index(nearest_slot(slots, note.start_beats))
+        if index % SIXTEENTHS_PER_BAR:
+            continue
+        chord = section.chart.at(index // SIXTEENTHS_PER_BAR)
+        assert note.pitch % PITCH_CLASSES in chord.pitch_classes(), (index, note.pitch)
+
+
+def test_every_run_opens_and_closes_on_a_chord_step() -> None:
+    """The table is where the legality lives, so the table is what is held to it.
+
+    Also: the last attack is no later than the third beat, so the note that holds through the
+    end of the bar stops at the bar line instead of spilling over the next chord.
+    """
+    for run in RUNS:
+        slots = [slot for slot, _ in run]
+        assert run[0][1] in CHORD_STEPS
+        assert run[-1][1] in CHORD_STEPS
+        assert slots == sorted(set(slots))
+        assert all(slot % 2 == 0 for slot in slots)
+        assert slots[-1] <= SIXTEENTHS_PER_BAR - 4
+        assert all(0 <= step <= TOP_STEP for _, step in run)
+
+
+@pytest.mark.parametrize("scale", sorted(SCALES))
+def test_a_solo_fits_the_lead_s_range_in_every_key_and_every_scale(scale: str) -> None:
+    """The width argument `TOP_STEP` exists for, held to every scale this project knows.
+
+    A solo is as wide as one bar's run plus the spread of the anchors across the key, and it
+    is placed by whole octaves — so where an octave of the key's root falls inside the range
+    decides whether it fits at all. At `TOP_STEP` 5 it did not, in some keys, and the floor
+    raised `UnvoiceableError` instead of playing (`phase-7-findings.md` §2).
+    """
+    low, high = RANGES[Instrument.LEAD]
+    for key in range(PITCH_CLASSES):
+        chart = Chart(chords=(Chord(root=key, quality=Quality.MINOR),))
+        for seed in range(6):
+            section = a_solo(key=key, scale=scale, chart=chart)
+            for note in play_lead(section, Random(seed)).notes:
+                assert low <= note.pitch <= high, (scale, key, seed, note.pitch)
+
+
+def test_the_widest_line_a_seven_note_scale_can_draw_leaves_an_octave_of_room() -> None:
+    """`TOP_STEP` as arithmetic rather than as a sample, which is the only way it is honest.
+
+    The solo is placed by whole octaves, so it fits only when *some* octave of the key's root
+    leaves room both below the line and above it. That window is the range less the line's
+    width, and a window narrower than twelve semitones can fall between two octaves — which is
+    what happened at `TOP_STEP` 5: nineteen semitones wide, an eleven-semitone window, and no
+    octave at all in a few keys. Twelve or more and no key can miss, whatever the seed.
+    """
+    low, high = RANGES[Instrument.LEAD]
+    for scale in sorted(SCALES):
+        steps = steps_of(scale)
+        if len(steps) != DEGREES:
+            continue
+        widest = max(
+            scale_pitch(0, scale, anchor + step, LEAD_OCTAVE)
+            for anchor in range(len(steps))
+            for step in range(TOP_STEP + 1)
+        ) - pitch_of(0, LEAD_OCTAVE)
+        assert (high - low) - widest + 1 >= PITCH_CLASSES, (scale, widest)
+
+
+@pytest.mark.parametrize("scale", ["minor", "major", "dorian", "mixolydian"])
+@pytest.mark.parametrize("key", [0, 5, 7, 11])
+def test_a_solo_stays_in_its_key_in_every_key_and_mode(scale: str, key: int) -> None:
+    """Not a chord tone everywhere — a solo that only played chord tones would be an
+    arpeggio — but every note in the section's scale, which is what the dissonance budget
+    actually counts (`theory/validator._dissonance_budget`)."""
+    section = a_solo(key=key, scale=scale, chart=Chart(chords=(diatonic(key, scale, 1),)))
+    allowed = pitch_classes(key, scale)
+    for note in play_lead(section, Random(7)).notes:
+        assert note.pitch % PITCH_CLASSES in allowed, (key, scale, note.pitch)
+
+
+@pytest.mark.parametrize("quality", [Quality.POWER, Quality.SUS2, Quality.SUS4, Quality.DOM7])
+def test_a_solo_over_a_chart_that_fights_its_key_stays_in_the_key(quality: Quality) -> None:
+    """The trap `_in_the_chord` was written for, one level up: the chord's implied scale is
+    not consulted at all, so it cannot drag the line out of the key."""
+    section = a_solo(chart=Chart(chords=(Chord(root=4, quality=quality),)))
+    allowed = pitch_classes(section.key, section.scale)
+    for note in play_lead(section, Random(7)).notes:
+        assert note.pitch % PITCH_CLASSES in allowed, (quality, note.pitch)
+
+
+def test_a_solo_stays_inside_the_lead_s_range() -> None:
+    low, high = RANGES[Instrument.LEAD]
+    for feel in Feel:
+        for seed in range(8):
+            for note in play_lead(a_solo(feel=feel), Random(seed)).notes:
+                assert low <= note.pitch <= high
+
+
+@pytest.mark.parametrize("feel", list(Feel))
+@pytest.mark.parametrize("scale", ["minor", "major"])
+def test_the_band_needs_no_repairer_in_a_solo_section(feel: Feel, scale: str) -> None:
+    """Invariant 2 for a whole section kind: it plays, and it plays legally, with no network."""
+    chart = Chart(chords=tuple(diatonic(4, scale, degree) for degree in (1, 7, 6, 5)))
+    assert validate(play_section(a_solo(feel=feel, scale=scale, chart=chart), 7)) == ()
+
+
+def test_a_solo_is_reproducible_from_its_seed() -> None:
+    section = a_solo()
+    assert play_lead(section, Random(7)) == play_lead(section, Random(7))
+
+
+def test_two_seeds_pick_different_pairs_of_runs() -> None:
+    """Otherwise the table has four entries and the section only ever hears one."""
+    rhythms = {
+        tuple(tuple(slots) for slots in bar_slots(a_solo(), seed).values()) for seed in range(12)
+    }
+    assert len(rhythms) > 1
