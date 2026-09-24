@@ -208,3 +208,95 @@ Nothing from that day existed. Asked, he said it was the sound of `pytest -m liv
 fragments into the Set, and then ran the jam. **A verdict is about a specific run, and the
 event log is what says which run it was** — that is what invariant 7 and the log are for, and
 this is the first time either has been used to check a listening rather than a bug.
+
+## 3. The fill, announced — and a plan line the record contradicted
+
+Built on 2026-09-23, with no model and no network. Stage C of
+[ADR-027](ADR-027-the-arrangement.md), against a complaint open since Phase 5: the fill is
+*"divertida"*, and one day should arrive *"de uma forma mais integrada e suave"*
+(`phase-5-findings.md` §10).
+
+### The section's own fill now grows out of the bar before it
+
+`Ending.FILL` was the identity: the engines already put `fill_for(tension)` in the last bar and
+`compose` returned the score untouched. It now composes one bar — **the one before the fill**.
+
+- **The snare leans in on the last beat**, on the offbeat eighths only: slot 14 under tension
+  0.5, slots 10 and 14 over it. Indexed by tension for `FILLS`' own reason — a fill a quiet
+  section plays quietly should be announced quietly.
+- **The hats stop for that beat.** The fill bar has no hats at all, so this is that gesture a
+  beat early: the hats lift off, and the fill is heard coming.
+- **Offbeats only, and never a downbeat**, which is how the module's promises stay true by
+  construction here too: nothing on a beat is removed, no kick is added or moved, so kick
+  spacing and the root under a chord change cannot break. `validate` clean over every feel and
+  tension.
+- **Drums only.** A band that all lifted off together would be a break, not an announcement.
+
+This is the half of §10's question that is answerable: *"whether it should grow out of the bar
+before it"* — yes, and here, because a section is written whole. The pad's fill cue cannot have
+it, and the reason is ADR-022 rather than taste: a cue costs a fire and never a write, so the
+variant exists for **every** bar and there is no bar known to come before.
+
+    bar 3 S  ....s.......s...  ->  ....s.......s.s.
+    bar 3 H  h.h.h.h.h.h.h.h.  ->  h.h.h.h.h.h.....
+    bar 4 S  ............s.s.      the fill, unchanged
+
+One new golden, `verse-straight8-7-fill.dsl` — `FILL` joins the endings the golden files pin,
+now that there is something to pin. **No existing golden moved**, and the only unit test that
+broke was the one asserting `compose(score, FILL, …) is score`, which is exactly the assertion
+this change is about.
+
+### The plan said to build the crash on the return. The record says he declined it
+
+ADR-027's Stage C reads: *"`land_bars` — written in Phase 4 and never used by the cue — puts a
+crash on the bar the groove comes back in."* Written as a thing to build. `phase-4-findings.md`
+§10 says otherwise, and it is worth quoting because it is a decision and not a note:
+
+> **The crash is ambiguous.** It lifted the toms from second to first, but dropped the snare
+> from third to fifth and the rising snare from fourth to sixth. One ranking by one listener
+> cannot say the crash helps […]
+>
+> **Decision, Fabiano's: the fill cue becomes the run down the toms, without the crash** […]
+> The crash stays an idea with a cost attached; **an audition between just those two options is
+> how to settle it.**
+
+So the crash was **left out by his own choice**, with the way to settle it named. Building it
+because a plan sentence said so would be overriding a by-ear decision with a to-do list. And
+the other half of the plan's sentence has a prior against it too: **`RISING` was the same "start
+softer and climb" idea on the snare, and the blind audition ranked it below the fill it was
+meant to improve** — fourth of six, and sixth with the crash.
+
+**So the cue's entry and return are auditioned, not built.** `TOMS_RISING` joins `FillStyle` as
+a *candidate* — the same slots, the same drums, entered at the groove's own level and climbing
+above it, which is the only thing ADR-022 leaves a cue — and `scripts/audition_fills.py` grew a
+second round:
+
+| round | passages | what it asks |
+| --- | --- | --- |
+| `phase4` | 6 | Phase 4's, kept reachable so its ranking can be reproduced rather than only read |
+| `phase7` | 4 | the fill it chose × (flat or rising) × (crash on the return or not) |
+
+Four passages, ~80 s, blind, in a shuffled order, the key written to
+`bench/audition-fills.json` and not printed until `--reveal`. Whatever wins becomes
+`FILL_CUE_STYLE` and, if the crash wins, gets the two extra scenes and the second return step
+it costs — a cost the Phase 4 finding already priced.
+
+### Deviation from the plan, written down rather than waived
+
+ADR-027 criterion 3 says *"the pad cue … changes only its entry and its return."* **It may end
+up changing neither**, if the audition ranks the fill as it plays today first. That is the
+criterion being met by asking the question it exists to ask, and the answer being "leave it" is
+an answer. What would *not* meet it is building both and calling the plan the evidence.
+
+The measurement also turned up something in the solo, and it is recorded here and **left
+alone**: under a `BUILD` into a chorus, the solo's own last phrase is attenuated to 76 from 93
+by the band's swell, and the lead is silent for the 2 beats before the handover. The soloist
+ducking with the band is arguably wrong. Fabiano heard those exact two handovers and said
+*"Gostei dos solos"*, so nothing is changed on a hypothesis against a verdict. It is written
+here so it is not rediscovered.
+
+### Unheard
+
+Suite at **2497 passed, 27 skipped**; `ruff` and `mypy` clean. Criterion 3 needs two things and
+has neither: the `phase7` audition ranked, and one conducted jam with pad 2 struck in a verse
+and in a chorus.

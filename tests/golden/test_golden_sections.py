@@ -98,9 +98,11 @@ CASES = [(name, seed) for name in BRIEFINGS for seed in SEEDS]
 
 # Phase 4's endings, over one briefing, handing over to the loud chorus above. One seed is
 # enough: what these pin is the composition, and the seed's work is already pinned above.
+# `FILL` joined them in Phase 7, when it stopped being the identity and grew the bar before it
+# (ADR-027).
 ENDED = "verse-straight8"
 INTO = "chorus-straight16"
-ENDINGS = (Ending.BUILD, Ending.STOP, Ending.FINAL)
+ENDINGS = (Ending.FILL, Ending.BUILD, Ending.STOP, Ending.FINAL)
 
 
 def rendered(name: str, seed: int) -> str:

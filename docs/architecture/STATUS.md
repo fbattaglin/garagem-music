@@ -79,7 +79,25 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
     ficaram um pouco truncadas"* turned out to be `pytest -m live` playing fragments, not the
     jam — the log's last run was Stage A's, from the night before. A verdict belongs to a run,
     and the log is what names the run.
-- **Stage C is next: the fill arrives.**
+- **Stage C is built: the section's own fill is announced, and the cue's two questions go to
+  an audition** (`phase-7-findings.md` §3). `Ending.FILL` stopped being the identity: the snare
+  leans in on the last beat of the bar before and the hats lift off for that beat. Offbeats
+  only, drums only, `validate` clean over every feel and tension. One new golden; no existing
+  golden moved.
+  - **A plan line was wrong against the record and was not followed.** ADR-027 said to build
+    the crash on the cue's return; `phase-4-findings.md` §10 records Fabiano *choosing* the toms
+    without it and naming *"an audition between just those two options"* as the way to settle
+    it. And the plan's other half, a rising entry, is the idea that ranked **below** the fill it
+    was meant to improve when tried on the snare. So both go to the ear: `TOMS_RISING` is a
+    candidate, and `audition_fills.py --round phase7` is four blind passages in ~80 s.
+  - **Deviation, written down:** criterion 3 says the cue changes its entry and its return. It
+    may change neither, if the audition ranks today's fill first. That is the question being
+    asked and answered, not a criterion dropped.
+  - **Noticed in the solo and left alone:** under a `BUILD`, the solo's last phrase is
+    attenuated to 76 from 93 by the band's swell and the lead is out for the 2 beats before the
+    handover. He heard those two handovers and said *"Gostei dos solos"*, so nothing moves on a
+    hypothesis against a verdict.
+  - **Unheard.** Suite at **2497 passed, 27 skipped**.
 
 ## Phase 6 — closed
 

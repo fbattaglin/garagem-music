@@ -36,6 +36,16 @@ because the fill's bar cannot hold the next bar's downbeat.
 
 The audition chose `TOMS` (§10): the fill cue uses it, and `fill_bars` keeps `SNARE` as its
 default because that is still what the section's own ending approval covered.
+
+**`TOMS_RISING` is Phase 7's candidate, and it is a candidate rather than a change.** Stage 5's
+gate heard the toms cue as *"divertida"* and asked for it to arrive *"de uma forma mais
+integrada e suave"* (`phase-5-findings.md` §10). A cue cannot grow out of the bar before it —
+ADR-022, and the reason is written in ADR-027 — so all that is available is how it *starts*:
+at the level the band is already playing at, climbing to above it, rather than at full height
+from the first stroke. Whether that is an improvement is not something this file can know:
+`RISING` was the same idea on the snare and the blind audition ranked it **below** the fill it
+was meant to improve. So it goes in the table and `scripts/audition_fills.py --round phase7`
+asks the ear, which is what settled the last one.
 """
 
 from __future__ import annotations
@@ -86,6 +96,8 @@ class FillStyle(StrEnum):
     RISING = "rising"
     # Down the kit over beats three and four: high, mid, low and floor tom, two hits each.
     TOMS = "toms"
+    # The same run, starting where the band already is and climbing above it.
+    TOMS_RISING = "toms_rising"
 
 
 # RISING: the slots it strikes, and how soft it starts and how loud it ends against the
@@ -119,7 +131,12 @@ def fill_bars(score: SectionScore, style: FillStyle = FillStyle.SNARE) -> Sectio
     section = score.section
     slots = grid_slots(section)
     rng = Random(score.seed + VARIANT_SEED_OFFSET)
-    fill = {FillStyle.SNARE: _filled, FillStyle.RISING: _rising, FillStyle.TOMS: _toms}[style]
+    fill = {
+        FillStyle.SNARE: _filled,
+        FillStyle.RISING: _rising,
+        FillStyle.TOMS: _toms,
+        FillStyle.TOMS_RISING: _toms_rising,
+    }[style]
     return _drums_only(score, lambda part: fill(part, section, slots, rng))
 
 
@@ -223,7 +240,12 @@ def _rising(part: Part, section: Section, slots: tuple[float, ...], rng: Random)
 
 def _rising_velocity(reference: int, slot: int) -> int:
     """From `RISING_FROM` of the drummer's snare at the first stroke to `RISING_TO` at the last."""
-    progress = (slot - RISING_SLOTS[0]) / (RISING_SLOTS[-1] - RISING_SLOTS[0])
+    return _climbing(reference, slot, RISING_SLOTS[0], RISING_SLOTS[-1])
+
+
+def _climbing(reference: int, slot: int, first: int, last: int) -> int:
+    """`reference` scaled from `RISING_FROM` at `first` to `RISING_TO` at `last`."""
+    progress = (slot - first) / (last - first)
     factor = RISING_FROM + (RISING_TO - RISING_FROM) * progress
     return max(1, min(127, round(reference * factor)))
 
@@ -232,6 +254,22 @@ def _toms(part: Part, section: Section, slots: tuple[float, ...], rng: Random) -
     velocity = reference_velocity(part, SNARE)
     added = [
         drum_hit(pitch, beats_of(bar * SIXTEENTHS_PER_BAR + slot, section.feel), velocity)
+        for bar in range(section.bars)
+        for slot, pitch in TOM_RUN
+    ]
+    return _downbeat_kicks_and_crashes(part, slots) + list(humanise(added, rng, feel=section.feel))
+
+
+def _toms_rising(part: Part, section: Section, slots: tuple[float, ...], rng: Random) -> list[Note]:
+    """The same run, the same slots, the same toms — only the way in is different."""
+    reference = reference_velocity(part, SNARE)
+    first, last = TOM_RUN[0][0], TOM_RUN[-1][0]
+    added = [
+        drum_hit(
+            pitch,
+            beats_of(bar * SIXTEENTHS_PER_BAR + slot, section.feel),
+            _climbing(reference, slot, first, last),
+        )
         for bar in range(section.bars)
         for slot, pitch in TOM_RUN
     ]

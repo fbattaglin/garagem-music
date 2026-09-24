@@ -1,13 +1,32 @@
-"""Plays six ways to fill a bar, blind, so the ear can pick the clearest (phase-4-findings §10).
+"""Plays a few ways to fill a bar, blind, so the ear can pick the clearest.
 
     uv run python scripts/audition_fills.py --dry-run     # what will play, no Live
     uv run python scripts/audition_fills.py               # Live open, stopped; about two minutes
     uv run python scripts/audition_fills.py --reveal      # after answering: which number was which
+    uv run python scripts/audition_fills.py --round phase4  # re-run Phase 4's six
+
+**Two rounds, and the old one stays reachable.** `phase4` is the six that chose the toms
+(`phase-4-findings.md` §10); `phase7` is the default and asks the two questions that round
+left open, over the fill it chose.
 
 Stage 4's gate approved the stop and the drop and heard the fill cue as *"não tão clara"*.
 Three ideas could make it clearer — a rising snare, a run down the toms, a crash where the
 groove comes back — and the ear is the only instrument that can choose between them
 (ADR-019). This script is how that choice costs two minutes instead of six jam sessions.
+
+**Phase 7 asks what that round left open** (`phase-5-findings.md` §10: the fill is fun, and
+should one day arrive *"de uma forma mais integrada e suave"*). A cue cannot grow out of the
+bar before it (ADR-022), so only two things are available — how it starts and how it returns —
+and the record already has something to say about each:
+
+- **The crash on the return ranked first** with the toms and **fifth and sixth** with the other
+  two fills, so Fabiano chose the toms without it and the finding named the way to settle it:
+  *"an audition between just those two options"*. This is that audition.
+- **Rising was tried, on the snare, and ranked below the fill it was meant to improve.** Rising
+  *toms* is a different thing and may fare differently, but the prior is not good, and that is
+  exactly why it is auditioned rather than built.
+
+Four passages, so the ranking is one a person can actually hold in their head.
 
 **What plays.** Six passages, one per option. Each is the same five bars of a verse from the
 default song — three bars of groove, **the fill bar**, and the bar the groove returns in —
@@ -91,14 +110,25 @@ class Option:
     crash: bool
 
 
-OPTIONS: Final[tuple[Option, ...]] = (
-    Option("snare fill (the one heard at the gate)", FillStyle.SNARE, crash=False),
-    Option("rising snare", FillStyle.RISING, crash=False),
-    Option("run down the toms", FillStyle.TOMS, crash=False),
-    Option("snare fill, crash on the return", FillStyle.SNARE, crash=True),
-    Option("rising snare, crash on the return", FillStyle.RISING, crash=True),
-    Option("run down the toms, crash on the return", FillStyle.TOMS, crash=True),
-)
+ROUNDS: Final[dict[str, tuple[Option, ...]]] = {
+    # Phase 4's round, kept reachable so its ranking can be reproduced rather than only read.
+    "phase4": (
+        Option("snare fill (the one heard at the gate)", FillStyle.SNARE, crash=False),
+        Option("rising snare", FillStyle.RISING, crash=False),
+        Option("run down the toms", FillStyle.TOMS, crash=False),
+        Option("snare fill, crash on the return", FillStyle.SNARE, crash=True),
+        Option("rising snare, crash on the return", FillStyle.RISING, crash=True),
+        Option("run down the toms, crash on the return", FillStyle.TOMS, crash=True),
+    ),
+    # Phase 7's: the fill that won, and the two things a cue is still allowed to change.
+    "phase7": (
+        Option("the fill cue as it plays today", FillStyle.TOMS, crash=False),
+        Option("toms rising from the groove's level", FillStyle.TOMS_RISING, crash=False),
+        Option("the fill cue, crash on the return", FillStyle.TOMS, crash=True),
+        Option("toms rising, crash on the return", FillStyle.TOMS_RISING, crash=True),
+    ),
+}
+DEFAULT_ROUND: Final = "phase7"
 
 
 # --------------------------------------------------------------------------- the music
@@ -156,9 +186,9 @@ def _bars(part: Part, first: int, last: int) -> list[Note]:
     ]
 
 
-def blind_order(seed: int) -> list[int]:
+def blind_order(seed: int, count: int) -> list[int]:
     """Which option plays as passage 1, 2, ... — shuffled, and stable for a seed."""
-    order = list(range(len(OPTIONS)))
+    order = list(range(count))
     random.Random(seed).shuffle(order)
     return order
 
@@ -183,9 +213,13 @@ def write(daw: AbletonOSCAdapter, notes: dict[Instrument, tuple[Note, ...]], sce
         daw.write_notes(at, render_part(Part(instrument=instrument, notes=notes[instrument])))
 
 
-def perform(order: list[int], emit: Callable[[str], object] = sys.stderr.write) -> None:
+def perform(
+    order: list[int],
+    options: tuple[Option, ...],
+    emit: Callable[[str], object] = sys.stderr.write,
+) -> None:
     verse = the_verse()
-    passages = [passage(verse, OPTIONS[option]) for option in order]
+    passages = [passage(verse, options[option]) for option in order]
     transport = UdpOscTransport(OscSettings(timeout_s=1.0))
     daw = AbletonOSCAdapter(transport=transport)
     try:
@@ -218,6 +252,9 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="say what would play; no Live")
     parser.add_argument("--reveal", action="store_true", help="print which passage was which")
     parser.add_argument("--seed", type=int, default=int(time.time()) % 100_000)
+    parser.add_argument(
+        "--round", dest="which", default=DEFAULT_ROUND, choices=sorted(ROUNDS), help="which set"
+    )
     args = parser.parse_args()
 
     if args.reveal:
@@ -225,32 +262,39 @@ def main() -> int:
             sys.stderr.write("nothing to reveal: run the audition first\n")
             return 1
         key = json.loads(KEY_FILE.read_text(encoding="utf-8"))
+        sys.stderr.write(f"round: {key.get('round', 'phase4')}\n")
         for number, name in enumerate(key["passages"], start=1):
             sys.stderr.write(f"passage {number}: {name}\n")
         return 0
 
-    order = blind_order(args.seed)
-    seconds = len(OPTIONS) * PASSAGE_BARS * BEATS_PER_BAR * 60 / load_session(SESSION).tempo_bpm
+    options = ROUNDS[args.which]
+    order = blind_order(args.seed, len(options))
+    seconds = len(options) * PASSAGE_BARS * BEATS_PER_BAR * 60 / load_session(SESSION).tempo_bpm
     if args.dry_run:
         sys.stderr.write(
-            f"{len(OPTIONS)} passages of {PASSAGE_BARS} bars each, about {seconds:.0f}s, "
+            f"{len(options)} passages of {PASSAGE_BARS} bars each, about {seconds:.0f}s, "
             "in a shuffled order that is not shown\n"
         )
         return 0
 
     KEY_FILE.write_text(
         json.dumps(
-            {"seed": args.seed, "passages": [OPTIONS[option].name for option in order]}, indent=2
+            {
+                "seed": args.seed,
+                "round": args.which,
+                "passages": [options[option].name for option in order],
+            },
+            indent=2,
         )
         + "\n",
         encoding="utf-8",
     )
     sys.stderr.write(
-        f"{len(OPTIONS)} passages, about {seconds:.0f}s. Each is the same phrase twice, then a "
+        f"{len(options)} passages, about {seconds:.0f}s. Each is the same phrase twice, then a "
         "bar of silence. Note which numbers make the fill clearest; then run --reveal.\n"
     )
     try:
-        perform(order)
+        perform(order, options)
     except DawError as exc:
         sys.stderr.write(f"audition stopped: {exc}\n")
         return 1

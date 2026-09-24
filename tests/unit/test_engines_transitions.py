@@ -30,6 +30,7 @@ from garagem.engines.groove import fill_for
 from garagem.engines.transitions import (
     FINAL_TAIL_BARS,
     LAST_BEAT_SLOT,
+    PICKUP_SLOTS,
     ROLL,
     STOP_RING_BEATS,
     Ending,
@@ -163,12 +164,102 @@ def test_an_empty_song_has_no_endings() -> None:
     assert endings_for(()) == ()
 
 
+# ---------------------------------------------------------------------------------- fill
+
+
+def drum_rows(score: SectionScore, pitches: frozenset[int] | tuple[int, ...]) -> dict[int, str]:
+    """One string of sixteenths per bar for the drum voices asked for, off the grid."""
+    slots = grid_slots(score.section)
+    rows = {bar: ["."] * SIXTEENTHS_PER_BAR for bar in range(score.section.bars)}
+    for note in score.part(Instrument.DRUMS).notes:
+        if note.pitch not in pitches:
+            continue
+        bar, slot = divmod(slots.index(nearest_slot(slots, note.start_beats)), SIXTEENTHS_PER_BAR)
+        rows[bar][slot] = "x"
+    return {bar: "".join(row) for bar, row in rows.items()}
+
+
+def test_the_bar_before_a_fill_leans_into_it() -> None:
+    """`phase-5-findings.md` §10, answered: the fill is heard coming rather than arriving.
+
+    The snare adds offbeat eighths on the last beat of the bar before, and the hats stop for
+    that beat — which is what the fill bar itself does, a beat early.
+    """
+    section = a_section(tension=0.4)
+    before = play_section(section, SEED)
+    after = compose(before, Ending.FILL, into=CHORUS_AFTER)
+    penultimate = section.bars - 2
+
+    snare_before = drum_rows(before, (SNARE,))[penultimate]
+    snare_after = drum_rows(after, (SNARE,))[penultimate]
+    assert snare_after != snare_before
+    for slot in PICKUP_SLOTS[0]:
+        assert snare_before[slot] == "." and snare_after[slot] == "x"
+
+    hats_after = drum_rows(after, HATS)[penultimate]
+    assert set(hats_after[LAST_BEAT_SLOT:]) == {"."}, "the hats lift off for the last beat"
+    assert "x" in hats_after[:LAST_BEAT_SLOT], "and only for the last beat"
+
+
+def test_a_tense_section_is_announced_with_more_than_a_quiet_one() -> None:
+    """Indexed by tension like `FILLS`, for `FILLS`' reason: a fill a quiet section plays
+    quietly should be announced quietly."""
+    quiet = compose(play_section(a_section(tension=0.2), SEED), Ending.FILL, into=CHORUS_AFTER)
+    tense = compose(play_section(a_section(tension=0.8), SEED), Ending.FILL, into=CHORUS_AFTER)
+    at = quiet.section.bars - 2
+    assert drum_rows(tense, (SNARE,))[at].count("x") > drum_rows(quiet, (SNARE,))[at].count("x")
+
+
+def test_the_announcement_never_lands_on_a_beat() -> None:
+    """Which is what keeps this module's promises true by construction here too: nothing the
+    groove plays on a beat is taken away, and no kick is added or moved."""
+    assert all(slot % 4 for row in PICKUP_SLOTS for slot in row)
+
+
+def test_the_announcement_sits_under_the_fill_it_leads_into() -> None:
+    """A run-up louder than the event is not a run-up."""
+    section = a_section(tension=0.4)
+    score = compose(play_section(section, SEED), Ending.FILL, into=CHORUS_AFTER)
+    slots = grid_slots(section)
+    added, fill = [], []
+    for note in score.part(Instrument.DRUMS).notes:
+        bar, slot = divmod(slots.index(nearest_slot(slots, note.start_beats)), SIXTEENTHS_PER_BAR)
+        if note.pitch != SNARE:
+            continue
+        if bar == section.bars - 2 and slot in PICKUP_SLOTS[0]:
+            added.append(note.velocity)
+        elif bar == section.bars - 1:
+            fill.append(note.velocity)
+    assert added and fill
+    assert max(added) < max(fill)
+
+
+def test_only_the_drummer_announces_the_fill() -> None:
+    """A band that all lifted off together would be a break, not an announcement."""
+    section = a_section()
+    before = play_section(section, SEED)
+    after = compose(before, Ending.FILL, into=CHORUS_AFTER)
+    for instrument in (Instrument.BASS, Instrument.GUITAR, Instrument.KEYS, Instrument.LEAD):
+        assert after.part(instrument) == before.part(instrument)
+
+
+@pytest.mark.parametrize("feel", list(Feel))
+@pytest.mark.parametrize("tension", [0.0, 0.4, 0.8, 1.0])
+def test_an_announced_fill_needs_no_repairer(feel: Feel, tension: float) -> None:
+    section = a_section(feel=feel, tension=tension)
+    assert validate(compose(play_section(section, SEED), Ending.FILL, into=CHORUS_AFTER)) == ()
+
+
+def test_a_two_bar_section_announces_in_its_first_bar() -> None:
+    """The bar before the fill is the only bar there is, and that is still a bar before it."""
+    section = a_section(bars=2, tension=0.4)
+    score = compose(play_section(section, SEED), Ending.FILL, into=CHORUS_AFTER)
+    assert all(slot in {"x", "."} for slot in drum_rows(score, (SNARE,))[0])
+    assert drum_rows(score, (SNARE,))[0][PICKUP_SLOTS[0][0]] == "x"
+    assert validate(score) == ()
+
+
 # ------------------------------------------------------------------------------ identity
-
-
-def test_a_fill_is_the_section_exactly_as_generated() -> None:
-    score = play_section(a_section(), SEED)
-    assert compose(score, Ending.FILL, into=CHORUS_AFTER) is score
 
 
 @pytest.mark.parametrize("ending", list(Ending))

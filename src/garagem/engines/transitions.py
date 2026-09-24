@@ -6,8 +6,13 @@ it lives here, over a finished score, rather than inside the generators.
 
 **Four endings, and the first is what the band already plays.**
 
-- `FILL` — the last bar is `fill_for(tension)` on the snare. The engines and the realiser
-  both do this already and it was approved by ear in Phase 2, so here it is the identity.
+- `FILL` — the last bar is `fill_for(tension)` on the snare, which the engines and the
+  realiser already do. **What this adds is the bar before it** (ADR-027): the snare leans into
+  the fill on the last beat and the hats stop for that beat, so the fill is heard coming rather
+  than arriving. That is `phase-5-findings.md` §10's open question answered in the one place it
+  is answerable — *"whether it should grow out of the bar before it"* — because a section is
+  written whole. The pad's fill cue cannot have it: a cue costs a fire and never a write
+  (ADR-022), so its variant exists for every bar and there is no bar known to come before.
 - `BUILD` — into a bigger section. The snare rolls over the last bars, quarters to eighths
   to sixteenths, with the hats out; the whole band dips and swells; and everyone but the
   drummer lets go of the final beat, so the roll is alone before the crash.
@@ -112,6 +117,26 @@ FINAL_TAIL_BARS: Final = 1
 # The last beat of a bar, in sixteenths. Where a pickup lives and what a build lets go of.
 LAST_BEAT_SLOT: Final = 12
 
+# How the bar before a fill leans into it: the offbeat eighths the snare adds on its last beat.
+#
+# **Offbeats only, and never a downbeat**, which is what keeps this module's promises true by
+# construction here too: nothing the groove plays on a beat is taken away, no kick is added or
+# moved, so kick spacing and the root under a chord change cannot break.
+#
+# Two entries rather than five, indexed by tension the way `FILLS` is, because a fill a quiet
+# section plays quietly should be announced quietly: one stroke under `PICKUP_TENSION`, two
+# over it. `FILLS` has five because a fill is the event; this is only the run-up to it.
+PICKUP_SLOTS: Final[tuple[tuple[int, ...], ...]] = ((14,), (10, 14))
+PICKUP_TENSION: Final = 0.5
+
+# The run-up sits under the fill it leads into, because that is what makes it a run-up. Deeper
+# than `ROLL_OFFBEAT_DROP`: a roll's offbeats are inside the event, and these are before it.
+PICKUP_DROP: Final = 18
+
+# Sixteenths in a beat. The hats stop for the beat the snare leans in on — the gesture the
+# fill bar makes anyway, a beat early.
+SIXTEENTHS_PER_BEAT: Final = SIXTEENTHS_PER_BAR // 4
+
 # What a stop keeps of the drums on its downbeat. Hats are the groove, not the hit.
 HIT_VOICES: Final[frozenset[int]] = frozenset({KICK, SNARE, CRASH})
 
@@ -159,7 +184,7 @@ def compose(score: SectionScore, ending: Ending, *, into: Section | None = None)
     section comes back unchanged, for the engines' reason — its last bar is also its first.
     """
     section = score.section
-    if ending is Ending.FILL or section.bars < 2:
+    if section.bars < 2:
         return score
     slots = grid_slots(section)
     rng = Random(score.seed)
@@ -178,10 +203,42 @@ def _ended(
     slots: tuple[float, ...],
     rng: Random,
 ) -> list[Note]:
+    if ending is Ending.FILL:
+        return _announced(part, section, slots, rng)
     if ending is Ending.BUILD:
         return _build(part, section, slots, rng)
     final = ending is Ending.FINAL
     return _hit(part, section, slots, rng, final=final, into=None if final else into)
+
+
+# ---------------------------------------------------------------------------------- fill
+
+
+def _announced(part: Part, section: Section, slots: tuple[float, ...], rng: Random) -> list[Note]:
+    """The fill the engines wrote, with the bar before it leaning into it. Drums only.
+
+    The other four players are untouched: what was heard as bolted on is a drum fill, and a
+    band that all lifted off together would be a break rather than an announcement.
+    """
+    if part.instrument is not Instrument.DRUMS:
+        return list(part.notes)
+
+    beat = (section.bars - 2) * SIXTEENTHS_PER_BAR + LAST_BEAT_SLOT
+    kept = [
+        note
+        for note in part.notes
+        if note.pitch not in HATS or not beat <= slot_of(slots, note) < beat + SIXTEENTHS_PER_BEAT
+    ]
+    velocity = max(1, reference_velocity(part, SNARE) - PICKUP_DROP)
+    leaning = [
+        drum_hit(
+            SNARE,
+            beats_of((section.bars - 2) * SIXTEENTHS_PER_BAR + slot, section.feel),
+            velocity,
+        )
+        for slot in PICKUP_SLOTS[section.tension >= PICKUP_TENSION]
+    ]
+    return kept + list(humanise(leaning, rng, feel=section.feel))
 
 
 # --------------------------------------------------------------------------------- build
