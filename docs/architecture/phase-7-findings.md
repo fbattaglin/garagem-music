@@ -187,8 +187,24 @@ section played by the floor with its own ending composed over it and validated.
   lead's."* No cassette moved, and the musical regression suite is green.
 - Suite at **2440 passed, 27 skipped**; `ruff` and `mypy` clean over 198 source files.
 
-### Unheard
+### Heard
 
-Criterion 2 also asks for `pytest -m live` green and a verdict on hearing one, and neither has
-happened. The listening is one jam on seed 5 in the key and feel of `Half light` — two solo
-sections, at 1:20 and 2:32, each building back into a chorus.
+`uv run python scripts/bootstrap_set.py` → `session.toml: the Set matches.`, and
+`uv run pytest -m live -q` → **27 passed** against the five-track Set, on 2026-09-23. Then one
+jam on seed 5 in the key and feel of `Half light`, 19 sections, two solos at 1:20 and 2:32, and
+his verdict:
+
+> *"Gostei dos solos, acho que temos um bom ponto de partida"*
+
+Criterion 2 is met. The run is in `bench/jam.jsonl`: 19 scene fires, **every one with a full
+bar of slack**, both solos included.
+
+**And a detour worth recording, because it nearly cost a stage.** His first report was *"Foi
+interessante mas eu nao diria que foi smooth. as transições ficaram um pouco truncadas"* —
+which reads exactly like the open Phase 5 complaint, and the obvious move was to take it as
+Stage C's brief. The event log said otherwise: its last run was **seed 23 with no solo in it**,
+written the evening before, and reconstructing the form proved it was Stage A's listening.
+Nothing from that day existed. Asked, he said it was the sound of `pytest -m live` playing
+fragments into the Set, and then ran the jam. **A verdict is about a specific run, and the
+event log is what says which run it was** — that is what invariant 7 and the log are for, and
+this is the first time either has been used to check a listening rather than a bug.

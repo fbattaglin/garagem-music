@@ -13,8 +13,10 @@ measured or baked**. Each rate states its `n`.
       generate: no run longer than `RELIEF_AFTER` sections of verse and chorus alone. And the
       verdict on seed 23, the song heard as repetitive, recorded verbatim: *"Achei que teve um
       bom improvement comparado com a versao anterior"* (2026-09-23, `phase-7-findings.md` §1).
-- [ ] **The band has a solo section and plays it without a network** — `validate` clean over
-      every briefing and seed with a solo in it, `pytest -m live` green, verdict verbatim.
+- [x] **The band has a solo section and plays it without a network** — 3 376 solo sections over
+      3 200 arranged songs, **0 violations**; `pytest -m live` → 27 passed (2026-09-23);
+      verdict: *"Gostei dos solos, acho que temos um bom ponto de partida"*
+      (`phase-7-findings.md` §2).
 - [ ] **The fill is announced** — the section's own `FILL` ending carries a pickup in the bar
       before it; the pad cue keeps ADR-022 and changes only its entry and its return. Verdict
       verbatim from one conducted jam.
@@ -70,8 +72,13 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
     playing. `TOP_STEP` is 4, and the window is now pinned as arithmetic, not as a sample.
   - No golden file moved; two were added. The live prompt is byte-identical, and the only
     prompt change is four bake-only lines. Suite at **2440 passed, 27 skipped**.
-  - **Unheard, and `pytest -m live` unrun.** The listening is one jam on seed 5, in the key and
-    feel of `Half light`: two solos, at 1:20 and 2:32.
+  - **Heard on 2026-09-23**, one jam on seed 5 (two solos, at 1:20 and 2:32), with
+    `pytest -m live` at 27 passed and the bootstrap clean: *"Gostei dos solos, acho que temos um
+    bom ponto de partida"*. Criterion 2 met. 19 fires, every one with a full bar of slack.
+  - **A first report was about the wrong sound**, and the event log caught it: *"as transições
+    ficaram um pouco truncadas"* turned out to be `pytest -m live` playing fragments, not the
+    jam — the log's last run was Stage A's, from the night before. A verdict belongs to a run,
+    and the log is what names the run.
 - **Stage C is next: the fill arrives.**
 
 ## Phase 6 — closed
