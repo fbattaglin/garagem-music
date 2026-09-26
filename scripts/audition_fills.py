@@ -33,10 +33,16 @@ default song — three bars of groove, **the fill bar**, and the bar the groove 
 played twice, then **one bar of silence**. The silence is how passages are counted without a
 screen: passage 1 starts with the music, and every silence ends one.
 
-**Blind.** The six options play in a shuffled order, numbered 1 to 6, and the terminal only
-ever prints the numbers. The key goes to `bench/audition-fills.json` and is not printed until
+**Blind.** The options play in a shuffled order, numbered from 1, and the terminal only ever
+prints the numbers. The key goes to `bench/audition-fills.json` and is not printed until
 `--reveal`. Say which numbers were clearest first; then reveal. A number chosen before the
 name is known is the only kind of vote this project counts.
+
+**Every run is also appended to `bench/audition-fills.jsonl`, and that is not a nicety.** The
+key file holds one run, so a second run used to overwrite the first — and on 2026-09-26 it did,
+after the ranking and before it was written down, which left a vote naming a passage number the
+file on disk no longer agreed with (`phase-7-findings.md` §3). A vote is only as good as the key
+it can be checked against, so now no key is ever lost.
 
 **It uses scenes 0 and 1**, which every jam rewrites, and stops the transport when it ends.
 It refuses to start while Live is playing.
@@ -79,6 +85,7 @@ from garagem.transport import render_part
 
 ROOT = Path(__file__).resolve().parents[1]
 KEY_FILE = ROOT / "bench" / "audition-fills.json"
+KEY_HISTORY = ROOT / "bench" / "audition-fills.jsonl"
 SESSION = ROOT / "session.toml"
 
 SONG_SEED: Final = 7
@@ -247,6 +254,17 @@ def perform(
         transport.close()
 
 
+def _history() -> list[dict[str, object]]:
+    """Every key ever written, oldest first. Empty before the first run that appended one."""
+    if not KEY_HISTORY.exists():
+        return []
+    return [
+        json.loads(line)
+        for line in KEY_HISTORY.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="say what would play; no Live")
@@ -262,9 +280,15 @@ def main() -> int:
             sys.stderr.write("nothing to reveal: run the audition first\n")
             return 1
         key = json.loads(KEY_FILE.read_text(encoding="utf-8"))
-        sys.stderr.write(f"round: {key.get('round', 'phase4')}\n")
+        sys.stderr.write(f"round: {key.get('round', 'phase4')}  seed: {key['seed']}\n")
         for number, name in enumerate(key["passages"], start=1):
             sys.stderr.write(f"passage {number}: {name}\n")
+        kept = _history()
+        if len(kept) > 1:
+            sys.stderr.write(
+                f"\n{len(kept)} runs on record in {KEY_HISTORY.name}; this is the last. "
+                "A ranking of an earlier one is checked against its own seed there.\n"
+            )
         return 0
 
     options = ROUNDS[args.which]
@@ -277,18 +301,14 @@ def main() -> int:
         )
         return 0
 
-    KEY_FILE.write_text(
-        json.dumps(
-            {
-                "seed": args.seed,
-                "round": args.which,
-                "passages": [options[option].name for option in order],
-            },
-            indent=2,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
+    key = {
+        "seed": args.seed,
+        "round": args.which,
+        "passages": [options[option].name for option in order],
+    }
+    KEY_FILE.write_text(json.dumps(key, indent=2) + "\n", encoding="utf-8")
+    with KEY_HISTORY.open("a", encoding="utf-8") as history:
+        history.write(json.dumps(key) + "\n")
     sys.stderr.write(
         f"{len(options)} passages, about {seconds:.0f}s. Each is the same phrase twice, then a "
         "bar of silence. Note which numbers make the fill clearest; then run --reveal.\n"
