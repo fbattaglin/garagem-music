@@ -17,9 +17,12 @@ measured or baked**. Each rate states its `n`.
       3 200 arranged songs, **0 violations**; `pytest -m live` → 27 passed (2026-09-23);
       verdict: *"Gostei dos solos, acho que temos um bom ponto de partida"*
       (`phase-7-findings.md` §2).
-- [ ] **The fill is announced** — the section's own `FILL` ending carries a pickup in the bar
-      before it; the pad cue keeps ADR-022 and changes only its entry and its return. Verdict
-      verbatim from one conducted jam.
+- [x] **The fill is announced** — the section's own `FILL` ending carries a pickup in the bar
+      before it. The pad cue keeps ADR-022 and, put to a blind audition, changes **neither** its
+      entry nor its return: he ranked today's fill first (`phase-7-findings.md` §3, deviation
+      written down before the audition ran). Verdict from one conducted jam, 8 announced fills
+      and 3 pad strikes: *"A virada ficou mais integrada, achei bem melhor que a versão
+      anterior"* (2026-09-29).
 - [ ] **The bake writes solos** — ≥90% of baked sections conformant on the first pass and
       ≥80% approved without repair, `n` stated. The same bar as ADR-026, because it was met at
       100% and lowering it would be a metric moved. Beside them, as description and never as a
@@ -104,7 +107,13 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
     attenuated to 76 from 93 by the band's swell and the lead is out for the 2 beats before the
     handover. He heard those two handovers and said *"Gostei dos solos"*, so nothing moves on a
     hypothesis against a verdict.
-  - **Unheard.** Suite at **2497 passed, 27 skipped**.
+  - **Heard on 2026-09-29**, one conducted jam: seed 5, 14 sections, 8 announced fills, pad 2
+    struck in a chorus, a bridge and a verse, all three landing one bar after the strike.
+    *"A virada ficou mais integrada, achei bem melhor que a versão anterior"*. Criterion 3 met,
+    and the Phase 5 complaint it answers is closed. Suite at **2497 passed, 27 skipped**.
+- **Stage D is next: the songwriter's solo** — and it opens with a probe of about a cent, because
+  Phase 6's most expensive lesson was two paid bakes spent on defects in our own notation
+  (ADR-027: *ask first, build second*).
 
 ## Phase 6 — closed
 

@@ -348,9 +348,24 @@ itself.
 rate over five is an anecdote. What this supports is "do not spend scenes on it", not "the crash
 is inaudible".*
 
-### Unheard
+### Heard
 
-Suite at **2497 passed, 27 skipped**; `ruff` and `mypy` clean. Criterion 3 still needs the
-listening: one conducted jam, for **the section's own announced fill** — the half of the stage
-that did change — with pad 2 struck in a verse and in a chorus so the unchanged cue is heard
-beside it.
+One conducted jam on 2026-09-29: seed 5, halftime, 14 sections, 189 s, **eight announced fills**
+of the section's own, and pad 2 struck three times — in a chorus, in a bridge and in a verse.
+All three landed one bar after the strike; two returned by their own legato fire with
+`late_bars` 0 and one by the section change, which is the known case for a strike in a
+section's last bar. His verdict:
+
+> *"A virada ficou mais integrada, achei bem melhor que a versão anterior"*
+
+**Criterion 3 is met**, and it is met against the sentence it existed to answer, from
+2026-09-17: *"A virada é divertida, talvez no futuro vamos ter que penssar em ela entrando de
+uma forma mais integrada e suave"* (`phase-5-findings.md` §10). Open since Phase 5, closed in
+one bar of composition and one blind audition that changed nothing.
+
+One accident worth keeping: the first strike fell in the **last bar** of a chorus, so the
+announcement the section had already written in the bar before it led into the *pad's* toms fill
+rather than into its own. The run-up works for either, which is not something the design set out
+to do — it falls out of the announcement living in the main clip and the cue living in a variant.
+
+Suite at **2497 passed, 27 skipped**; `ruff` and `mypy` clean.
