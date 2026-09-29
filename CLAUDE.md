@@ -53,6 +53,10 @@ written to a file is in English.
 - `uv run python scripts/audition_shuffle.py` — the five-minute blind check of the shuffle fix
   (ADR-024). `--table` shows the takes and the five chosen; the run needs Terminal and Live.
   No model call.
+- `uv run python scripts/probe_solo.py` — asks the model for **one** solo section and reads what
+  the notation did to it (ADR-027 Stage D). Estimates and stops unless `--yes`; about 1.4 cents.
+  `--fake` runs the floor's own solo through the same report, free, and prints what writing it as
+  `deg:` and reading it back costs.
 - `uv run python scripts/record_regression.py` — records the musical regression set that
   `tests/regression/` judges in CI. Estimates and stops unless `--yes`; spends real money.
   `--replay` reports on the recording for free.

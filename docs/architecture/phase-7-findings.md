@@ -369,3 +369,52 @@ rather than into its own. The run-up works for either, which is not something th
 to do — it falls out of the announcement living in the main clip and the cue living in a variant.
 
 Suite at **2497 passed, 27 skipped**; `ruff` and `mypy` clean.
+
+## 4. Stage D's question, answered before the call was made
+
+Built on 2026-09-29. `scripts/probe_solo.py` asks the model for **one** solo section — ADR-027's
+*ask first, build second*, written after two Phase 6 bakes were spent on defects in our own
+notation that a $0.0073 call would have found.
+
+It asks the model the bake would ask (`structural(catalog)`, not the catalogue's first, which is
+four times the price), over a solo section the arranger would write, with a **real theme read off
+`setlists/songwriter.json`** — the third Phase 6 bake already paid for it, so the variable under
+test is the solo section and not the material above it. One call, ~$0.0141, no file written.
+
+### `--fake` answered half of it for nothing, and the answer is worse than expected
+
+The probe also writes the **floor's own solo** in the bake's notation and reads it back. That
+costs nothing and it needs no model, and it is the sharper question: *can this spelling carry a
+solo at all?*
+
+    5 of 43 notes move when it is written as `deg:` and read back; 4 of those land outside the key
+      bar 3 slot 3 over C: 78 -> 77   <-- outside the key
+      bar 3 slot 9 over C: 78 -> 77   <-- outside the key
+      bar 4 slot 11 over Bm: 72 -> 71
+      bar 7 slot 3 over C: 78 -> 77   <-- outside the key
+      bar 7 slot 9 over C: 78 -> 77   <-- outside the key
+
+**A degree is of the bar's chord's implied scale, so a line that moves through the *key* asks for
+notes the chord's scale cannot spell.** Over `C` in E minor there is no degree that means F#,
+because C's implied scale is C major and has F. The serializer writes the nearest degree it can,
+and F# becomes F — a note in neither the key nor the chart.
+
+**And the loss is silent.** The round trip still validates: four notes out of forty-three is
+1.6% of nothing against a dissonance budget of `0.05 + 0.45 × 0.65 = 0.34` at a solo's tension,
+so nothing refuses it and nothing repairs it. A notation that dropped notes loudly would be a
+smaller problem than one that bends them quietly.
+
+This was found by writing a test that asserted the round trip was **exact** and watching it fail
+— the same way `_in_the_chord` was found in Phase 6, and for the same underlying reason: a degree
+relative to a chord is not a degree relative to a key, and every time this project has forgotten
+that it has cost a wrong note.
+
+### What it does not yet answer
+
+Whether **the model** needs `rel=key` is still open, and it is the question the cent buys: if it
+writes bar-shaped figures that never cross a bar line, chord-relative degrees are all it is using
+and a scale-relative spelling buys its output nothing. The floor does not go through the notation
+at all in a real performance — `play_section` hands the scheduler a score — so what the free half
+proves is about the notation's reach and about `--fake`'s fidelity, not about a paid bake.
+
+**Unrun.** The paid call has not been made. `uv run python scripts/probe_solo.py --yes`, ~$0.0141.
