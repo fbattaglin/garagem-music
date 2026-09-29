@@ -49,6 +49,14 @@ FILL: Final = "fill"
 # The fill a person gets from pad 2. Stage 4's gate heard the snare fill as "não tão clara";
 # a blind audition of six fills ranked the run down the toms first and second, and Fabiano
 # chose it without the crash on the return (`phase-4-findings.md` §10).
+#
+# **Re-auditioned in Phase 7 and unchanged, which is a result and not an omission.** ADR-027
+# set out to change the cue's entry and its return — the only two things ADR-022 leaves a cue.
+# A second blind round put both on the table and Fabiano ranked *this* first
+# (`phase-7-findings.md` §3). The crash on the return, which Phase 4 ranked above the plain
+# toms, came **last** of four over the same five bars note for note: a difference that reverses
+# between two listenings is a difference this ear does not reliably hear, so the question is
+# closed rather than open. `FillStyle.TOMS_RISING` stays in the table as the candidate it was.
 FILL_CUE_STYLE: Final = FillStyle.TOMS
 
 

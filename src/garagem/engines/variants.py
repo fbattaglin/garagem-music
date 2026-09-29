@@ -46,6 +46,10 @@ from the first stroke. Whether that is an improvement is not something this file
 `RISING` was the same idea on the snare and the blind audition ranked it **below** the fill it
 was meant to improve. So it goes in the table and `scripts/audition_fills.py --round phase7`
 asks the ear, which is what settled the last one.
+
+**It was asked, and the answer was no** (`phase-7-findings.md` §3): rising came second and
+third of four, and the fill as it plays today came first. `TOMS_RISING` stays here for the
+reason `RISING` does — a candidate that lost is what makes the one that won a choice.
 """
 
 from __future__ import annotations

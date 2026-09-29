@@ -295,8 +295,62 @@ ducking with the band is arguably wrong. Fabiano heard those exact two handovers
 *"Gostei dos solos"*, so nothing is changed on a hypothesis against a verdict. It is written
 here so it is not rediscovered.
 
+### The audition, ranked on 2026-09-28: the cue does not change
+
+Seed 51277, four passages, blind, `bench/audition-fills.jsonl` line 2. He ranked **1, 2, 4, 3**
+before revealing:
+
+| Rank | Passage | Option |
+| --- | --- | --- |
+| 1 | 1 | **the fill cue as it plays today** — toms, no crash |
+| 2 | 2 | toms rising, crash on the return |
+| 3 | 4 | toms rising from the groove's level |
+| 4 | 3 | the fill cue, crash on the return |
+
+**So the cue changes neither its entry nor its return, and the deviation written down above is
+the one that happened.** `FILL_CUE_STYLE` stays `TOMS`. No new scenes, no second return step,
+no velocity ramp. The two candidates cost nothing to keep in `FillStyle`, and a candidate that
+lost is what makes the one that won a choice rather than a default.
+
+**Rising has now been auditioned twice and never won.** Fourth of six on the snare in Phase 4,
+second and third of four on the toms here. Twice is enough to stop proposing it.
+
+### And the crash reversed itself, which closes a question rather than leaving it open
+
+`phase-4-findings.md` §10 called the crash on the return *"ambiguous"* and named the way to
+settle it: *"an audition between just those two options."* That has now happened, and the same
+pair came out in the opposite order:
+
+| | toms, no crash | toms, crash on the return |
+| --- | --- | --- |
+| Phase 4, seed 69374, 6 passages | 2nd | **1st** |
+| Phase 7, seed 51277, 4 passages | **1st** | 4th — last |
+
+**The passages were the same five bars, note for note**, and that was checked rather than
+assumed: the audition's verse has the same form position, chart, `dyn`, tension and ending in
+both phases; `engines/drums.py` and `engines/humanise.py` are untouched since the Phase 4
+commit; `variants._toms`, `TOM_RUN`, `land_bars` and `_downbeat_kicks_and_crashes` are untouched;
+and the only changes to `groove.py`, `bass.py`, `guitar.py` and `keys.py` in between are
+**shuffle rows**, while this passage is straight eights. The fill bar and the return bar the ear
+was given are identical in the two rounds.
+
+What differed is the round: six distractors against four, different seeds, different order, and
+sixteen days apart. That is enough to move a ranking by a place. It is not enough to move an
+option from first to last.
+
+**A preference that reverses between two blind listenings is a difference this ear does not
+reliably hear** — which is what "ambiguous" meant in Phase 4, now with a second reading behind
+it. The crash costs two more scenes and a second return step. It does not get them, and the
+question is **closed** rather than open: a third audition would be asking a coin to agree with
+itself.
+
+*Counted honestly: one listener, one ranking per round, and the project's own rule is that a
+rate over five is an anecdote. What this supports is "do not spend scenes on it", not "the crash
+is inaudible".*
+
 ### Unheard
 
-Suite at **2497 passed, 27 skipped**; `ruff` and `mypy` clean. Criterion 3 needs two things and
-has neither: the `phase7` audition ranked, and one conducted jam with pad 2 struck in a verse
-and in a chorus.
+Suite at **2497 passed, 27 skipped**; `ruff` and `mypy` clean. Criterion 3 still needs the
+listening: one conducted jam, for **the section's own announced fill** — the half of the stage
+that did change — with pad 2 struck in a verse and in a chorus so the unchanged cue is heard
+beside it.

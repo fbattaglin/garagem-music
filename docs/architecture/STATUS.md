@@ -90,9 +90,16 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
     it. And the plan's other half, a rising entry, is the idea that ranked **below** the fill it
     was meant to improve when tried on the snare. So both go to the ear: `TOMS_RISING` is a
     candidate, and `audition_fills.py --round phase7` is four blind passages in ~80 s.
-  - **Deviation, written down:** criterion 3 says the cue changes its entry and its return. It
-    may change neither, if the audition ranks today's fill first. That is the question being
-    asked and answered, not a criterion dropped.
+  - **The audition ranked on 2026-09-28 (seed 51277): the cue changes nothing.** He ranked
+    1, 2, 4, 3 blind, and passage 1 was the fill as it plays today. `FILL_CUE_STYLE` stays
+    `TOMS` — no new scenes, no second return step, no velocity ramp. The deviation written down
+    before the audition is the one that happened, and "leave it" is an answer.
+  - **The crash reversed itself between two blind rounds**, over the same five bars note for
+    note (checked: the drums engine, `_toms`, `TOM_RUN` and `land_bars` are untouched since the
+    Phase 4 commit, and the other engine changes in between are shuffle rows). 1st of 6 in
+    Phase 4, **last of 4** in Phase 7. A preference that reverses is one this ear does not
+    reliably hear, so the question is **closed** rather than open. Rising has now been
+    auditioned twice and never won.
   - **Noticed in the solo and left alone:** under a `BUILD`, the solo's last phrase is
     attenuated to 76 from 93 by the band's swell and the lead is out for the 2 beats before the
     handover. He heard those two handovers and said *"Gostei dos solos"*, so nothing moves on a
