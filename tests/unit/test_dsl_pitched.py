@@ -12,6 +12,7 @@ degree map that is not understood must be refused by name, never softened.
 from __future__ import annotations
 
 import json
+from itertools import pairwise
 
 import pytest
 
@@ -29,7 +30,7 @@ from garagem.dsl.errors import LineError
 from garagem.dsl.realise import straightened
 from garagem.engines import play_section
 from garagem.llm import StreamDone, StreamEvent, ToolInputDelta, ToolUseStart
-from garagem.theory import parse_chart, validate
+from garagem.theory import RANGES, parse_chart, validate
 
 CHART = "| Em | C | G | D |"
 
@@ -280,3 +281,60 @@ def test_a_bass_riff_may_reach_the_octave_too() -> None:
     )
     notes = realise(parsed_from(dsl, section), 7, straighten=False).part(Instrument.BASS).notes
     assert notes[1].pitch % 12 == notes[0].pitch % 12
+
+
+# ------------------------------------------------- a bar that does not fit the instrument
+
+
+def test_a_bar_that_runs_past_the_ceiling_moves_whole_and_keeps_its_shape() -> None:
+    """Found by the first paid solo probe, and it cost one note (`phase-7-findings.md` §4).
+
+    The model wrote `… 8, 9, 8 …` over a `Bm`, whose ninth is MIDI 85 — **one semitone** above
+    the lead's ceiling of 84. The realiser folded that note alone, an octave down, and left a
+    ten-semitone hole in a run of sixteenths. Nothing refused it: the pitch class is still the
+    one that was written, so no rule was broken.
+
+    A bodily octave keeps every interval in the bar; folding one note destroys two. Same call
+    `engines/lead._in_range` makes for the floor.
+    """
+    section = a_section(bars=1, chart=parse_chart("| Bm |"))
+    dsl = (
+        "SEC chorus bars=1 key=Em feel=straight8 bpm=132 dyn=4 tension=0.5\n"
+        "CHD | Bm |\n"
+        "LED oct=4 deg:1=1,3=3,5=5,7=8,9=9,11=8,13=5,15=1\n"
+    )
+    notes = realise(parsed_from(dsl, section), 7, straighten=False).part(Instrument.LEAD).notes
+    pitches = [note.pitch for note in notes]
+
+    wanted = [71, 74, 78, 83, 85, 83, 78, 71]
+    steps = [b - a for a, b in pairwise(wanted)]
+    assert [b - a for a, b in pairwise(pitches)] == steps
+    low, high = RANGES[Instrument.LEAD]
+    assert all(low <= pitch <= high for pitch in pitches)
+    assert pitches == [pitch - 12 for pitch in wanted]
+
+
+def test_a_bar_wider_than_the_instrument_still_folds_note_by_note() -> None:
+    """No octave holds a line wider than the range, so the contour has to give — but only
+    there, and the notes that fit are left where they were written."""
+    section = a_section(bars=1, chart=parse_chart("| Em |"))
+    dsl = (
+        "SEC chorus bars=1 key=Em feel=straight8 bpm=132 dyn=4 tension=0.5\n"
+        "CHD | Em |\n"
+        "LED oct=2 deg:1=1,9=14\n"
+    )
+    notes = realise(parsed_from(dsl, section), 7, straighten=False).part(Instrument.LEAD).notes
+    low, high = RANGES[Instrument.LEAD]
+    assert all(low <= note.pitch <= high for note in notes)
+
+
+def test_a_bar_already_inside_the_range_is_left_exactly_where_it_was() -> None:
+    """The fix must not move anything that fitted: every golden file depends on it."""
+    section = a_section(bars=1, chart=parse_chart("| Em |"))
+    dsl = (
+        "SEC chorus bars=1 key=Em feel=straight8 bpm=132 dyn=4 tension=0.5\n"
+        "CHD | Em |\n"
+        "LED oct=4 deg:1=1,5=3,9=5\n"
+    )
+    notes = realise(parsed_from(dsl, section), 7, straighten=False).part(Instrument.LEAD).notes
+    assert [note.pitch for note in notes] == [64, 67, 71]

@@ -417,4 +417,71 @@ and a scale-relative spelling buys its output nothing. The floor does not go thr
 at all in a real performance — `play_section` hands the scheduler a score — so what the free half
 proves is about the notation's reach and about `--fake`'s fidelity, not about a paid bake.
 
-**Unrun.** The paid call has not been made. `uv run python scripts/probe_solo.py --yes`, ~$0.0141.
+### The paid call, 2026-10-10: three defects, all silent, none of them `rel=key`
+
+One call, **$0.0222**. The model wrote a lead in **8 of 8 bars**, reached for degrees 8 and 9 —
+the octave and the ninth, trying to get above the chord — and the section validated with **0
+violations before and after repair**. It can write a solo. What it cannot do is keep it in one
+place, and the notation is why.
+
+**1. It never moved `oct=`.** All eight lines are `oct=4`. `deg:1` means *this bar's chord root,
+in octave 4*, and the chart's roots run E, D, C, B — so a figure that reads identically in
+degrees lands in four different registers. The steps across the bar lines were
+
+    the model   -2, -6, +11, -14, -2, -6, +4
+    the floor   +7, +2,  -5,  -4, +7, +2, -5
+
+and bar 3 ended on **C4 (60)**, which is inside the guitar's range (40–76) rather than above it.
+The lead's whole reason for existing at 55–84 is to be heard over the band. The floor's own
+serialization moves the octave — `4, 5, 5, 4, 4, 5, 5, 4` — for exactly this reason, and the
+model had no way to know that from a prompt whose only example says `oct=4` twice.
+
+**2. One note fell a semitone past the ceiling and took an octave off.** In bar 8's run of
+sixteenths the model wrote `… 8, 9, 8 …` over a `Bm`. Degree 9 of `Bm` is MIDI **85**; the lead's
+ceiling is **84**. `realise._inside` folded that one note an octave down, so a step became a
+ten-semitone hole:
+
+    wanted   71 74 78 83 85 83 78 74 …
+    played   71 74 78 83 73 83 78 74 …
+
+**3. All three are silent.** Nothing refused any of it: the pitch classes are the ones that were
+written, every note is in the key, and the dissonance budget was never in question. A notation
+that dropped notes loudly would be a smaller problem.
+
+### What was fixed, and what was deliberately not
+
+**Fixed, because it is ours:** `realise._lead` now places a bar's line **bodily** by octaves
+instead of folding note by note, falling back to the old behaviour only for a bar wider than the
+instrument. A bodily octave keeps every interval in the bar; folding one note destroys two —
+which is the same call `engines/lead._in_range` already makes for the floor, for the same reason.
+The whole suite passed unchanged, so nothing had been relying on the fold.
+
+**Tried before built:** the register problem gets **one paragraph in `SYSTEM_SONGWRITER`** before
+it gets new notation. The prompt's only `LED` example says `oct=4`, and
+`phase-3-findings.md` §11 and `phase-6-findings.md` §7 are both about this model copying the
+example it was given — once byte for byte. The paragraph states the rule, gives the per-bar
+sequence for this very chart, and names the lead's range so there is room left at the top.
+`rel=key` stays unbuilt until a second probe says a sentence was not enough.
+
+**And a block changed by accident, which is why the live prompt is now pinned.** The example edit
+I first made was a bare string replace, and the same two lines appear in `SYSTEM_THEME`: it
+changed a second block in silence. An ad-hoc comparison against `HEAD` caught it, nothing else
+would have, and ADR-025's freeze had been held for four phases by care alone. The example edit
+was reverted — it taught nothing, since the example's only sounding bar is one chord — and
+`test_the_live_prompt_has_not_moved_since_adr_025_froze_it` now pins `SYSTEM`, `SYSTEM_ARRANGED`,
+`SYSTEM_DENSE` and `SYSTEM_POSITIONS` by digest, with a second test that fails if a block is
+added to `system_for` and not to the table. Checked non-vacuous: one added space fails three of
+the four. `SYSTEM_THEME` and `SYSTEM_SONGWRITER` are deliberately outside it — they are bake-only
+and this phase changes them on purpose.
+
+### Cost, which criterion 5 will need
+
+**$0.0222 for one solo section against $0.0141 estimated — 57% over.** The estimate uses the
+*median* section of the third Phase 6 bake, and that bake's sections were mostly verses and
+choruses while a solo writes a degree per sixteenth. `ONE_SECTION` is left at the median on
+purpose, because it is the bake's own figure and the two should not drift apart; the overrun is
+carried into Stage E's estimate instead. At this rate a song with one solo section costs about
+**$0.10**, which is inside the $0.10–0.12 ADR-027 declared, and the $1.00 cap is untouched.
+
+**Unrun:** the second probe, after the paragraph. `uv run python scripts/probe_solo.py --yes`,
+about 2 cents.

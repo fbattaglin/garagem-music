@@ -78,7 +78,6 @@ from garagem.theory import (
     grid_slots,
     nearest_slot,
     pitch_classes,
-    render_chart,
     render_chord,
     render_key,
     repair,
@@ -97,6 +96,12 @@ SETLIST = ROOT / "setlists" / "songwriter.json"
 # room to spare, and the expected figure is printed beside it.
 CAP_USD: Final = Decimal("0.30")
 # One songwriter section, at the usage the third Phase 6 bake measured (`bake_setlist.py`).
+#
+# **A solo section costs more than this, and the first paid probe says how much:** $0.0222
+# against $0.0141, 57% over, because this is the *median* section of a bake whose sections were
+# mostly verses and choruses and a solo writes a degree per sixteenth. Left at the median on
+# purpose — it is the bake's own figure and the two should not drift apart — with the overrun
+# recorded in `phase-7-findings.md` §4 and carried into Stage E's estimate instead.
 ONE_SECTION: Final = Usage(input_tokens=425, output_tokens=1286)
 
 
@@ -245,11 +250,17 @@ def main() -> int:
     theme = str(song.get("theme") or "")
     section = the_briefing(song, bpm)
 
+    # The CHD line the *brief* sends, not the chart's own four chords: `songwriter_brief`
+    # renders one chord per bar, so the raw chart printed here read as though the model had
+    # echoed eight chords back where four were asked for. It had not.
+    asked = next(
+        line for line in songwriter_brief(section, "").splitlines() if line.startswith("CHD")
+    )
     sys.stderr.write(
         f"one solo section for {song['title']!r}: "
         f"{section.bars} bars, key={render_key(section.key, section.scale)}, "
         f"feel={section.feel}, dyn={section.dyn}, tension={section.tension:g}\n"
-        f"CHD {render_chart(section.chart)}\n"
+        f"{asked}\n"
         f"the theme comes from {args.setlist.name} and is free\n"
     )
 

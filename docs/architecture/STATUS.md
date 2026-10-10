@@ -111,9 +111,25 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
     struck in a chorus, a bridge and a verse, all three landing one bar after the strike.
     *"A virada ficou mais integrada, achei bem melhor que a versão anterior"*. Criterion 3 met,
     and the Phase 5 complaint it answers is closed. Suite at **2497 passed, 27 skipped**.
-- **Stage D is next: the songwriter's solo** — and it opens with a probe of about a cent, because
-  Phase 6's most expensive lesson was two paid bakes spent on defects in our own notation
-  (ADR-027: *ask first, build second*).
+- **Stage D is in progress: the songwriter's solo** (`phase-7-findings.md` §4).
+  `scripts/probe_solo.py` asks for one solo section, ~1.4 cents, nothing sent without `--yes`.
+  - **Its free half needs no model:** writing the floor's own solo as `deg:` and reading it back
+    moves **5 of 43 notes**, 4 of them out of the key, because a degree is of the bar chord's
+    implied scale and over `C` in E minor no degree spells F#. The round trip still validates.
+  - **The paid call, 2026-10-10, $0.0222:** the model wrote a lead in 8 of 8 bars and validated
+    clean, but never moved `oct=`, so the same figure landed in four registers and bar 3 ended
+    inside the guitar's range. And one note a semitone past the lead's ceiling was folded an
+    octave down mid-run, leaving a ten-semitone hole. All three defects silent.
+  - **Fixed:** `realise._lead` places a bar bodily by octaves instead of folding note by note.
+    **Tried before built:** one paragraph in `SYSTEM_SONGWRITER` about moving `oct=`, because
+    this model copies its examples (`phase-6-findings.md` §7) and the only example says `oct=4`.
+    `rel=key` stays unbuilt until a second probe says a sentence was not enough.
+  - **The live prompt is now pinned by digest.** The first version of that example edit was a
+    bare string replace and silently changed `SYSTEM_THEME` too; ADR-025's freeze had held for
+    four phases on care alone. Checked non-vacuous.
+  - **Cost:** 57% over the estimate, because the estimate is a median section and a solo writes
+    a degree per sixteenth. ~$0.10 a song with one solo — inside what ADR-027 declared.
+  - **Unrun:** the second probe, ~2 cents.
 
 ## Phase 6 — closed
 

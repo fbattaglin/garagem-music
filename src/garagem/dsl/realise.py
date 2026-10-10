@@ -75,7 +75,7 @@ from garagem.dsl.stream import ORDER, ParsedSection
 from garagem.engines.groove import fill_for, groove_for
 from garagem.engines.humanise import humanise, separate
 from garagem.theory.percussion import CLOSED_HAT, CRASH, GHOST_VELOCITY, KICK, SNARE
-from garagem.theory.scales import DEGREES, degree_to_pitch
+from garagem.theory.scales import DEGREES, SEMITONES_PER_OCTAVE, degree_to_pitch
 from garagem.theory.voicings import RANGES, Register, fit_to_range, voice, voice_lead
 
 # Deliberately a second copy of the engines' levels rather than a shared import. See the
@@ -459,7 +459,10 @@ def _lead(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
         chord = section.chart.at(bar)
         offset = bar * SIXTEENTHS_PER_BAR
         struck = [slot for slot, _ in line.degrees]
-        for index, (slot, degree) in enumerate(line.degrees):
+        placed = _placed_bar(
+            tuple(_at_degree(chord, degree, line.octave) for _, degree in line.degrees), low, high
+        )
+        for index, (slot, _) in enumerate(line.degrees):
             at = beats_of(offset + slot, section.feel)
             # The bar's end when nothing follows: a held last note rings into the next bar,
             # which is what holding one is for.
@@ -467,7 +470,7 @@ def _lead(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
             held = beats_of(offset + after, section.feel) - at
             notes.append(
                 Note(
-                    pitch=_inside(_at_degree(chord, degree, line.octave), low, high),
+                    pitch=placed[index],
                     start_beats=at,
                     duration_beats=max(LEAD_BEATS, held) if slot in line.holds else LEAD_BEATS,
                     velocity=_accented(velocity, slot),
@@ -544,9 +547,37 @@ def _at_degree(chord: Chord, degree: int, octave: int) -> int:
     return degree_to_pitch(chord, step + 1, octave + octaves)
 
 
+def _placed_bar(pitches: tuple[int, ...], low: int, high: int) -> tuple[int, ...]:
+    """One bar of a lead line moved **bodily** by octaves into the range.
+
+    `_inside` folds a note at a time, which is right for a chord and wrong for a phrase. The
+    first paid solo probe wrote `… 8, 9, 8 …` over a `Bm` whose ninth is `85`, one semitone
+    above the lead's ceiling of `84`: the one note that did not fit dropped an octave and left
+    a ten-semitone hole in a run of sixteenths, and nothing complained
+    (`phase-7-findings.md` §4).
+
+    **A bodily octave keeps every interval in the bar; folding one note destroys two.** That
+    is the same call `engines/lead._in_range` makes for the floor's own figures, and for the
+    same reason — a sorted voicing is nothing to a chord and everything to a melody.
+
+    A bar whose own line is wider than the instrument has no octave that holds all of it, and
+    only then is it folded note by note, as before.
+    """
+    if not pitches:
+        return ()
+    shift = 0
+    while min(pitches) + shift < low:
+        shift += SEMITONES_PER_OCTAVE
+    while max(pitches) + shift > high:
+        shift -= SEMITONES_PER_OCTAVE
+    if min(pitches) + shift < low:
+        return tuple(_inside(pitch, low, high) for pitch in pitches)
+    return tuple(pitch + shift for pitch in pitches)
+
+
 def _inside(pitch: int, low: int, high: int) -> int:
     while pitch < low:
-        pitch += 12
+        pitch += SEMITONES_PER_OCTAVE
     while pitch > high:
-        pitch -= 12
+        pitch -= SEMITONES_PER_OCTAVE
     return pitch

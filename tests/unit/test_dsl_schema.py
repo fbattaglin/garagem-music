@@ -8,10 +8,13 @@ does not degrade the hit rate — it zeroes it, silently, and the only symptom i
 
 from __future__ import annotations
 
+import hashlib
+from typing import Final
+
 import pytest
 
 from garagem.domain import Feel, Section
-from garagem.dsl import SYSTEM, SYSTEM_ARRANGED, TOOL, brief, system_for
+from garagem.dsl import SYSTEM, SYSTEM_ARRANGED, TOOL, brief, schema, system_for
 from garagem.dsl.schema import SYSTEM_POSITIONS
 from garagem.theory import parse_chart
 
@@ -227,3 +230,47 @@ def test_every_bar_line_in_the_static_block_parses() -> None:
     assert len(examples) == 4
     for example in examples:
         parse_bar_line(example)
+
+
+# ------------------------------------------------------------------ the frozen live blocks
+
+# ADR-025 froze live generation on 2026-09-01: the blocks the performance sends have not
+# changed through Phases 4, 5, 6 and 7, and that is what keeps the cassettes, the musical
+# regression suite and its golden files valid. Nothing enforced it until a one-line string
+# replace in Phase 7 changed `SYSTEM_THEME` by accident, across two blocks at once, and only
+# an ad-hoc comparison against `HEAD` caught it (`phase-7-findings.md` §4).
+#
+# **`SYSTEM_THEME` and `SYSTEM_SONGWRITER` are deliberately not here.** They are bake-only and
+# Phase 7 changes them on purpose; the freeze is about what goes out while the band is playing.
+#
+# Changing one of these is a decision with an ADR behind it. If you have taken that decision,
+# re-record the digest in the same commit and say which ADR allowed it.
+FROZEN_LIVE_BLOCKS: Final[dict[str, str]] = {
+    "SYSTEM": "93d39f3b787a2fa1",
+    "SYSTEM_ARRANGED": "fcb7b0d632c7acba",
+    "SYSTEM_DENSE": "5f85d1da28ef3b40",
+    "SYSTEM_POSITIONS": "b427e5fb3a394658",
+}
+
+
+@pytest.mark.parametrize("name", sorted(FROZEN_LIVE_BLOCKS))
+def test_the_live_prompt_has_not_moved_since_adr_025_froze_it(name: str) -> None:
+    block = getattr(schema, name)
+    digest = hashlib.sha256(block.encode("utf-8")).hexdigest()[:16]
+    assert digest == FROZEN_LIVE_BLOCKS[name], (
+        f"{name} has changed. ADR-025 froze the live prompt on 2026-09-01; the cassettes, the "
+        "musical regression suite and its goldens were all recorded against it. If this change "
+        "is deliberate, re-record the digest here and name the ADR that allows it."
+    )
+
+
+def test_the_freeze_covers_every_block_the_performance_sends() -> None:
+    """A block added to `system_for` and not to the table above would be unfrozen in silence."""
+    sent = {
+        schema.system_for(),
+        schema.system_for(dense=True),
+        schema.system_for(arranged=True),
+        schema.system_for(positions=True),
+    }
+    frozen = {getattr(schema, name) for name in FROZEN_LIVE_BLOCKS}
+    assert sent == frozen

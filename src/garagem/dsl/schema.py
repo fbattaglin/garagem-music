@@ -386,6 +386,14 @@ band gets out of its way — thinner guitar, fewer keys, the drums holding the g
 becomes a line that moves rather than a figure that repeats, and it is the only section where
 that is true.
 
+**oct= is the octave of that bar's chord root, so it has to move when the root does.** Degree 1
+of a chart's `Em` and degree 1 of its `C` are different notes, and at the same oct= one may sit
+a seventh below the other — which turns a line that reads smoothly into one that leaps at every
+bar. Keep the solo in one register and change oct= per bar to do it: over `| Em | D | C | Bm |`
+the same figure wants oct=4, oct=4, oct=5, oct=4, because C's root is the lowest of the four.
+The lead sounds between G3 and C6, so a degree that would land above C6 comes back an octave
+lower than you wrote it — leave yourself room at the top.
+
 GTR and KEY write voi= and rhy:, as before. voi= is one of exactly these six, and nothing
 else:
     pow     root and fifth, no third
