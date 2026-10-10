@@ -539,5 +539,40 @@ the notation stopped needing rel=key"*, and it did. **No golden file moved, no c
 and the four live blocks are byte-identical** — checked against `HEAD` and now pinned by digest.
 Suite at **2521 passed, 27 skipped**.
 
-**Unrun:** the third probe, the first with `rel=key` to write in. About 2 cents, and it is the
-last thing before a bake that costs thirty.
+### The third call, $0.0227: the model used it, and the number I had been quoting went the wrong way
+
+**`rel=key` on all eight bars, `oct=4` on all eight, nothing clipped by the ceiling.** And the
+line it wrote:
+
+    the degree each bar starts on   1, 2, 3, 5, 1, 2, 3, 5
+    steps across the bar lines      0, 0, 0, -8, -13, -9, 0
+
+| | worst step | mean | bar lines where the phrase hands over on the same note |
+| --- | --- | --- | --- |
+| probe 1, `rel=chord`, no paragraph | 14 | 6.43 | **0 of 7** |
+| probe 2, `rel=chord`, paragraph | **10** | 5.00 | **0 of 7** |
+| probe 3, `rel=key` | 13 | 4.29 | **4 of 7** |
+| the floor | 7 | 4.57 | 0 of 7 |
+
+**The worst step got worse — 10 to 13 — and this is the most useful thing the stage produced.**
+Had "worst step across a bar line" been a target, `rel=key` would now read as a regression and
+would be reverted. Look at what the steps *are* instead: four of the seven are **zero**, where a
+bar begins on the note the one before it ended on, and all three non-zero steps are downward.
+That is a rising sequence — the same figure four times up the scale, each phrase handed to the
+next — restated from the top, and then dropped back to start again. Probes 1 and 2 had **no**
+bar line where a phrase connected; every step was the chord re-rooting under a figure. Probe 3's
+large steps are the solo choosing to start a phrase lower.
+
+So the number stopped measuring what it was a proxy for. It was a good diagnostic for *"the
+notation is making the line jump arbitrarily"* and it is a bad one for *"the solo has phrase
+structure"*. **ADR-019 is not a slogan here: a metric that disagrees with the thing it stands in
+for is retired, not optimised.** It is reported as description from here and the ear decides at
+Stage E.
+
+What can still be said in numbers, and is worth saying: the solo spans 64–79, fifteen semitones,
+the same width as the floor's 66–81; one register, as asked; `0` violations before and after
+repair; and nothing was moved by the range fit, so what came back is what was written.
+
+**Stage D is done.** Three calls, **$0.067** all told, and the shape of the spend is the point:
+ADR-027's *ask first, build second* cost seven cents to settle a notation question that Phase 6
+answered twice at $0.57 a time by baking first.

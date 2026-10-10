@@ -140,8 +140,18 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
     so the floor's solo comes out as five chord-relative bars and three key-relative ones — the
     `C` and `Bm` bars, whose implied scale disagrees with E minor. **The loss went from 5 of 43
     notes to 0 of 43.** No golden, no cassette, and the four live blocks byte-identical.
-  - **Unrun:** the third probe, the first with `rel=key` to write in. ~2 cents, and the last
-    thing before a bake that costs thirty. Suite at **2521 passed, 27 skipped**.
+  - **The third call, $0.0227: `rel=key` on all eight bars, `oct=4` on all eight, nothing
+    clipped.** Starting degrees `1, 2, 3, 5, 1, 2, 3, 5` — a rising sequence, restated — and
+    **4 of 7 bar lines where the phrase hands over on the same note**, against 0 of 7 in both
+    earlier probes. **The worst step got worse, 10 to 13, and that is the finding:** had it been
+    a target, `rel=key` would read as a regression. The number was a good diagnostic for "the
+    notation makes the line jump arbitrarily" and a bad one for "the solo has phrase structure",
+    so it is retired as a criterion and reported as description (ADR-019).
+  - **Stage D is done: $0.067 for three calls.** *Ask first, build second* settled a notation
+    question for seven cents that Phase 6 answered twice at $0.57 a time by baking first.
+- **Stage E is next: one session, curated, judged.** `--fake` bakes 22 of 22 and plays offline,
+  with solos in songs 1 and 2 and `rel=key` in the file. The paid bake estimates **$0.33** for
+  25 calls; cap unchanged at $1.00.
 
 ## Phase 6 — closed
 
