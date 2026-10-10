@@ -32,6 +32,7 @@ from typing import Final
 
 from garagem.domain import (
     ATTACK,
+    PITCH_CLASSES,
     REST,
     SIXTEENTHS_PER_BAR,
     Instrument,
@@ -40,11 +41,11 @@ from garagem.domain import (
     Section,
     SectionScore,
 )
-from garagem.dsl.lines import WIRE_INSTRUMENTS
-from garagem.dsl.realise import LEAD_BEATS
+from garagem.dsl.lines import TOP_DEGREE, WIRE_INSTRUMENTS
+from garagem.dsl.realise import LEAD_BEATS, _at_degree
 from garagem.theory.chords import render_chart, render_key
 from garagem.theory.percussion import CRASH, GHOST_VELOCITY, HATS, KICK, SNARE
-from garagem.theory.scales import DEGREES, degree_to_pitch
+from garagem.theory.scales import DEGREES, degree_to_pitch, pitch_of, steps_of
 from garagem.theory.validator import grid_slots
 from garagem.theory.voicings import RANGES, Register
 
@@ -218,21 +219,65 @@ def _degree_map(bar: dict[int, list[Note]], section: Section, index: int) -> str
 def _lead_line(bar: dict[int, list[Note]], section: Section, index: int) -> str:
     """`LED oct=4 deg:9=5,11=3,13=1 hold=13`, or an empty map for a bar it sits out.
 
-    A lead note that is not a degree of its bar's chord takes the **nearest** degree, which
-    the bass's fallback cannot do because the bass has a bar-level form to fall back to and
-    the lead has none. It is at most a semitone, it never refuses, and the floor's lead
-    never needs it: its motifs are chord tones (`engines/lead.py`).
+    **Chord-relative where that is exact, `rel=key` where it is not** (ADR-027). A hook's
+    degrees are chord tones and come back untouched, so it keeps the older spelling and keeps
+    transposing with the harmony. A *solo* moves through the key, and over a chord whose
+    implied scale disagrees with the key there is no degree for the note it wants — over `C`
+    in E minor nothing spells F#, because C's scale has F. That used to cost the floor's own
+    solo five notes of forty-three, four of them out of the key, silently
+    (`phase-7-findings.md` §4). So the bar is written in whichever spelling says what it means,
+    and `rel=key` appears only where it has to.
+
+    A lead note that neither spelling can name takes the **nearest** chord degree, which the
+    bass's fallback cannot do because the bass has a bar-level form to fall back to and the
+    lead has none. It is at most a semitone and it never refuses.
     """
     if not bar:
         return "LED oct=4 deg:"
     first = bar[min(bar)][0]
     octave = first.pitch // 12 - 1
-    pairs = ",".join(
-        f"{slot + 1}={_nearest_degree(bar[slot][0].pitch, section, index)}" for slot in sorted(bar)
-    )
+    chord = section.chart.at(index)
+    pairs = [(slot, _nearest_degree(bar[slot][0].pitch, section, index)) for slot in sorted(bar)]
+    exact = all(_at_degree(chord, degree, octave) == bar[slot][0].pitch for slot, degree in pairs)
+    head = f"LED oct={octave}"
+    if not exact:
+        in_the_key = _key_degrees(bar, section)
+        if in_the_key is not None:
+            octave, pairs = in_the_key
+            head = f"LED oct={octave} rel=key"
+    written = ",".join(f"{slot + 1}={degree}" for slot, degree in pairs)
     holds = _positions(bar, lambda note: note.duration_beats > LEAD_BEATS)
-    line = f"LED oct={octave} deg:{pairs}"
+    line = f"{head} deg:{written}"
     return f"{line} hold={holds}" if holds else line
+
+
+def _key_degrees(
+    bar: dict[int, list[Note]], section: Section
+) -> tuple[int, list[tuple[int, int]]] | None:
+    """`(octave, [(slot, degree), …])` counted from the section's tonic, or `None`.
+
+    `None` when a note is not in the section's scale at all, or when the bar's own line spans
+    more than the notation's fourteen degrees — in either case the chord-relative spelling,
+    lossy as it is, is still the best this notation can do.
+    """
+    pitches = {slot: notes[0].pitch for slot, notes in bar.items()}
+    octave = (min(pitches.values()) - section.key) // PITCH_CLASSES - 1
+    found: list[tuple[int, int]] = []
+    for slot in sorted(pitches):
+        step = _step_of(pitches[slot], section, octave)
+        if step is None or not 0 <= step < TOP_DEGREE:
+            return None
+        found.append((slot, step + 1))
+    return octave, found
+
+
+def _step_of(pitch: int, section: Section, octave: int) -> int | None:
+    """How many scale steps above `octave`'s tonic `pitch` is, or `None` if it is off the scale."""
+    steps = steps_of(section.scale)
+    octaves, semitones = divmod(pitch - pitch_of(section.key, octave), PITCH_CLASSES)
+    if semitones not in steps:
+        return None
+    return steps.index(semitones) + len(steps) * octaves
 
 
 def _nearest_degree(pitch: int, section: Section, bar: int) -> int:

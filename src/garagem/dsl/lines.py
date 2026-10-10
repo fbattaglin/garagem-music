@@ -24,7 +24,7 @@ to read. They are 0-indexed here. The conversion happens in this module and nowh
 from __future__ import annotations
 
 import re
-from typing import Final
+from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -174,11 +174,27 @@ class LeadLine(BaseModel):
     `LED oct=4 deg:9=5,11=3,13=1 hold=13`. An empty map is a bar the lead sits out, which
     is most of them — `LED oct=4 deg:` — and it has to be spellable, because lines are
     positional and a bar left out would shift every bar after it.
+
+    **`rel=` says what a degree is counted from, and it exists because a solo needs it**
+    (ADR-027). `rel=chord` is the default and the only thing GARAGEM/0.1 ever meant: degree 1
+    is this bar's chord root, which is right for a figure that lives inside a bar and
+    transposes with the harmony. `rel=key` counts degrees of the *section's* scale from its
+    tonic, so `oct=` is one register for the whole section and a line that crosses bar lines
+    stays where it was put.
+
+    Two paid probes bought that distinction for 4.4 cents (`phase-7-findings.md` §4): under
+    `rel=chord` the model's solo landed in four registers, because degree 1 of `Em` and degree
+    1 of `C` are a seventh apart at the same `oct=`, and no sentence in the prompt could make
+    it do the arithmetic reliably. **The default does not move**, so every take on disk and
+    every hook keeps its meaning.
     """
 
     model_config = FROZEN
 
     octave: int = Field(ge=0, le=8)
+    # What `degrees` are counted from. Not an enum because the wire spelling *is* the value,
+    # and one of each would be two things to keep in step.
+    relative: Literal["chord", "key"] = "chord"
     degrees: tuple[tuple[int, int], ...] = ()
     rhythm: Grid
     # 0-indexed here; the wire says 1. A held note rings to the next attack.
@@ -190,6 +206,9 @@ class LeadLine(BaseModel):
             raise ValueError("a lead line's degree map and its rhythm disagree")
         return self
 
+
+# What `LED rel=` may say. `chord` first because it is the default and the older meaning.
+RELATIVE_TO: Final[tuple[str, ...]] = ("chord", "key")
 
 BarLine = DrumLine | BassLine | ChordLine | LeadLine
 
@@ -397,8 +416,13 @@ def _lead(parts: list[str], line: str) -> LeadLine:
     if fields.spellings.get("deg") == "=":
         raise LineError(f"LED: a lead names a degree per slot, deg:1=5 not deg=5, in {line!r}")
     degrees = _degrees(_required(fields, "deg", line), line, tag="LED")
+    relative = fields.get("rel", "chord")
+    if relative not in RELATIVE_TO:
+        known = ", ".join(sorted(RELATIVE_TO))
+        raise LineError(f"LED: rel is {known}, got {relative!r}, in {line!r}")
     return LeadLine(
         octave=_integer(fields, "oct", line),
+        relative=relative,
         degrees=degrees,
         rhythm=rhythm_of(degrees),
         holds=_positions(fields.get("hold", ""), line),

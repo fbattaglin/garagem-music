@@ -75,7 +75,12 @@ from garagem.dsl.stream import ORDER, ParsedSection
 from garagem.engines.groove import fill_for, groove_for
 from garagem.engines.humanise import humanise, separate
 from garagem.theory.percussion import CLOSED_HAT, CRASH, GHOST_VELOCITY, KICK, SNARE
-from garagem.theory.scales import DEGREES, SEMITONES_PER_OCTAVE, degree_to_pitch
+from garagem.theory.scales import (
+    DEGREES,
+    SEMITONES_PER_OCTAVE,
+    degree_to_pitch,
+    scale_pitch,
+)
 from garagem.theory.voicings import RANGES, Register, fit_to_range, voice, voice_lead
 
 # Deliberately a second copy of the engines' levels rather than a shared import. See the
@@ -460,7 +465,7 @@ def _lead(lines: tuple[BarLine, ...], section: Section) -> list[Note]:
         offset = bar * SIXTEENTHS_PER_BAR
         struck = [slot for slot, _ in line.degrees]
         placed = _placed_bar(
-            tuple(_at_degree(chord, degree, line.octave) for _, degree in line.degrees), low, high
+            tuple(_sounds(line, chord, section, degree) for _, degree in line.degrees), low, high
         )
         for index, (slot, _) in enumerate(line.degrees):
             at = beats_of(offset + slot, section.feel)
@@ -545,6 +550,19 @@ def _at_degree(chord: Chord, degree: int, octave: int) -> int:
     """
     step, octaves = (degree - 1) % DEGREES, (degree - 1) // DEGREES
     return degree_to_pitch(chord, step + 1, octave + octaves)
+
+
+def _sounds(line: LeadLine, chord: Chord, section: Section, degree: int) -> int:
+    """What one written degree of a lead line actually is (ADR-027).
+
+    `rel=chord` asks the bar's chord, which is the only thing GARAGEM/0.1 ever meant and still
+    the default. `rel=key` asks the section's scale, so `oct=` is one register for the whole
+    section and nothing re-roots at a bar line — which is what a solo needs and what two paid
+    probes showed no prompt could substitute for (`phase-7-findings.md` §4).
+    """
+    if line.relative == "key":
+        return scale_pitch(section.key, section.scale, degree - 1, line.octave)
+    return _at_degree(chord, degree, line.octave)
 
 
 def _placed_bar(pitches: tuple[int, ...], low: int, high: int) -> tuple[int, ...]:

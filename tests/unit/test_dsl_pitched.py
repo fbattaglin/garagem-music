@@ -33,6 +33,7 @@ from garagem.llm import StreamDone, StreamEvent, ToolInputDelta, ToolUseStart
 from garagem.theory import RANGES, parse_chart, validate
 
 CHART = "| Em | C | G | D |"
+SOLO_CHART = "| Em | D | C | Bm |"
 
 
 def a_section(**extra: object) -> Section:
@@ -338,3 +339,72 @@ def test_a_bar_already_inside_the_range_is_left_exactly_where_it_was() -> None:
     )
     notes = realise(parsed_from(dsl, section), 7, straighten=False).part(Instrument.LEAD).notes
     assert [note.pitch for note in notes] == [64, 67, 71]
+
+
+# ----------------------------------------------------------------- rel=key, the solo's spelling
+
+
+def test_rel_defaults_to_the_chord_and_every_take_on_disk_keeps_its_meaning() -> None:
+    """The one property that matters most about an additive spelling."""
+    assert lead("LED oct=4 deg:1=1,5=3").relative == "chord"
+    assert lead("LED oct=4 rel=chord deg:1=1,5=3").relative == "chord"
+    assert lead("LED oct=4 rel=key deg:1=1,5=3").relative == "key"
+
+
+@pytest.mark.parametrize("spelling", ["scale", "Key", "", "bar"])
+def test_what_rel_will_not_read(spelling: str) -> None:
+    with pytest.raises(LineError, match="rel is chord, key"):
+        parse_bar_line(f"LED oct=4 rel={spelling} deg:1=1")
+
+
+def test_a_degree_of_the_key_does_not_move_when_the_chord_does() -> None:
+    """**Why `rel=key` exists** (ADR-027, `phase-7-findings.md` §4). Under `rel=chord` degree 1
+    of `Em` and degree 1 of `C` are a seventh apart at the same `oct=`, which is right for a
+    figure inside a bar and wrong for a line crossing one. Under `rel=key` the same degree is
+    the same note in every bar, whatever is underneath it."""
+    section = a_section(bars=2, chart=parse_chart("| Em | C |"))
+    head = "SEC chorus bars=2 key=Em feel=straight8 bpm=132 dyn=4 tension=0.5\nCHD | Em | C |\n"
+
+    chordal = realise(
+        parsed_from(head + "LED oct=4 deg:1=1\nLED oct=4 deg:1=1\n", section), 7, straighten=False
+    )
+    keyed = realise(
+        parsed_from(head + "LED oct=4 rel=key deg:1=1\nLED oct=4 rel=key deg:1=1\n", section),
+        7,
+        straighten=False,
+    )
+    first, second = (note.pitch for note in chordal.part(Instrument.LEAD).notes)
+    assert second - first == -4, "degree 1 of C sits a third below degree 1 of Em"
+    same = [note.pitch for note in keyed.part(Instrument.LEAD).notes]
+    assert same[0] == same[1], "a degree of the key is one note"
+
+
+def test_a_degree_of_the_key_climbs_the_scale_and_not_the_chord() -> None:
+    """E minor from E: E F# G A B C D. Degree 3 is G whatever chord is sounding, where degree 3
+    of a `C` chord is E — the chord's third, from the chord's own scale."""
+    section = a_section(bars=1, chart=parse_chart("| C |"))
+    dsl = (
+        "SEC chorus bars=1 key=Em feel=straight8 bpm=132 dyn=4 tension=0.5\n"
+        "CHD | C |\n"
+        "LED oct=4 rel=key deg:1=1,5=3,9=8\n"
+    )
+    notes = realise(parsed_from(dsl, section), 7, straighten=False).part(Instrument.LEAD).notes
+    tonic, third, octave = (note.pitch for note in notes)
+    assert tonic % 12 == 4, "E"
+    assert third % 12 == 7, "G, the key's third — not the chord's"
+    assert octave == tonic + 12
+
+
+def test_the_pitched_round_trip_keeps_every_lead_pitch_of_a_solo() -> None:
+    """The measurement `scripts/probe_solo.py` reports, as a test: **0 of 43 notes move.**
+
+    Before `rel=key` this was 5 of 43, four of them out of the key, and the validator let it
+    through because a solo's dissonance budget is far wider than that.
+    """
+    section = a_section(name="solo", bars=8, dyn=3, tension=0.65, chart=parse_chart(SOLO_CHART))
+    floor = play_section(section, 7)
+    again = realise(parsed_from(serialize_section(floor, pitched=True), section), 7)
+    before = [note.pitch for note in floor.part(Instrument.LEAD).notes]
+    after = [note.pitch for note in again.part(Instrument.LEAD).notes]
+    assert after == before
+    assert validate(again) == ()

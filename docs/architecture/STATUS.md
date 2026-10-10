@@ -129,7 +129,19 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
     four phases on care alone. Checked non-vacuous.
   - **Cost:** 57% over the estimate, because the estimate is a median section and a solo writes
     a degree per sixteenth. ~$0.10 a song with one solo — inside what ADR-027 declared.
-  - **Unrun:** the second probe, ~2 cents.
+  - **The second call, $0.0220: the paragraph worked, which is how we know it is not enough.**
+    It moved `oct=` on exactly the bars the paragraph named, and the worst bar-line step fell
+    from 14 to 10 semitones against the floor's 7. Then it reached degree 11 of `Bm` at `oct=4`
+    — MIDI 88 against a ceiling of 84 — and two bars were moved bodily by the range fit. Staying
+    under the ceiling means combining chord root, octave and degree, which is the arithmetic a
+    sentence cannot make reliable.
+  - **So `rel=key` is built**, which ADR-027 authorised *"only if the probe says so"*. Additive,
+    bake-only, `rel=chord` still the default. The serializer writes whichever spelling is exact,
+    so the floor's solo comes out as five chord-relative bars and three key-relative ones — the
+    `C` and `Bm` bars, whose implied scale disagrees with E minor. **The loss went from 5 of 43
+    notes to 0 of 43.** No golden, no cassette, and the four live blocks byte-identical.
+  - **Unrun:** the third probe, the first with `rel=key` to write in. ~2 cents, and the last
+    thing before a bake that costs thirty. Suite at **2521 passed, 27 skipped**.
 
 ## Phase 6 — closed
 

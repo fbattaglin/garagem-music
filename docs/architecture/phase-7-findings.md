@@ -483,5 +483,61 @@ purpose, because it is the bake's own figure and the two should not drift apart;
 carried into Stage E's estimate instead. At this rate a song with one solo section costs about
 **$0.10**, which is inside the $0.10–0.12 ADR-027 declared, and the $1.00 cap is untouched.
 
-**Unrun:** the second probe, after the paragraph. `uv run python scripts/probe_solo.py --yes`,
-about 2 cents.
+### The second call, $0.0220: the paragraph worked, and that is how we know it is not enough
+
+| | worst step across a bar line | mean |
+| --- | --- | --- |
+| probe 1, no paragraph | **14** | 6.43 |
+| probe 2, with it | **10** | 5.00 |
+| the floor, same briefing | 7 | 4.57 |
+
+**It moved `oct=`, and on exactly the bars the paragraph named.** `4 4 5 4 4 4 5 4` — the two
+`oct=5` bars are the two `C` bars, and the paragraph said *"over `| Em | D | C | Bm |` the same
+figure wants oct=4, oct=4, oct=5, oct=4, because C's root is the lowest of the four."* It did
+what it was told, to the letter.
+
+**And then it reached for the eleventh.** Bars 4 and 8 are `deg:…=11` over a `Bm` at `oct=4`,
+which is MIDI **88** against a ceiling of **84**:
+
+    wanted   81 83 86 88 86 83 81 78 74 71
+    played   69 71 74 76 74 71 69 66 62 59   <- the whole bar, moved by this phase's own fix
+
+So the two remaining ±10 steps are **not** the chord re-rooting any more. They are the range fit
+moving a bar bodily, because three of its notes do not fit — and the paragraph did tell it to
+leave room at the top. Staying under the ceiling means knowing that degree 11 of `Bm` at `oct=4`
+is 88, which is the chord root plus the octave plus the degree: **three variables combined, which
+is exactly the arithmetic a sentence cannot make reliable.**
+
+Two probes, 4.4 cents, and a clean verdict: the model follows the instruction it can follow and
+fails the one that needs arithmetic. ADR-027 authorised `rel=key` *"only if the probe says so."*
+It says so.
+
+### `rel=key`, built
+
+Additive, bake-only, and **`rel=chord` remains the default**, so every take on disk and every
+hook keeps its meaning.
+
+- `dsl/lines.py` — `LeadLine.relative`, parsed from `rel=`, `chord` or `key`, refused by name
+  otherwise. `RELATIVE_TO` names both.
+- `dsl/realise.py` — `_sounds` asks the section's scale instead of the bar's chord when
+  `rel=key`, through the `scale_pitch` primitive Stage B already added for the floor.
+- `dsl/serialize.py` — **whichever spelling says what it means.** A bar is written `rel=chord`
+  while that is exact, and `rel=key` only when it is not. The floor's own solo now comes out as
+  five chord-relative bars and three key-relative ones — and the three are precisely the `C` and
+  `Bm` bars, the ones whose implied scale disagrees with E minor.
+- `dsl/schema.py` — `SYSTEM_SONGWRITER` learns it, with the register paragraph rewritten around
+  it: *"In a solo, write the LED line as `rel=key`… then oct= is one register for the whole solo
+  and you do not have to change it."* The arithmetic is gone rather than explained.
+
+**The measurement that opened this section closes it:**
+
+    5 of 43 notes move      ->      0 of 43 notes move
+    4 of them out of the key        0 out of the key
+
+Two tests that asserted the loss now assert its absence; one of them said *"if this is ever empty
+the notation stopped needing rel=key"*, and it did. **No golden file moved, no cassette moved,
+and the four live blocks are byte-identical** — checked against `HEAD` and now pinned by digest.
+Suite at **2521 passed, 27 skipped**.
+
+**Unrun:** the third probe, the first with `rel=key` to write in. About 2 cents, and it is the
+last thing before a bake that costs thirty.

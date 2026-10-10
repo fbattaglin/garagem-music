@@ -19,7 +19,7 @@ from garagem.domain import PITCH_CLASSES, SIXTEENTHS_PER_BAR, Instrument
 from garagem.dsl import parse_text, realise, serialize_section
 from garagem.engines import SHAPES, play_section
 from garagem.engines.arranger import SOLO
-from garagem.theory import chart_pitch_classes, pitch_classes, validate
+from garagem.theory import chart_pitch_classes, pitch_classes, render_chord, validate
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -76,33 +76,43 @@ def test_every_reported_slot_is_inside_its_bar() -> None:
         assert all(0 <= slot < SIXTEENTHS_PER_BAR for slot, _ in bar)
 
 
-def test_the_notation_cannot_write_the_floor_s_own_solo_faithfully() -> None:
-    """**Stage D's question, answered for nothing** (ADR-027, `phase-7-findings.md` §4).
+def test_the_notation_can_now_write_the_floor_s_own_solo_exactly() -> None:
+    """**What `rel=key` bought, and what it replaced** (`phase-7-findings.md` §4).
 
-    `LED … deg:` counts degrees of each bar's chord's implied scale. A hook lives inside a bar
-    and never notices. A solo moves through the *key*, and over a chord whose scale disagrees
-    with the key there is simply no degree for the note it wants — over `C` in E minor, no
-    degree spells F#, because C's scale has F. The serializer writes the nearest degree it can
-    and the note changes.
+    Before it, writing the floor's solo as `deg:` and reading it back moved **5 of 43 notes**,
+    four of them out of the key, in silence: a degree is of the bar chord's implied scale, and
+    over `C` in E minor nothing spells F# because C's scale has F. Now nothing moves.
 
-    Pinned as a measurement rather than as a threshold: the number is what it is, and it moving
-    would mean either the notation or the floor's solo changed.
+    This test used to assert the loss and said so: *"if this is ever empty the notation stopped
+    needing rel=key."* It did, so it does.
     """
     section = probe.the_briefing(SONG, BPM)
     floor = play_section(section, SONG["seed"])
-    moved = probe.notation_loss(floor, SONG["seed"])
-    total = sum(len(bar) for bar in probe.realised_bars(floor))
-
-    assert moved, "if this is ever empty the notation stopped needing rel=key"
-    assert len(moved) == 5 and total == 43
-    assert all(abs(was - became) == 1 for _, _, was, became in moved)
+    assert probe.notation_loss(floor, SONG["seed"]) == []
+    assert sum(len(bar) for bar in probe.realised_bars(floor)) == 43
 
 
-def test_the_loss_is_silent_because_tension_pays_for_it() -> None:
-    """The dangerous half. Four of the five notes land **outside the key**, and the section
-    still validates: the dissonance budget at a solo's tension buys far more than 4 of 43, so
-    nothing refuses it and nothing repairs it. A notation that loses notes loudly would be a
-    smaller problem than one that loses them quietly."""
+def test_only_the_bars_that_need_the_key_are_written_against_it() -> None:
+    """`rel=chord` stays the default and keeps its meaning, which is the point of a spelling
+    that appears only where it has to: a hook's degrees are chord tones and transpose with the
+    harmony, and writing every bar against the key would throw that away to fix three bars."""
+    section = probe.the_briefing(SONG, BPM)
+    floor = play_section(section, SONG["seed"])
+    lines = probe.lead_bars(serialize_section(floor, pitched=True))
+
+    against_the_key = [line for line in lines if "rel=key" in line]
+    assert against_the_key, "the solo needs it somewhere"
+    assert len(against_the_key) < len(lines), "and not everywhere"
+    chords = section.chart
+    for bar, line in enumerate(lines):
+        if "rel=key" in line:
+            assert render_chord(chords.at(bar)) in {"C", "Bm"}, (
+                "the bars that need it are the ones whose chord scale disagrees with the key"
+            )
+
+
+def test_a_lead_written_against_the_key_still_validates() -> None:
+    """The spelling exists to keep notes in the key, so it had better not take them out."""
     section = probe.the_briefing(SONG, BPM)
     floor = play_section(section, SONG["seed"])
     again = realise(parse_text(serialize_section(floor, pitched=True), section), SONG["seed"])
@@ -113,9 +123,8 @@ def test_the_loss_is_silent_because_tension_pays_for_it() -> None:
         for note in again.part(Instrument.LEAD).notes
         if note.pitch % PITCH_CLASSES not in allowed
     ]
-    assert len(outside) == 4
-    assert validate(again) == (), "and the validator lets it through"
-    assert validate(floor) == (), "while the floor it came from was in the key throughout"
+    assert outside == []
+    assert validate(again) == ()
 
 
 def test_the_cap_covers_what_the_governor_reserves() -> None:
