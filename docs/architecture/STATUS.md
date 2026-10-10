@@ -23,11 +23,12 @@ measured or baked**. Each rate states its `n`.
       written down before the audition ran). Verdict from one conducted jam, 8 announced fills
       and 3 pad strikes: *"A virada ficou mais integrada, achei bem melhor que a versão
       anterior"* (2026-09-29).
-- [ ] **The bake writes solos** — ≥90% of baked sections conformant on the first pass and
-      ≥80% approved without repair, `n` stated. The same bar as ADR-026, because it was met at
-      100% and lowering it would be a metric moved. Beside them, as description and never as a
-      target (ADR-019): the share of solo sections whose lead plays in every bar.
-- [ ] **Cost per song inside a declared budget**, estimated before the bake, cap unchanged.
+- [x] **The bake writes solos** — `n = 22` sections, 3 songs: **22 of 22 conformant** on the
+      first pass and **22 of 22 approved without repair** (`phase-7-findings.md` §5). Beside
+      them, as description: both solo sections carry the lead in **8 of 8 bars**, and all 16
+      `rel=key` lines are in the two solos and nowhere else.
+- [x] **Cost per song inside a declared budget** — **$0.3384 against $0.33 estimated**, 2.5%
+      over, **$0.113 a song** inside the declared $0.10–0.12; $1.00 cap unchanged.
 - [ ] **By ear:** one session from the new bake, played and curated, the verdict verbatim.
 - [ ] **Nothing regresses** — the live prompt and its cassettes untouched, the musical
       regression suite green, and the golden files that move are the arranger's own,
@@ -149,9 +150,13 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
     so it is retired as a criterion and reported as description (ADR-019).
   - **Stage D is done: $0.067 for three calls.** *Ask first, build second* settled a notation
     question for seven cents that Phase 6 answered twice at $0.57 a time by baking first.
-- **Stage E is next: one session, curated, judged.** `--fake` bakes 22 of 22 and plays offline,
-  with solos in songs 1 and 2 and `rel=key` in the file. The paid bake estimates **$0.33** for
-  25 calls; cap unchanged at $1.00.
+- **Stage E is in progress: the bake is done, the session is not.**
+  `setlists/arrangement.json`, baked 2026-10-10: **22 of 22 delivered for $0.3384**, 100%
+  conformant and 100% approved without repair, `n = 22` (`phase-7-findings.md` §5). Criteria 4
+  and 5 met. Phase 7 has spent **$0.405** in total.
+  - Both solos carry the lead in 8 of 8 bars; all 16 `rel=key` lines are in the two solos and
+    nowhere else, which is exactly what the prompt asked for.
+  - **Unheard.** One session from this bake, played with the pads, curated, verdict quoted.
 
 ## Phase 6 — closed
 

@@ -576,3 +576,49 @@ repair; and nothing was moved by the range fit, so what came back is what was wr
 **Stage D is done.** Three calls, **$0.067** all told, and the shape of the spend is the point:
 ADR-027's *ask first, build second* cost seven cents to settle a notation question that Phase 6
 answered twice at $0.57 a time by baking first.
+
+## 5. The bake writes solos, and criteria 4 and 5 are met
+
+Baked on 2026-10-10 by `claude-sonnet-5` into `setlists/arrangement.json`: the same three
+songs, keys, feels and seeds as `songwriter.json`, so what differs is the arrangement and the
+notation. **22 of 22 sections delivered, for $0.3384.**
+
+### Criterion 4, measured. `n = 22` sections across 3 songs
+
+| | | |
+|---|---|---|
+| Conformant on the first pass | **22 of 22 = 100%** | met, against ≥90% |
+| Approved by the validator without repair | **22 of 22 = 100%** | met, against ≥80% |
+
+**The same bar as ADR-026**, which is the point: it was met at 100% there and lowering it to
+accommodate a new section kind would have been a metric moved. The first songwriter bake came
+in at 89% conformant and the parser defect behind it was fixed without crediting the rate
+(`phase-6-findings.md` §5); this is the first bake in the project's history with nothing to
+excuse.
+
+Beside them, as description and never as a target (ADR-019):
+
+- **both solo sections carry the lead in 8 of 8 bars** — the figure ADR-027 named;
+- all **22 of 22** sections carry a lead line, against 9 of 9 choruses in Phase 6;
+- the lead sounds in **98 of 176** bars, so it still rests about half the time;
+- **16 LED lines are written `rel=key`, and all 16 are in the two solos.** The prompt says
+  *"outside a solo, leave rel= out: a hook belongs to its chord"*, and there is not one
+  exception in 22 sections. The spelling went exactly where it was built to go.
+
+### Criterion 5, met: $0.3384 against $0.33 estimated
+
+**2.5% over**, which is the closest an estimate has come in this project — Phase 6's first bake
+was 17% over and the solo probe 57%. The estimate is the same `SONGWRITER_USAGE` median, and it
+holds across a bake because only 2 of 22 sections are solos: the probe's 57% overrun was one
+solo measured alone.
+
+**$0.113 a song**, inside the $0.10–0.12 ADR-027 declared before anything was spent, and the
+$1.00 cap is unchanged and untouched. **Phase 7 has spent $0.405 in total**: $0.067 on three
+probes and $0.338 on the bake.
+
+### Unheard
+
+Criterion 6 is one session from this bake, played with the pads, curated, and the verdict
+quoted. Two of the three songs have a solo — `Seven` at section 15, after the climax chorus,
+and `Swing low` at section 4, early — because the arranger's walk gave `Half light` none, and
+forcing one would be arranging the evidence.
