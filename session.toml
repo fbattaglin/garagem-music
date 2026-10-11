@@ -68,22 +68,40 @@ armed = false
 index = 2
 name = "GTR"
 role = "guitar"
-instrument = "Guitar Electric Muted"
+# Shreddage 3 Stratus FREE inside Kontakt Player (ADR-028): a sampled electric guitar with
+# its own amp, because Lite blocks every amp device. A crunch tone, panned left. Its TACT
+# articulations are set by velocity, Mute 1-71 and Sustain 72-127, which is the split below:
+# the band's palm mutes are kept under it and its ringing chords over it.
+instrument = "Kontakt"
+palm_mute_below = 72
 armed = false
 
 [[track]]
 index = 3
-name = "KEYS"
-role = "keys"
-instrument = "Grand Piano"
+name = "GTR 2"
+role = "guitar_double"
+# The second guitar (ADR-028): GTR duplicated, so it carries the same Stratus and the same
+# articulation split, with a high-gain tone, panned right. Silent below a chorus.
+instrument = "Kontakt"
+palm_mute_below = 72
 armed = false
 
 [[track]]
 index = 4
+name = "KEYS"
+role = "keys"
+# An organ (ADR-028): a B-3 from Arturia's Analog Lab, or Drift's "Organ Analog" if Analog
+# Lab's licence does not open one — then this line says "Organ Analog".
+instrument = "Analog Lab"
+armed = false
+
+[[track]]
+index = 5
 name = "LEAD"
 role = "lead"
 # Core Library, Simpler-based, so every edition of Live can load it. A clean electric
-# against the muted rhythm guitar on track 2: the hook has to come through the band.
+# against the rhythm guitars: the hook has to come through the band. Stage C may give it
+# its own Stratus.
 instrument = "Guitar Electric Clean"
 armed = false
 

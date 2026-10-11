@@ -84,7 +84,8 @@ def test_the_shipped_session_file_loads() -> None:
     """The real file, not a fixture: a spec nobody can load is worse than none."""
     spec = load_session(SHIPPED)
 
-    assert [track.name for track in spec.tracks] == ["DRUMS", "BASS", "GTR", "KEYS", "LEAD"]
+    names = ["DRUMS", "BASS", "GTR", "GTR 2", "KEYS", "LEAD"]
+    assert [track.name for track in spec.tracks] == names
     assert spec.quantization is Quantization.BAR
     assert spec.tempo_bpm == 132.0
     assert len(spec.scenes) >= 2

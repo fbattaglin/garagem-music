@@ -36,7 +36,7 @@ bootstrap = _load_bootstrap()
 
 def matching_daw(**extra: object) -> FakeDawAdapter:
     base: dict[str, object] = {
-        "track_names": ("DRUMS", "BASS", "GTR", "KEYS", "LEAD"),
+        "track_names": [track.name for track in load_session(SESSION).tracks],
         # What `session.toml` names, since the bootstrap checks the instrument by name.
         "device_names": [(track.instrument,) for track in load_session(SESSION).tracks],
         # As many as `session.toml` declares: ADR-022 lays out eight.

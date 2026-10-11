@@ -114,7 +114,7 @@ def test_a_wrong_instrument_is_reported_but_does_not_stop_the_check(
 ) -> None:
     """Choosing instruments is what the sound check is for."""
     devices = [(track.instrument,) for track in SPEC.tracks]
-    devices[2] = ("Kontakt 8",)
+    devices[2] = ("Guitar Electric Muted",)  # the old guitar, before Stratus
     daw = a_set(device_names=devices)
     assert run(daw, monkeypatch) == 0
     assert "wrong_instrument" in capsys.readouterr().err
