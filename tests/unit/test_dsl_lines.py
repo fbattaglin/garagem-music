@@ -26,6 +26,7 @@ from garagem.dsl.lines import (
     BassLine,
     ChordLine,
     DrumLine,
+    LeadLine,
     check_chd,
     check_sec,
     parse_bar_line,
@@ -385,3 +386,18 @@ def test_the_two_forms_cannot_be_confused() -> None:
     """A grid is x and dots; a slot list is digits and commas. Disjoint alphabets."""
     with pytest.raises(LineError, match="not a position"):
         parse_bar_line("DRM K:1,4,seven")
+
+
+# --------------------------------------------------- what a melody probe found (ADR-028)
+
+
+def test_a_field_written_twice_is_refused_rather_than_overwritten() -> None:
+    """`deg:1=5 hold=5,9=8,11=5 hold=13` kept the last hold and lost two notes, silently."""
+    with pytest.raises(LineError, match="hold is written twice"):
+        parse_bar_line("LED oct=4 deg:1=5 hold=5,9=8,11=5 hold=13")
+
+
+def test_a_hold_over_a_rest_is_dropped_because_it_holds_nothing() -> None:
+    line = parse_bar_line("LED oct=4 deg:4=3,6=2,8=1,13=2 hold=13,16")
+    assert isinstance(line, LeadLine)
+    assert line.holds == (12,)

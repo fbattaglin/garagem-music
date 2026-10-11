@@ -15,7 +15,7 @@ import pytest
 
 from garagem.domain import Feel, Section
 from garagem.dsl import SYSTEM, SYSTEM_ARRANGED, TOOL, brief, schema, system_for
-from garagem.dsl.schema import SYSTEM_POSITIONS
+from garagem.dsl.schema import SYSTEM_POSITIONS, songwriter_brief
 from garagem.theory import parse_chart
 
 
@@ -274,3 +274,48 @@ def test_the_freeze_covers_every_block_the_performance_sends() -> None:
     }
     frozen = {getattr(schema, name) for name in FROZEN_LIVE_BLOCKS}
     assert sent == frozen
+
+
+# ------------------------------------------------- which melody a section sings (ADR-028)
+
+SIX_LINES = """BAS oct=1 deg:1=1,9=5
+BAS oct=1 deg:1=1,9=3
+LED oct=4 deg:3=1,5=2,9=3
+LED oct=4 deg:3=3,9=1 hold=9
+LED oct=4 deg:1=8,9=5 hold=9
+LED oct=4 deg:1=10,9=8 hold=9"""
+
+
+def _section(name: str) -> Section:
+    return Section(
+        name=name,
+        bars=8,
+        key=4,
+        scale="minor",
+        feel=Feel.STRAIGHT8,
+        bpm=132.0,
+        dyn=2,
+        tension=0.35,
+        chart=parse_chart("| Em | C | G | D |"),
+    )
+
+
+def test_the_material_is_named_riff_verse_melody_and_chorus_melody() -> None:
+    """Bare, the six lines were sung as one four-bar tune in verse and chorus alike."""
+    brief = songwriter_brief(_section("verse"), SIX_LINES)
+    assert "riff:\nBAS" in brief
+    assert "verse melody:\nLED oct=4 deg:3=1" in brief
+    assert "chorus melody:\nLED oct=4 deg:1=8" in brief
+
+
+def test_a_verse_is_told_to_sing_only_the_verse_melody_and_a_chorus_the_chorus() -> None:
+    assert "sing only the verse melody" in songwriter_brief(_section("verse"), SIX_LINES)
+    assert "sing only the chorus melody" in songwriter_brief(_section("chorus"), SIX_LINES)
+    assert "sing only" not in songwriter_brief(_section("bridge"), SIX_LINES)
+
+
+def test_a_theme_baked_before_the_melody_passes_through_unlabelled() -> None:
+    old = "BAS oct=2 deg:1=1,9=5\nLED oct=4 deg:9=5,13=1 hold=13"
+    brief = songwriter_brief(_section("verse"), old)
+    assert f"The song's material:\n{old}\n" in brief
+    assert "sing only" not in brief

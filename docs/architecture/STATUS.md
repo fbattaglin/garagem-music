@@ -57,6 +57,16 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
 
   Suite at **3088 passed, 27 skipped**. Still to do, by hand in Live: install Kontakt Player
   and Stratus, build the six-track Set, choose the sounds, pin the mix, and give the verdict.
+- **Stage C is built: a melody through the song** (`phase-8-findings.md` §3).
+  - **The floor:** it sings a verse tune and a chorus tune per song (`Section.tune`). The
+    chorus is higher; the last bar lands on the root. Swept over 70 944 sections: 0 violations.
+  - **The bake:** it asks for a riff, a verse melody and a chorus melody. Probes found a
+    parser that lost notes in silence (fixed) and a model that sang both tunes in every
+    section (fixed by naming them).
+  - **Cost:** about $0.10 spent.
+
+  Suite at **3246 passed, 27 skipped**. Not heard yet.
+- **Next: Stage D, the stage** — one command, a ready check, the show screen and typed commands.
 
 Phase 7 was the arrangement: the band had its material, and the phase decided where things
 go in time — a solo section, relief in the form, and a fill that is announced

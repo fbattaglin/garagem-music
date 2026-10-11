@@ -23,7 +23,7 @@ from garagem.domain import (
     Section,
 )
 from garagem.engines import SHAPES, diatonic, play_section
-from garagem.engines.arranger import SOLO
+from garagem.engines.arranger import SOLO, SongBrief, arrange
 from garagem.engines.lead import (
     BUSY,
     CHORD_STEPS,
@@ -53,8 +53,9 @@ PROGRESSION = parse_chart("| Em | C | G | D |")
 
 
 def a_section(**extra: object) -> Section:
+    """A bridge: the hook's section since ADR-028 gave verses and choruses a melody."""
     base: dict[str, object] = {
-        "name": "chorus",
+        "name": "bridge",
         "bars": 8,
         "key": 4,
         "scale": "minor",
@@ -76,12 +77,12 @@ def bars_played(section: Section, seed: int = 7) -> set[int]:
 
 
 @pytest.mark.parametrize("dyn", [1, 2, 3])
-def test_it_says_nothing_under_a_verse(dyn: int) -> None:
+def test_it_says_nothing_under_a_quiet_bridge(dyn: int) -> None:
     assert play_lead(a_section(dyn=dyn), Random(7)).notes == ()
 
 
 @pytest.mark.parametrize("dyn", [4, 5])
-def test_it_speaks_in_a_chorus(dyn: int) -> None:
+def test_the_hook_speaks_once_a_bridge_is_pushed_to_a_chorus_s_dynamic(dyn: int) -> None:
     assert play_lead(a_section(dyn=dyn), Random(7)).notes
 
 
@@ -98,9 +99,9 @@ def test_being_silent_costs_no_randomness() -> None:
     assert rng.getstate() == before
 
 
-def test_the_knob_can_bring_it_into_a_verse() -> None:
+def test_the_knob_can_bring_the_hook_into_a_bridge() -> None:
     """The density knob moves `dyn` by up to two (ADR-021). That is the knob working."""
-    quiet = a_section(name="verse", dyn=2, tension=0.35)
+    quiet = a_section(dyn=2, tension=0.35)
     assert play_lead(quiet, Random(7)).notes == ()
     assert play_lead(quiet.model_copy(update={"dyn": 4}), Random(7)).notes
 
@@ -435,3 +436,101 @@ def test_two_seeds_pick_different_pairs_of_runs() -> None:
         tuple(tuple(slots) for slots in bar_slots(a_solo(), seed).values()) for seed in range(12)
     }
     assert len(rhythms) > 1
+
+
+# ----------------------------------------------------------------------- the melody (ADR-028)
+
+# Charts in their own key, as the arranger writes them: a chart that argues with its key gets
+# the key's nearest note on a strong beat instead, as the solo does (`lead._anchor`).
+SUNG_SECTIONS = [
+    a_section(
+        name=name,
+        dyn=dyn,
+        feel=feel,
+        key=key,
+        scale=scale,
+        tune=tune,
+        chart=Chart(chords=tuple(diatonic(key, scale, degree) for degree in (0, 5, 3, 4))),
+    )
+    for name, dyn in (("verse", 2), ("chorus", 4))
+    for feel in Feel
+    for key, scale in ((4, "minor"), (0, "major"), (9, "dorian"))
+    for tune in (7, 23)
+]
+
+
+def strong_notes(section: Section, part_notes: tuple[object, ...]) -> list[tuple[int, int]]:
+    """(bar, pitch) of every note on beat 1 or 3, read back through the grid."""
+    slots = grid_slots(section)
+    found: list[tuple[int, int]] = []
+    for note in part_notes:
+        slot = slots.index(nearest_slot(slots, note.start_beats))  # type: ignore[attr-defined]
+        if slot % 8 == 0:
+            found.append((slot // SIXTEENTHS_PER_BAR, note.pitch))  # type: ignore[attr-defined]
+    return found
+
+
+@pytest.mark.parametrize("dyn", [1, 2, 3, 4])
+def test_a_verse_sings_whatever_its_dynamic(dyn: int) -> None:
+    """The density knob can thin the band; it cannot take the tune out of the verse."""
+    assert play_lead(a_section(name="verse", dyn=dyn, tune=7), Random(7)).notes
+
+
+@pytest.mark.parametrize("section", SUNG_SECTIONS, ids=lambda s: f"{s.name}-{s.feel}-{s.scale}")
+def test_a_sung_section_is_legal_by_construction(section: Section) -> None:
+    score = play_section(section, 7)
+    assert validate(score) == ()
+
+
+@pytest.mark.parametrize("section", SUNG_SECTIONS, ids=lambda s: f"{s.name}-{s.feel}-{s.scale}")
+def test_every_note_on_beat_one_or_three_is_a_tone_of_its_chord(section: Section) -> None:
+    for bar, pitch in strong_notes(section, play_lead(section, Random(7)).notes):
+        assert pitch % PITCH_CLASSES in section.chart.at(bar).pitch_classes()
+
+
+@pytest.mark.parametrize("section", SUNG_SECTIONS, ids=lambda s: f"{s.name}-{s.feel}-{s.scale}")
+def test_the_melody_lands_on_the_root_and_leaves_the_last_bar_to_the_fill(
+    section: Section,
+) -> None:
+    notes = play_lead(section, Random(7)).notes
+    last = section.bars - 1
+    in_last = [note for note in notes if note.start_beats >= last * 4 - 0.05]
+    assert len(in_last) == 1
+    assert in_last[0].duration_beats == LAND_BEATS
+    assert in_last[0].pitch % PITCH_CLASSES == section.chart.at(last).root
+
+
+def test_every_verse_of_a_song_sings_the_same_rhythm_on_its_own_chords() -> None:
+    first = a_section(name="verse", dyn=2, tune=7, chart=parse_chart("| Em | C | G | D |"))
+    second = first.model_copy(update={"chart": parse_chart("| Am | F | C | G |")})
+    one = play_lead(first, Random(1)).notes
+    two = play_lead(second, Random(1)).notes
+    assert [round(n.start_beats * 4) for n in one] == [round(n.start_beats * 4) for n in two]
+    assert [n.pitch for n in one] != [n.pitch for n in two]
+
+
+def test_two_songs_sing_two_tunes() -> None:
+    one = play_lead(a_section(name="verse", dyn=2, tune=7), Random(1)).notes
+    other = play_lead(a_section(name="verse", dyn=2, tune=8), Random(1)).notes
+    assert [n.pitch for n in one] != [n.pitch for n in other]
+
+
+def test_a_section_from_no_arranged_song_still_has_a_tune_of_its_own() -> None:
+    """A briefing written by hand, or baked before ADR-028, carries no tune."""
+    untuned = a_section(name="verse", dyn=2)
+    assert play_lead(untuned, Random(1)) == play_lead(untuned, Random(1))
+    assert play_lead(untuned, Random(1)).notes
+
+
+def test_a_verse_is_sung_softer_than_a_chorus() -> None:
+    verse = play_lead(a_section(name="verse", dyn=2, tune=7), Random(1)).notes
+    chorus = play_lead(a_section(name="chorus", dyn=4, tune=7), Random(1)).notes
+    assert max(n.velocity for n in verse) < min(n.velocity for n in chorus)
+
+
+def test_the_arranger_gives_every_section_of_a_song_its_seed_as_the_tune() -> None:
+    form = arrange(
+        SongBrief(key=4, scale="minor", bpm=132.0, feel=Feel.STRAIGHT8, minimum_seconds=120),
+        11,
+    )
+    assert {section.tune for section in form} == {11}

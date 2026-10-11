@@ -424,12 +424,18 @@ def _lead(parts: list[str], line: str) -> LeadLine:
     if relative not in RELATIVE_TO:
         known = ", ".join(sorted(RELATIVE_TO))
         raise LineError(f"LED: rel is {known}, got {relative!r}, in {line!r}")
+    # A hold rings a note on, so one on a slot that strikes nothing has nothing to ring and is
+    # dropped. That is what realising it always did, so no take already baked changes: one
+    # kept take in `arrangement.json` holds slot 13 over a rest, and refusing it would have
+    # silenced a solo Fabiano kept (ADR-028).
+    struck = {slot for slot, _ in degrees}
+    holds = tuple(slot for slot in _positions(fields.get("hold", ""), line) if slot in struck)
     return LeadLine(
         octave=_integer(fields, "oct", line),
         relative=relative,
         degrees=degrees,
         rhythm=rhythm_of(degrees),
-        holds=_positions(fields.get("hold", ""), line),
+        holds=holds,
     )
 
 
@@ -489,7 +495,14 @@ class Fields(dict[str, str]):
         super().__init__()
         self.spellings: dict[str, str] = {}
 
-    def put(self, key: str, separator: str, value: str) -> None:
+    def put(self, key: str, separator: str, value: str, line: str = "") -> None:
+        """Refuses a key written twice: the second would silently replace the first.
+
+        Found by ADR-028's first melody probe: `deg:1=5 hold=5,9=8,11=5 hold=13` kept the last
+        `hold=` and dropped the first, and with it two notes the model wrote, with no error.
+        """
+        if key in self:
+            raise LineError(f"{key} is written twice, in {line!r}")
         self[key] = value
         self.spellings[key] = separator
 
@@ -507,7 +520,7 @@ def _fields(parts: list[str], line: str, *, tag: str) -> Fields:
         at = min((found for found in (part.find(":"), part.find("=")) if found >= 0), default=-1)
         if at < 0:
             raise LineError(f"{tag}: {part!r} is not a field, in {line!r}")
-        fields.put(part[:at], part[at], part[at + 1 :])
+        fields.put(part[:at], part[at], part[at + 1 :], line)
     return fields
 
 

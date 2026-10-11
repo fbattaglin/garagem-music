@@ -1,0 +1,48 @@
+# The show (ADR-028): the setlist Phase 8 closes on, played end to end by `garagem show`.
+#
+#     uv run python scripts/bake_setlist.py setlists/show.toml               # the estimate
+#     uv run python scripts/bake_setlist.py setlists/show.toml --themes-only --yes
+#     uv run python scripts/bake_setlist.py setlists/show.toml --yes         # bakes it
+#
+# Four songs between the two references Fabiano gave: arena rock (Foo Fighters, QOTSA) and
+# indie rock (Arctic Monkeys, The Strokes, Kings of Leon). Keys a guitar likes — E, A, D, G —
+# so the power chords sit on the open low strings. A separate name, so no earlier setlist's
+# curation is ever at risk (`phase-7-findings.md` §6).
+
+name = "show"
+
+# Arena: straight eighths, minor, the doubled guitars' song.
+[[song]]
+title = "Low Ceiling"
+key = 4
+scale = "minor"
+feel = "straight8"
+seconds = 210
+seed = 31
+
+# Indie: sixteenths on the hat, the closed-hat groove that stays tight.
+[[song]]
+title = "Night Bus"
+key = 2
+scale = "major"
+feel = "straight16"
+seconds = 190
+seed = 37
+
+# Indie with a swing to it.
+[[song]]
+title = "Paper Crowns"
+key = 9
+scale = "minor"
+feel = "shuffle"
+seconds = 190
+seed = 41
+
+# Arena, heavy and slow: half time, the closer.
+[[song]]
+title = "Last Light"
+key = 7
+scale = "major"
+feel = "halftime"
+seconds = 220
+seed = 43

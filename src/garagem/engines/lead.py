@@ -19,6 +19,13 @@ so there it plays in every bar, over the whole chart, through the section's own 
 the dynamic gate does not apply, because a solo section with nothing in it is not a quieter
 section, it is an empty one. Everything else in this module is the hook.
 
+**In a verse and a chorus it sings** (ADR-028). Fabiano asked for the lead to be "more than
+colour", and in a rock song the voice that is more than colour carries the tune. So a verse
+gets the song's verse melody, softly and low, and a chorus gets its chorus melody, higher and
+at full strength. Every section of one song carries the same `tune`, so every verse sings the
+same melody, fitted to its own chords. The hook is still what a bridge or an intro gets when
+the knobs push it into a chorus's dynamic.
+
 **It is last in `ENGINES`, and that is load-bearing.** The band shares one `Random`
 (`engines/band.py`), so an engine that returns early without drawing from it would move
 every engine after it. There is none after this one, which is what lets the silent case
@@ -29,6 +36,7 @@ from __future__ import annotations
 
 from random import Random
 from typing import Final
+from zlib import crc32
 
 from garagem.domain import (
     PITCH_CLASSES,
@@ -40,7 +48,7 @@ from garagem.domain import (
     Section,
     beats_of,
 )
-from garagem.engines.arranger import SOLO
+from garagem.engines.arranger import CHORUS, SOLO, VERSE
 from garagem.engines.humanise import humanise, separate
 from garagem.theory.scales import (
     SEMITONES_PER_OCTAVE,
@@ -94,6 +102,9 @@ NOTE_BEATS: Final = 0.5
 # The figure's last note holds, so the phrase lands instead of stopping.
 LAST_NOTE_BEATS: Final = 1.0
 
+# How long a sixteenth is, in beats.
+BEATS_PER_SIXTEENTH: Final = 0.25
+
 # ------------------------------------------------------------------------------------ solo
 
 # A bar of the solo: which eighth sounds, and how far up the section's scale it is from the
@@ -141,10 +152,62 @@ LAND_BEATS: Final = 2.0
 CHORD_STEPS: Final[frozenset[int]] = frozenset({0, 2, 4})
 
 
+# ---------------------------------------------------------------------------------- melody
+
+# A two-bar phrase of a melody: which sixteenth of the 32 it starts on, and how many it lasts.
+# Every slot is even, for the motifs' reason. Each phrase leaves a breath, because a melody a
+# singer could not sing is a synth line.
+Phrase = tuple[tuple[int, int], ...]
+
+# A verse comes in after the downbeat, the way a singer does once the band has stated the bar.
+VERSE_PHRASES: Final[tuple[Phrase, ...]] = (
+    ((4, 2), (6, 2), (8, 4), (12, 4), (20, 2), (22, 2), (24, 6)),
+    ((2, 2), (4, 2), (6, 6), (16, 2), (18, 2), (20, 4), (24, 6)),
+    ((4, 4), (8, 2), (10, 2), (12, 8), (24, 6)),
+)
+
+# A chorus says its line on the downbeat and holds it.
+CHORUS_PHRASES: Final[tuple[Phrase, ...]] = (
+    ((0, 6), (6, 2), (8, 8), (16, 6), (22, 2), (24, 6)),
+    ((0, 4), (4, 4), (8, 4), (12, 4), (16, 12)),
+    ((0, 8), (8, 4), (12, 4), (16, 6), (22, 2), (24, 6)),
+)
+
+PHRASE_SLOTS: Final = 2 * SIXTEENTHS_PER_BAR
+
+# Beats 1 and 3: where a sung note is a tone of the bar's chord, by construction. Between
+# them a note moves through the key by a step or two, which is all the dissonance budget
+# counts (`theory/validator._dissonance_budget`) — the solo's legality argument, again.
+STRONG_EVERY: Final = 8
+CHORD_CHOICES: Final[tuple[int, ...]] = (0, 2, 4)
+WALK: Final[tuple[int, ...]] = (-2, -1, -1, 1, 1, 2)
+
+# How wide the tune may move, in steps of the key above its own lowest note: six steps is a
+# seventh at most, what a voice sings comfortably, and narrow enough to leave the placement
+# below a choice of octaves.
+SPAN_STEPS: Final = 6
+
+# Where each tune sits, as the MIDI note its middle is placed nearest. A verse sits as low as
+# the lead goes and a chorus near D5: the lift a singer makes into the chorus. Measured over
+# 720 arranged songs (60 seeds in 12 keys), the chorus sings above the verse in 678; in the
+# rest the range leaves no higher octave for it. A description, not a target (ADR-019).
+VERSE_CENTRE: Final = RANGES[Instrument.LEAD][0]
+CHORUS_CENTRE: Final = 74
+
+# A verse is sung softly whatever the band's dynamic; a chorus at the band's own.
+VERSE_VELOCITY: Final = 66
+
+# What tells the verse's tune from the chorus's, inside one song's `tune`.
+SALTS: Final[dict[str, int]] = {VERSE: 1, CHORUS: 2}
+SUNG: Final[frozenset[str]] = frozenset(SALTS)
+
+
 def play(section: Section, rng: Random) -> Part:
-    """One lead part for the whole section — most often no notes at all."""
+    """One lead part for the whole section: the solo, a melody, the hook, or nothing."""
     if section.name == SOLO:
         return _solo(section, rng)
+    if section.name in SUNG:
+        return _sung(section, rng)
     if section.dyn < LEAD_DYN:
         return Part(instrument=Instrument.LEAD)
 
@@ -221,6 +284,98 @@ def _solo(section: Section, rng: Random) -> Part:
         for (slot, _, held), pitch in zip(figures, pitches, strict=True)
     ]
     return Part(instrument=Instrument.LEAD, notes=separate(humanise(notes, rng, feel=section.feel)))
+
+
+def _sung(section: Section, rng: Random) -> Part:
+    """The song's melody for this kind of section, fitted to this section's chords.
+
+    The phrase and its shape come from the song's tune, not from `rng`, so every verse of a
+    song sings the same melody: what changes from one verse to the next is only the chord each
+    note is fitted to. `rng` humanises the result, like every other part.
+
+    The last bar is the fill's, as for the solo: the melody lands on its downbeat, on the root,
+    and holds.
+    """
+    tune = Random(_tune_of(section) * 1_000_003 + SALTS[section.name])
+    phrases = VERSE_PHRASES if section.name == VERSE else CHORUS_PHRASES
+    phrase = phrases[tune.randrange(len(phrases))]
+    shape = tuple(
+        CHORD_CHOICES[tune.randrange(len(CHORD_CHOICES))]
+        if slot % STRONG_EVERY == 0
+        else WALK[tune.randrange(len(WALK))]
+        for slot, _ in phrase
+    )
+
+    # slot in the section, step of the key's scale, how long it sounds.
+    figures: list[tuple[int, int, float]] = []
+    last_bar = section.bars - 1
+    for start in range(0, last_bar * SIXTEENTHS_PER_BAR, PHRASE_SLOTS):
+        step = _anchor(section, start // SIXTEENTHS_PER_BAR)
+        for (slot, length), move in zip(phrase, shape, strict=True):
+            at = start + slot
+            if at >= last_bar * SIXTEENTHS_PER_BAR:
+                break
+            bar = at // SIXTEENTHS_PER_BAR
+            step = _anchor(section, bar) + move if slot % STRONG_EVERY == 0 else step + move
+            figures.append((at, step, length * BEATS_PER_SIXTEENTH))
+    figures.append((last_bar * SIXTEENTHS_PER_BAR, _anchor(section, last_bar), LAND_BEATS))
+
+    centre = VERSE_CENTRE if section.name == VERSE else CHORUS_CENTRE
+    pitches = _sung_placed(tuple(step for _, step, _ in figures), section, centre)
+    velocity = (
+        VERSE_VELOCITY
+        if section.name == VERSE
+        else min(127, max(1, BASE_VELOCITY + DYN_VELOCITY * section.dyn))
+    )
+    notes = [
+        Note(
+            pitch=pitch,
+            start_beats=beats_of(slot, section.feel),
+            duration_beats=held,
+            velocity=velocity,
+        )
+        for (slot, _, held), pitch in zip(figures, pitches, strict=True)
+    ]
+    return Part(instrument=Instrument.LEAD, notes=separate(humanise(notes, rng, feel=section.feel)))
+
+
+def _tune_of(section: Section) -> int:
+    """The song's tune, or one read off what the section says about its song.
+
+    A section the arranger wrote carries its song's seed. One that did not (a hand-written
+    briefing, a setlist baked before ADR-028) still belongs to a song with one key, scale,
+    feel and tempo, so those make a tune that every section of that song shares. `crc32`,
+    not `hash`: Python salts `hash` of a string per process, and a tune must be the same tune
+    tomorrow.
+    """
+    if section.tune is not None:
+        return section.tune
+    return crc32(f"{section.key}:{section.scale}:{section.feel}:{section.bpm:g}".encode())
+
+
+def _sung_placed(steps: tuple[int, ...], section: Section, centre: int) -> tuple[int, ...]:
+    """The melody as pitches: kept within an octave, then moved bodily nearest `centre`.
+
+    The walk between chord tones can drift, so the line is first folded into `SPAN_STEPS`
+    above its lowest note — a step that leaves the window comes back an octave nearer, which
+    is the same note of the key. Then the whole line moves by octaves to sit around `centre`
+    without leaving the lead's range, which an octave-wide line inside a 29-semitone range
+    always can.
+    """
+    scale_size = len(steps_of(section.scale))
+    floor = min(steps)
+    folded = tuple(
+        floor + (step - floor) % scale_size if step - floor > SPAN_STEPS else step for step in steps
+    )
+    pitches = [scale_pitch(section.key, section.scale, step, LEAD_OCTAVE) for step in folded]
+    low, high = RANGES[Instrument.LEAD]
+    middle = (min(pitches) + max(pitches)) / 2
+    shift = round((centre - middle) / SEMITONES_PER_OCTAVE) * SEMITONES_PER_OCTAVE
+    while min(pitches) + shift < low:
+        shift += SEMITONES_PER_OCTAVE
+    while max(pitches) + shift > high:
+        shift -= SEMITONES_PER_OCTAVE
+    return tuple(_folded(pitch + shift, low, high) for pitch in pitches)
 
 
 def _two_runs(rng: Random) -> tuple[Run, Run]:

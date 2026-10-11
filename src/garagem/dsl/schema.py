@@ -305,35 +305,50 @@ transposes through the whole song: 1 is the root, 3 the third, 5 the fifth. Degr
 to 14, counted the way a musician counts them — 8 is the root an octave up, 9 the ninth,
 13 the thirteenth — so a line can climb past the octave without changing oct=.
 
-BAS is the bass, one note at a time, oct=2. LED is the lead voice, oct=4, and hold= names
-the slots whose note rings on until the next one. A LED line with an empty deg: is a bar
-the lead sits out — write those, because a hook that never stops is not a hook.
+BAS is the bass, one note at a time, oct=1: a rock bass lives on its two low strings. LED
+is the lead voice, oct=4, and it is the song's singer: hold= names the slots whose note
+rings on until the next one. Only a slot that deg: strikes can be held, and every field is
+written once.
+
+Write exactly six lines, in this order:
+    two BAS lines   the riff
+    two LED lines   the verse melody, two bars of it
+    two LED lines   the chorus melody, two bars of it
+
+A verse melody is low and conversational. It comes in after the downbeat, moves mostly by
+step, and leaves a breath at the end of its two bars. A chorus melody is higher and says its
+line on the downbeat, with longer notes: it is the part of the song people sing back. Put a
+chord tone (1, 3 or 5) on slots 1 and 9, and let the notes between them move through.
 
 Here is the material of two **other** songs, so you can see the shape of an answer.
 
 A straight-eight rock song in E minor:
 
-    BAS oct=2 deg:1=1,4=1,7=5,11=1,14=5
-    BAS oct=2 deg:1=1,4=1,7=5,11=3,14=1
-    LED oct=4 deg:9=5,11=3,13=1 hold=13
-    LED oct=4 deg:
+    BAS oct=1 deg:1=1,4=1,7=5,11=1,14=5
+    BAS oct=1 deg:1=1,4=1,7=5,11=3,14=1
+    LED oct=4 deg:5=1,7=2,9=3,13=5
+    LED oct=4 deg:3=3,5=2,9=1 hold=9
+    LED oct=4 deg:1=5,7=6,9=8 hold=9
+    LED oct=4 deg:1=10,5=8,9=5 hold=9
 
-A halftime song in G major, where the bar is emptier and the hook is longer:
+A halftime song in G major, where the bar is emptier and the notes are longer:
 
-    BAS oct=2 deg:1=1,9=5
-    BAS oct=2 deg:1=1,9=3,15=5
-    LED oct=4 deg:3=1 hold=3
-    LED oct=4 deg:1=3,7=5,13=1 hold=13
+    BAS oct=1 deg:1=1,9=5
+    BAS oct=1 deg:1=1,9=3,15=5
+    LED oct=4 deg:5=3,9=5 hold=9
+    LED oct=4 deg:3=4,5=3,9=1 hold=9
+    LED oct=4 deg:1=8 hold=1
+    LED oct=4 deg:1=10,9=8,13=5 hold=13
 
 **Neither of those is your song, and your material must not be either of them.** Write
 what this song's feel and key would produce and the other two would not. The feel decides
 where the notes fall: a shuffle leans on the swung offbeats, halftime leaves the middle of
 the bar open, straight eighths can push against the beat.
 
-Write two to four bars. Give the song one bass riff and one lead hook, and make them fit
-together: where the bass is busy the hook should be sparse, and the other way round. This
-material comes back in every section of the song, so it has to be worth hearing again —
-and it has to be recognisable as this song and not another one."""
+Make the riff and the melodies fit together: where the bass is busy the melody should be
+sparse, and the other way round. This material comes back in every section of the song, so it
+has to be worth hearing again — and it has to be recognisable as this song and not another
+one."""
 
 
 SYSTEM_SONGWRITER: Final = """You are the band in GARAGEM, playing a song somebody has
@@ -354,14 +369,14 @@ and they are not the same: bar 1 opens with a crash and bar 2 ends with a fill.
     CHD | Em | C |
     DRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1
     DRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,3,5,7
-    BAS oct=2 deg:1=1,4=1,7=5,11=1,14=5
-    BAS oct=2 deg:1=1,4=1,7=5,11=3,14=1
-    GTR voi=pow rhy:1,2,4,5,6,8,9,11,12,14,15 palm=on
-    GTR voi=pow rhy:1,2,4,5,6,8,9,11,12,14,15 palm=on acc=1,9
-    KEY voi=sus2 rhy:1,9 reg=mid
+    BAS oct=1 deg:1=1,4=1,7=5,11=1,14=5
+    BAS oct=1 deg:1=1,4=1,7=5,11=3,14=1
+    GTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on
+    GTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9
     KEY voi=sus2 rhy:1 reg=mid
-    LED oct=4 deg:9=5,11=3,13=1 hold=13
-    LED oct=4 deg:
+    KEY voi=sus2 rhy:1 reg=mid
+    LED oct=4 deg:5=1,7=2,9=3,13=5
+    LED oct=4 deg:3=3,5=2,9=1 hold=9
 
 For an 8-bar section write 8 lines of each. Open bar 1 with a crash. Put a fill in the
 last bar — busier snare, hats dropping out. Let the hats open up as the section builds.
@@ -377,9 +392,20 @@ for that bar.
 BAS and LED write deg:, a degree per struck slot — the slots you name are the slots that
 sound, and there is no rhy: beside them. A degree is of that bar's chord, so the material
 transposes with the harmony, and degrees run 1 to 14: 8 is the root an octave up, 9 the
-ninth, 13 the thirteenth. LED hold= names the slots that ring on. A LED line
-with an empty deg: is a bar the lead sits out, and most bars should be: the hook is worth
-more when it is not always there.
+ninth, 13 the thirteenth. LED hold= names the slots that ring on; only a slot that deg:
+strikes can be held, and every field is written once. BAS is oct=1.
+
+**LED is the song's singer.** In a verse and a chorus it sings the song's melody in most
+bars: in a verse softly and low, with a breath at the end of each two-bar phrase; in a
+chorus higher and on the downbeat. Put a chord tone (1, 3 or 5) on slots 1 and 9. In the last
+bar of a section, land on slot 1 and hold, and leave the rest of the bar to the drums' fill.
+In an intro, a bridge or an outro the lead may sit out: a LED line with an empty deg: is a
+bar it sits out.
+
+**The band is a rock band.** GTR plays power chords, voi=pow: palm-muted eighths in a verse,
+ringing and accented in a chorus. KEY is an organ under the guitars: one long chord a bar,
+voi=sus2 or triad, and in a quiet verse it rests, which is a KEY line whose rhy: is all
+dots.
 
 **A solo section is the lead's.** In one, the LED line plays in every bar and the rest of the
 band gets out of its way — thinner guitar, fewer keys, the drums holding the groove. The hook
@@ -400,7 +426,7 @@ Then oct= is one register for the whole solo and you do not have to change it. D
 most keys — so stay inside that and the line comes back exactly as you wrote it. A degree that
 would land above C6 comes back an octave lower.
 
-Outside a solo, leave rel= out: a hook belongs to its chord.
+Outside a solo, leave rel= out: a melody belongs to its chords.
 
 GTR and KEY write voi= and rhy:, as before. voi= is one of exactly these six, and nothing
 else:
@@ -417,9 +443,11 @@ reg= is low, mid or high. palm= is on or off. ghost= and acc= use the same slot 
 
 Emit in this order and no other: SEC, CHD, DRM, BAS, GTR, KEY, LED.
 
-**Use the song's material.** It is given to you with the briefing. Play the riff and the
-hook where they belong, move them to fit this section's chords and dynamic, and leave
-them out where the section needs room. A chorus should be where the hook is most itself."""
+**Use the song's material.** It is given to you with the briefing: the riff, then the verse
+melody, then the chorus melody. Sing the verse melody in a verse and the chorus melody in a
+chorus, fitted to this section's chords, and repeat them across the section the way a song
+repeats its lines. Play the riff where it belongs. A chorus should be where the melody is most
+itself."""
 
 
 def theme_brief(title: str, key: str, feel: str, bpm: float, form: str) -> str:
@@ -439,9 +467,10 @@ def songwriter_brief(section: Section, theme: str) -> str:
     detail: the block is the cache prefix (`Request.cache_system`), and a theme moved into
     it would change per song and zero the hit rate for every section of every song.
     """
-    material = theme.strip()
+    material = _labelled(theme.strip())
     return (
         (f"The song's material:\n{material}\n\n" if material else "")
+        + _which_melody(section.name, material)
         + f"SEC {section.name} bars={section.bars} "
         f"key={render_key(section.key, section.scale)} "
         f"feel={section.feel} bpm={section.bpm:g} dyn={section.dyn} "
@@ -449,6 +478,44 @@ def songwriter_brief(section: Section, theme: str) -> str:
         f"CHD {render_chart(_per_bar(section))}\n"
         f"Echo those two lines back unchanged, then write {section.bars} bars each of "
         "DRM, BAS, GTR, KEY and LED, arranged, using the material above where it fits."
+    )
+
+
+# The six lines `SYSTEM_THEME` asks for since ADR-028, in its order: what each pair is.
+MATERIAL_PARTS: Final[tuple[tuple[str, str], ...]] = (
+    ("riff", "BAS"),
+    ("verse melody", "LED"),
+    ("chorus melody", "LED"),
+)
+
+
+def _labelled(material: str) -> str:
+    """The material with each pair of lines named, when it has the six-line shape.
+
+    The first melody probe (ADR-028) gave the model the six lines bare, and it sang them as one
+    four-bar tune: the verse melody and the chorus melody in turn, in a verse and in a chorus
+    alike. Named, they are two tunes. A theme baked before ADR-028 — a riff and one hook — is
+    passed through as it was.
+    """
+    lines = [line for line in material.splitlines() if line.strip()]
+    tags = [line.split(maxsplit=1)[0] for line in lines]
+    if tags != [tag for _, tag in MATERIAL_PARTS for _ in range(2)]:
+        return material
+    blocks = (
+        f"{name}:\n{lines[2 * index]}\n{lines[2 * index + 1]}"
+        for index, (name, _) in enumerate(MATERIAL_PARTS)
+    )
+    return "\n".join(blocks)
+
+
+def _which_melody(kind: str, material: str) -> str:
+    """One sentence saying which of the two tunes this section sings, and only that one."""
+    if "verse melody:" not in material or kind not in ("verse", "chorus"):
+        return ""
+    other = "chorus" if kind == "verse" else "verse"
+    return (
+        f"This is a {kind}: sing only the {kind} melody, its two bars again and again, "
+        f"fitted to the chords. The {other} melody belongs to the {other}.\n"
     )
 
 

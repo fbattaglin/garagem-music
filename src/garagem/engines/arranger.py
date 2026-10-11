@@ -51,6 +51,8 @@ class SongBrief(BaseModel):
     bpm: float = Field(gt=20.0, lt=999.0)
     feel: Feel
     minimum_seconds: float = Field(gt=0.0)
+    # The song's tune (`Section.tune`). `arrange` takes the song's seed when none is given.
+    tune: int | None = None
 
 
 class Shape(BaseModel):
@@ -158,6 +160,8 @@ def arrange(brief: SongBrief, seed: int) -> tuple[Section, ...]:
     section changes as well as seconds, and a single very long verse would satisfy the
     clock while proving nothing about the scheduler.
     """
+    if brief.tune is None:
+        brief = brief.model_copy(update={"tune": seed})
     charts = _charts_for(brief.scale)
     rng = Random(seed)
 
@@ -338,6 +342,7 @@ def _brief_like(section: Section) -> SongBrief:
         bpm=section.bpm,
         feel=section.feel,
         minimum_seconds=section.total_seconds(),
+        tune=section.tune,
     )
 
 
@@ -359,6 +364,7 @@ def _section(
         dyn=shape.dyn,
         tension=shape.tension,
         chart=Chart(chords=tuple(diatonic(brief.key, brief.scale, degree) for degree in degrees)),
+        tune=brief.tune,
     )
 
 

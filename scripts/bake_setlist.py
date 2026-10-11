@@ -226,23 +226,32 @@ def theme_fields(song: Planned) -> ThemeFields:
 
 
 def floor_theme(song: Planned) -> str:
-    """The floor's own material: two bars of bass and lead from the song's first chorus.
+    """The floor's own material: the riff, then two bars of verse melody and of chorus melody.
 
     Only `--fake` uses it. It exists so the fake bake's theme is the shape a real one will
-    be — bar lines, no SEC and no CHD — rather than a placeholder that would let the
-    playback path pass on something the model will never send.
+    be — six bar lines in `SYSTEM_THEME`'s order, no SEC and no CHD — rather than a placeholder
+    that would let the playback path pass on something the model will never send. The riff
+    comes from the song's loudest section; each melody from the first section of its kind,
+    or from the loudest when the song has none.
     """
     loudest = max(song.asked, key=lambda index: song.form[index].dyn)
-    section = song.form[loudest]
-    score = play_section(section, song.spec.seed + loudest)
-    lines = serialize_section(score, pitched=True).splitlines()
-    tags = (str(Instrument.BASS), str(Instrument.LEAD))
-    kept: dict[str, list[str]] = {tag: [] for tag in tags}
-    for line in lines:
-        tag = line.split(maxsplit=1)[0] if line.strip() else ""
-        if tag in kept and len(kept[tag]) < 2:
-            kept[tag].append(line)
-    return "\n".join(line for tag in tags for line in kept[tag])
+
+    def first(kind: str) -> int:
+        return next((i for i in song.asked if song.form[i].name == kind), loudest)
+
+    def lines_of(index: int, tag: str) -> list[str]:
+        score = play_section(song.form[index], song.spec.seed + index)
+        lines = serialize_section(score, pitched=True).splitlines()
+        return [line for line in lines if line.split(maxsplit=1)[:1] == [tag]][:2]
+
+    bass, lead = str(Instrument.BASS), str(Instrument.LEAD)
+    return "\n".join(
+        [
+            *lines_of(loudest, bass),
+            *lines_of(first("verse"), lead),
+            *lines_of(first("chorus"), lead),
+        ]
+    )
 
 
 def estimate(

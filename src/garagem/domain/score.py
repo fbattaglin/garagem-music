@@ -119,6 +119,11 @@ class Section(BaseModel):
     dyn: int = Field(ge=MIN_DYN, le=MAX_DYN)
     tension: float = Field(ge=0.0, le=1.0)
     chart: Chart
+    # Which tune the song sings (ADR-028): every section of one song carries the same number,
+    # so its verses sing one melody and its choruses another, each fitted to its own chords.
+    # Not a `SEC` field — nothing asks a model for it. `None` for a section that belongs to no
+    # arranged song, and the lead then takes a tune from what the section says about its song.
+    tune: int | None = None
 
     def total_beats(self) -> float:
         return self.bars * BEATS_PER_BAR

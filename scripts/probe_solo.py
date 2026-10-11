@@ -3,6 +3,7 @@
     uv run python scripts/probe_solo.py               # estimate; spends nothing
     uv run python scripts/probe_solo.py --yes         # one call, about a cent
     uv run python scripts/probe_solo.py --fake        # the floor's own solo, same report, free
+    uv run python scripts/probe_solo.py --kind verse --theme theme.txt --yes   # ADR-028's melody
 
 Stage D of ADR-027, and it is deliberately the cheap half. **Phase 6's most expensive lesson
 was that two paid bakes were spent on defects in our own notation** that a $0.0073 call would
@@ -57,7 +58,7 @@ from garagem.dsl import (
 )
 from garagem.dsl.errors import DslError
 from garagem.engines import SHAPES, diatonic, play_section
-from garagem.engines.arranger import MAJOR_CHARTS, MINOR_CHARTS, SOLO
+from garagem.engines.arranger import CHORUS, MAJOR_CHARTS, MINOR_CHARTS, SOLO, VERSE
 from garagem.llm import (
     AnthropicAdapter,
     BakedProvider,
@@ -105,18 +106,19 @@ CAP_USD: Final = Decimal("0.30")
 ONE_SECTION: Final = Usage(input_tokens=425, output_tokens=1286)
 
 
-def the_briefing(song: dict[str, object], bpm: float) -> Section:
-    """A solo section as the arranger writes one, in the song the theme belongs to.
+def the_briefing(song: dict[str, object], bpm: float, kind: str = SOLO) -> Section:
+    """A section of `kind` as the arranger writes one, in the song the theme belongs to.
 
     Built here rather than taken from the setlist because the setlist was baked before the
-    solo kind existed: its forms have none.
+    solo kind existed: its forms have none. ADR-028 asks the same question of a verse and a
+    chorus — whether the model sings the melody it was given — so the kind is a choice.
     """
     scale = str(song["scale"])
     charts = MINOR_CHARTS if len(steps_of(scale)) == DEGREES and _minor(scale) else MAJOR_CHARTS
-    shape = SHAPES[SOLO]
+    shape = SHAPES[kind]
     key = int(str(song["key"]))
     return Section(
-        name=SOLO,
+        name=kind,
         bars=shape.bars,
         key=key,
         scale=scale,
@@ -124,7 +126,7 @@ def the_briefing(song: dict[str, object], bpm: float) -> Section:
         bpm=bpm,
         dyn=shape.dyn,
         tension=shape.tension,
-        chart=Chart(chords=tuple(diatonic(key, scale, d) for d in charts[SOLO][0])),
+        chart=Chart(chords=tuple(diatonic(key, scale, d) for d in charts[kind][0])),
     )
 
 
@@ -234,6 +236,17 @@ def main() -> int:
     parser.add_argument("--fake", action="store_true", help="the floor's own solo; free")
     parser.add_argument("--song", type=int, default=1, help="whose theme to use, 1-based")
     parser.add_argument("--setlist", type=Path, default=SETLIST)
+    parser.add_argument(
+        "--kind",
+        default=SOLO,
+        choices=(SOLO, VERSE, CHORUS),
+        help="which section to ask for (ADR-028 asks a verse and a chorus for the melody)",
+    )
+    parser.add_argument(
+        "--theme",
+        type=Path,
+        help="a file holding the song's material, in place of the setlist's own theme",
+    )
     args = parser.parse_args()
 
     catalog = load_catalog(CATALOG)
@@ -247,8 +260,12 @@ def main() -> int:
         sys.stderr.write(f"--song must be 1..{len(songs)}\n")
         return 1
     song = songs[args.song - 1]
-    theme = str(song.get("theme") or "")
-    section = the_briefing(song, bpm)
+    theme = (
+        args.theme.read_text(encoding="utf-8").strip()
+        if args.theme
+        else str(song.get("theme") or "")
+    )
+    section = the_briefing(song, bpm, args.kind)
 
     # The CHD line the *brief* sends, not the chart's own four chords: `songwriter_brief`
     # renders one chord per bar, so the raw chart printed here read as though the model had
@@ -257,11 +274,11 @@ def main() -> int:
         line for line in songwriter_brief(section, "").splitlines() if line.startswith("CHD")
     )
     sys.stderr.write(
-        f"one solo section for {song['title']!r}: "
+        f"one {section.name} section for {song['title']!r}: "
         f"{section.bars} bars, key={render_key(section.key, section.scale)}, "
         f"feel={section.feel}, dyn={section.dyn}, tension={section.tension:g}\n"
         f"{asked}\n"
-        f"the theme comes from {args.setlist.name} and is free\n"
+        f"the theme comes from {args.theme or args.setlist.name} and is free\n"
     )
 
     seed = int(str(song["seed"]))

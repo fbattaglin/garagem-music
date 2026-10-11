@@ -95,3 +95,57 @@ Suite at **3088 passed, 27 skipped**.
 
 Installing Kontakt Player and Stratus, building the six-track Set, choosing the sounds with
 the sound check, pinning the mix, and one jam's verdict against the arena/indie reference.
+
+## 3. A melody through the song (Stage C)
+
+### The floor sings
+
+`engines/lead.py` gives a verse and a chorus each a melody. Verses and choruses still have the
+hook and the solo beside them, and the hook keeps the bridge and the intro.
+
+- **A song has one tune.** `Section.tune` carries the song's seed: the arranger sets it on
+  every section, and anything derived from a section inherits it. Every verse of a song sings
+  the same phrase and contour, fitted to its own chords, and the chorus sings its own. A
+  section with no tune (hand-written, or baked before ADR-028) takes one from its song's key,
+  scale, feel and tempo, so its song still has one.
+- **Legal by construction.** On beats 1 and 3 a note is a tone of the bar's chord; between
+  them it moves through the key by a step or two. The solo's argument, made again.
+- **A verse sits as low as the lead goes and a chorus near D5**, so the chorus lifts. Over 720
+  arranged songs (60 seeds in 12 keys) the chorus sings above the verse in 678. In the rest,
+  the range leaves no higher octave. This is a description, not a target.
+- **The last bar is the fill's.** The melody lands on its downbeat, on the root, and holds.
+
+Swept offline over **9 600 arranged songs, 70 944 verse and chorus sections: every one sings,
+0 violations.** A take that writes an empty `LED` line still rests there. That is the
+model's choice, and the floor does not overrule it.
+
+### The bake asks for two melodies
+
+`SYSTEM_THEME` asks for six lines: a riff, two bars of verse melody and two of chorus melody.
+`SYSTEM_SONGWRITER` lost *"most bars should be [empty]"*. It now says the lead is the song's
+singer, the guitar plays power chords, the organ holds and rests in a quiet verse, and the
+bass is at `oct=1`. The live blocks are untouched, and still pinned by digest.
+
+**Measured on the show's four songs, for $0.0188** (`--themes-only`): four themes, each in
+the six-line shape, each chorus starting higher than its verse.
+
+### Two things the probes found, and what was done
+
+- **The parser let a line lose notes in silence.** `deg:1=5 hold=5,9=8,11=5 hold=13` kept the
+  last `hold=` and dropped the first, and two notes with it. A field written twice is now
+  refused. A `hold=` on a slot that strikes nothing is dropped instead of refused, because
+  realising it always did that. One kept take in `arrangement.json` does it, and refusing it
+  would have silenced a solo Fabiano kept. Every baked setlist still parses: 0 lines refused.
+- **Given the six lines bare, the model sang them as one four-bar tune.** It sang verse and
+  chorus melody in turn, in a verse and in a chorus alike (first probe, verse and chorus). The
+  section's message now names the material (`riff:`, `verse melody:`, `chorus melody:`) and
+  says which one this section sings. Re-probed, the verse sang only the verse melody (MIDI
+  62–71), and the chorus only the chorus melody (67–79), landing on the root. Both had 0
+  violations.
+
+**Spent on Stage C: about $0.09–0.11**: themes $0.0188 and four probe calls at about $0.0175.
+A shell mistake of mine may have sent one more probe call. The logs cannot confirm or rule it
+out, and it would add about $0.0175.
+
+**Not heard yet.** The floor's melody plays in the sound check and any jam. The model's
+melodies are heard after the show's bake, which waits on Stage E's tempo per song.
