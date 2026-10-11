@@ -512,6 +512,24 @@ def guarded(inner: LLMProvider, catalog: list[ModelSpec], cap_usd: Decimal) -> G
     )
 
 
+def _named_after(out: Path, spelled: str) -> str:
+    """A setlist is named after the file it lands in, whatever the spec called it.
+
+    **The name is a setlist's identity in the event log, not a label.** `jam.py` writes it with
+    every mark, and `curate_setlist.py` joins marks to takes by it, so two setlists sharing one
+    cannot have their sessions told apart — which `setlists/songwriter.toml` says in its own
+    header is why it has a name of its own.
+
+    `--out` broke that in Phase 7: baking `songwriter.toml` into `arrangement.json` produced a
+    second setlist called `songwriter`, and its curation only escaped the first one's marks
+    because no take body coincided (`phase-7-findings.md` §6). The file is the thing a person
+    passes to `jam.py`, so the file is what the name follows.
+    """
+    if out.name.endswith(".fake.json"):
+        return out.name[: -len(".fake.json")]
+    return out.stem if out.stem != spelled else spelled
+
+
 def paid_provider(
     yes: bool,
     model: ModelSpec,
@@ -625,7 +643,7 @@ def main() -> int:
         return main_themes(provider, model, planned)
     songs = asyncio.run(bake(provider, model, planned, songwriter=songwriter))
     setlist = Setlist(
-        name=spec.name,
+        name=_named_after(out, spec.name),
         provider=provider_name,
         model=model.id,
         baked_on=datetime.now(UTC).date(),

@@ -616,9 +616,60 @@ solo measured alone.
 $1.00 cap is unchanged and untouched. **Phase 7 has spent $0.405 in total**: $0.067 on three
 probes and $0.338 on the bake.
 
-### Unheard
+### Heard and curated, 2026-10-10
 
-Criterion 6 is one session from this bake, played with the pads, curated, and the verdict
-quoted. Two of the three songs have a solo — `Seven` at section 15, after the climax chorus,
-and `Swing low` at section 4, early — because the arranger's walk gave `Half light` none, and
-forcing one would be arranging the evidence.
+Two sessions from this bake, played with the MiniLab. His verdict:
+
+> *"Achei ambos os solos muito bons. A song 1 em especial estava bem agradável e com um ótimo
+> groove"*
+
+**He struck KEEP six times, and two of them are the two solos.** `Swing low`'s solo at section
+3 and `Seven`'s at section 14, beside three choruses. Nothing was vetoed. Written into the
+setlist by `curate_setlist.py`, which also skipped ten older keeps as *"on a take no longer
+here"* — correctly, and that is checked below.
+
+Criterion 6 is met: played, curated, and the verdict quoted.
+
+`Half light` has no solo, because the arranger's walk gave it none. Forcing one would have been
+arranging the evidence.
+
+## 6. `--out` gave two setlists the same name, and the log could not tell them apart
+
+Found while curating, and it is the kind of defect that looks like nothing until it costs a
+curation.
+
+**A setlist's `name` is its identity in the event log, not a label.** `jam.py` writes it with
+every mark and `curate_setlist.py` joins marks to takes by it. `setlists/songwriter.toml` says
+so in its own header, as the reason it has a name of its own:
+
+> *"A separate name, not a second bake of `first`, so the event log can tell a session of one
+> from a session of the other and `first.json`'s curation is never at risk."*
+
+Baking `songwriter.toml` into `arrangement.json` with `--out` produced **a second setlist called
+`songwriter`**, so the log's marks from Phase 6's sessions and from these were indistinguishable
+by name. `curate_setlist.py setlists/arrangement.json` reported ten of them as *"on a take no
+longer here"* — which it got right, and the reason it got it right is the second guard, not the
+first: takes are matched on their **body**, and **0 of 22 take bodies coincide between the two
+bakes**. Checked, because a curation that happened to be correct is not the same as one that had
+to be.
+
+Two guards, one of them broken by a flag. **`_named_after` now names a setlist after the file it
+lands in**, whatever the spec called it — the file is what a person passes to `jam.py`, so the
+file is what the name follows. `--fake` keeps the name it stands in for, since
+`<name>.fake.json` exists to rehearse the real thing's playback and is the same setlist.
+
+`arrangement.json` keeps the name it was baked and played under. Renaming it now would orphan
+its own six marks in the log, which is worse than a collision with a Phase 6 file nobody is
+going to replay.
+
+## 7. Criterion 7: nothing regressed
+
+- **The four live blocks are byte-identical to the Phase 6 close** (`aedc33e`), checked block by
+  block, and now pinned by digest so the next phase does not hold the freeze by care alone.
+- **No cassette changed.** `git diff aedc33e HEAD -- cassettes/` is empty.
+- **The musical regression suite is green**: 35 passed.
+- **No golden file moved.** ADR-027 allowed for the arranger's own goldens to move deliberately,
+  with the diff read before it was kept. In the event **three were added and none changed** —
+  `solo-straight8-7.dsl`, `solo-straight8-1729.dsl` and `verse-straight8-7-fill.dsl`, 586 lines
+  inserted and 0 removed. The engine goldens are per briefing rather than per form, which is why
+  a phase that rewrote every song's form cost them nothing.

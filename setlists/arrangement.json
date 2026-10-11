@@ -589,7 +589,7 @@
           "output_tokens": 1523,
           "cost_usd": "0.017062",
           "digest": "95d102c8e7ad7b95",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 3,
@@ -799,7 +799,7 @@
           "output_tokens": 1458,
           "cost_usd": "0.016412",
           "digest": "6b5a00d454d15c49",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 14,
@@ -841,7 +841,7 @@
           "output_tokens": 1481,
           "cost_usd": "0.016645",
           "digest": "22d38919d55356a1",
-          "status": "unmarked"
+          "status": "kept"
         }
       ],
       "missed": [],
@@ -1430,7 +1430,7 @@
           "output_tokens": 1309,
           "cost_usd": "0.014832",
           "digest": "e437365fc0e54fad",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 3,
@@ -1472,7 +1472,7 @@
           "output_tokens": 1333,
           "cost_usd": "0.015063",
           "digest": "0b9875a08679cc0c",
-          "status": "unmarked"
+          "status": "kept"
         },
         {
           "section": 4,

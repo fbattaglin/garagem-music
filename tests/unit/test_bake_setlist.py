@@ -365,3 +365,25 @@ def test_a_budget_refusal_is_not_retried() -> None:
     assert outcome.reason == "SessionBudgetExceededError"
     assert outcome.reason in bake.NOT_RETRYABLE
     assert not retried
+
+
+# ------------------------------------------------------------------ a setlist's own identity
+
+
+def test_a_setlist_is_named_after_the_file_it_lands_in() -> None:
+    """**The name is identity in the event log, not a label** (`phase-7-findings.md` §6).
+
+    `jam.py` writes it with every mark and `curate_setlist.py` joins marks to takes by it, so
+    two setlists sharing one cannot have their sessions told apart. `setlists/songwriter.toml`
+    says in its own header that having a name of its own is why `first.json`'s curation is never
+    at risk — and `--out` broke exactly that, baking `songwriter.toml` into `arrangement.json`
+    as a second setlist called `songwriter`.
+    """
+    assert bake._named_after(Path("setlists/arrangement.json"), "songwriter") == "arrangement"
+    assert bake._named_after(Path("setlists/songwriter.json"), "songwriter") == "songwriter"
+
+
+def test_a_fake_bake_keeps_the_name_of_the_setlist_it_stands_in_for() -> None:
+    """`--fake` writes `<name>.fake.json` and exists to rehearse the real thing's playback, so
+    it is the same setlist. Taking the stem would have called it `songwriter.fake`."""
+    assert bake._named_after(Path("setlists/songwriter.fake.json"), "songwriter") == "songwriter"

@@ -29,10 +29,12 @@ measured or baked**. Each rate states its `n`.
       `rel=key` lines are in the two solos and nowhere else.
 - [x] **Cost per song inside a declared budget** — **$0.3384 against $0.33 estimated**, 2.5%
       over, **$0.113 a song** inside the declared $0.10–0.12; $1.00 cap unchanged.
-- [ ] **By ear:** one session from the new bake, played and curated, the verdict verbatim.
-- [ ] **Nothing regresses** — the live prompt and its cassettes untouched, the musical
-      regression suite green, and the golden files that move are the arranger's own,
-      deliberately, with the diff read before it is kept.
+- [x] **By ear:** two sessions from `arrangement.json`, played with the pads and curated — six
+      KEEPs, **two of them the two solos**, nothing vetoed. *"Achei ambos os solos muito bons. A
+      song 1 em especial estava bem agradável e com um ótimo groove"* (2026-10-10).
+- [x] **Nothing regresses** — the four live blocks byte-identical to the Phase 6 close and now
+      pinned by digest; no cassette changed; the musical regression suite green at 35 passed;
+      and **no golden file moved** — three were added, 586 lines in and 0 out.
 
 ### What the phase builds
 
@@ -156,7 +158,14 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
   and 5 met. Phase 7 has spent **$0.405** in total.
   - Both solos carry the lead in 8 of 8 bars; all 16 `rel=key` lines are in the two solos and
     nowhere else, which is exactly what the prompt asked for.
-  - **Unheard.** One session from this bake, played with the pads, curated, verdict quoted.
+  - **Heard and curated on 2026-10-10**, two sessions: *"Achei ambos os solos muito bons. A
+    song 1 em especial estava bem agradável e com um ótimo groove"*. Six KEEPs, **two of them
+    the two solos**, nothing vetoed, written into the setlist.
+  - **`--out` had given two setlists the same name** and the log could not tell their sessions
+    apart; the curation was right only because 0 of 22 take bodies coincide between the bakes.
+    `_named_after` now names a setlist after the file it lands in (`phase-7-findings.md` §6).
+  - **Criterion 7 verified:** live blocks byte-identical to `aedc33e`, no cassette changed,
+    regression suite green, **no golden moved** — three added, 586 lines in, 0 out.
 
 ## Phase 6 — closed
 
