@@ -1,8 +1,34 @@
 # Roadmap status
 
-**Current phase: 7 — the arrangement.** The band has its material; this phase decides where
-things go in time — a solo section, relief in the form, and a fill that is announced
-([ADR-027](ADR-027-the-arrangement.md)).
+**Phase 7 is closed. No phase is current: Phase 8 has not been chosen.**
+
+Phase 7 was the arrangement: the band had its material, and the phase decided where things
+go in time — a solo section, relief in the form, and a fill that is announced
+([ADR-027](ADR-027-the-arrangement.md)). **Phase 8 is not planned**, and by this project's own
+method it is chosen with Fabiano from options before anything is built; what is open is listed
+under *Open after Phase 7* below.
+
+## Phase 7 — closed
+
+Closed at the gate on **2026-10-10 with every criterion met and no deviation and no waiver** —
+the first phase in this project's history with neither.
+
+Re-verified at the gate, from primary evidence rather than from the findings:
+- `uv run pytest -q` → **2523 passed, 27 live-marked skipped**.
+- `uv run pytest -m live -q` → **27 passed**, against the five-track `garagem-band.als`.
+- `uv run python scripts/bootstrap_set.py` → `session.toml: the Set matches.`
+- `ruff check .`, `ruff format --check .` and `mypy` clean over 200 source files.
+- Criterion 2's sweep re-run: **3 376 solo sections over 3 200 songs, 0 violations.**
+- Criterion 4 re-measured from `setlists/arrangement.json`: **22 of 22 and 22 of 22.**
+- Criterion 6 re-read from the setlist: **5 takes kept, 2 of them the solos, 0 vetoed.**
+
+**The gate earned its keep again.** It found that `pytest -m live` had last been green on
+2026-09-23 and that four commits since then had changed the code it exercises — `transitions.py`
+alone changed what happens in the last bar of nearly every section, which is written into a real
+clip and which no offline test can judge. Re-run, it passed 27 of 27. In Phase 6 the gate caught
+a date; here it caught a stale integration run.
+
+**Spent: $0.405** — $0.067 on three probes and $0.338 on the bake.
 
 ## Phase 7 exit criteria
 
@@ -14,9 +40,10 @@ measured or baked**. Each rate states its `n`.
       verdict on seed 23, the song heard as repetitive, recorded verbatim: *"Achei que teve um
       bom improvement comparado com a versao anterior"* (2026-09-23, `phase-7-findings.md` §1).
 - [x] **The band has a solo section and plays it without a network** — 3 376 solo sections over
-      3 200 arranged songs, **0 violations**; `pytest -m live` → 27 passed (2026-09-23);
-      verdict: *"Gostei dos solos, acho que temos um bom ponto de partida"*
-      (`phase-7-findings.md` §2).
+      3 200 arranged songs, **0 violations**, the lead in 27 008 of 27 008 bars; `pytest -m live`
+      → **27 passed, re-run at the gate on 2026-10-10** after the stages that moved
+      `transitions.py`, `realise.py`, `lines.py` and `serialize.py`; verdict: *"Gostei dos solos,
+      acho que temos um bom ponto de partida"* (`phase-7-findings.md` §2).
 - [x] **The fill is announced** — the section's own `FILL` ending carries a pickup in the bar
       before it. The pad cue keeps ADR-022 and, put to a blind audition, changes **neither** its
       entry nor its return: he ranked today's fill first (`phase-7-findings.md` §3, deviation
@@ -47,6 +74,35 @@ measured or baked**. Each rate states its `n`.
 
 **Left open, and named so it is not rediscovered:** a pad for "next: solo" (all eight are
 assigned), `--takes N` (still without a consumer), and live generation (frozen, ADR-025).
+
+## Open after Phase 7
+
+Nothing here is scheduled. Named so none of it is rediscovered.
+
+**Asked for and not built**
+- **A pad for "next: solo".** All eight pads are assigned (`controller.toml`); giving the solo
+  one means taking one away, which is a conducting decision rather than an arrangement one.
+- **The solo ducks under a `BUILD`.** Measured and left alone: the band's swell attenuates the
+  solo's own last phrase to 76 from 93, and the lead is out for the 2 beats before the handover.
+  He heard those exact two handovers and said *"Gostei dos solos"*, so nothing moved on a
+  hypothesis against a verdict (`phase-7-findings.md` §3).
+- **`--takes N`** in the bake, still unbuilt and still without a consumer (ADR-026 §D).
+
+**Frozen by decision**
+- **Live generation** (ADR-025). `jam.py --generate` stays working and tested; the four live
+  prompt blocks are byte-identical since 2026-09-01 and now pinned by digest.
+- **The crash on the fill cue's return.** Closed rather than open: two blind auditions ranked the
+  same pair in opposite order (`phase-7-findings.md` §3).
+- **Rising as a fill entry.** Auditioned twice, never won.
+
+**Still on ADR-000 §7's extension list, none of it scheduled**
+- Architecture C — a local symbolic engine plus M4L for sample-accurate scheduling.
+- A multimodal listening loop — captured audio back to a multimodal model.
+- Swing and microtiming via Live's Groove Pool.
+- Jazz.
+
+**Dropped from the roadmap until something asks for them** (ADR-025): the sound design agent,
+the mixing agent, the asset bakery.
 
 ### Where the phase actually is
 
