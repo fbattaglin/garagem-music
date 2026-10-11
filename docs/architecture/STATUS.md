@@ -1,12 +1,46 @@
 # Roadmap status
 
-**Phase 7 is closed. No phase is current: Phase 8 has not been chosen.**
+**Current phase: 8 — the MVP's last phase: a modern rock band, on a stage you can run**
+([ADR-028](ADR-028-the-mvp-stage.md)). Chosen with Fabiano from options on 2026-10-10 and
+2026-10-11, before anything was built.
+
+The band learns to play rock parts and gets a sound chosen by ear, with arena rock and indie
+rock as the references. A melody runs through each song. And running the band becomes one
+command, with a ready check, a screen, typed commands and the whole setlist in one run.
+
+## Phase 8 exit criteria
+
+[ADR-028](ADR-028-the-mvp-stage.md). Each rate states its `n`; each verdict is quoted verbatim.
+
+- [ ] **It sounds like modern rock** — sounds chosen in `soundcheck`, pinned in `session.toml`
+      and checked by the bootstrap; one jam's verdict against the arena/indie reference.
+- [ ] **It plays rock parts** — property sweeps, 0 violations: guitar roots in 40–52 and never a
+      triad, bass roots in 28–40, the double silent below `dyn` 4, the organ outside the
+      guitar's register.
+- [ ] **The melody plays without a network** — a floor melody in every verse of the sweep,
+      0 violations; the bake's lead fill rate set after the probe.
+- [ ] **Ready in one look** — `garagem check` reports every failure at once, each with a fix
+      step, tested against the fake adapter per failure kind.
+- [ ] **The screen keeps him informed** — every cue acknowledged with where it lands, every
+      decline explained, never authorship, a headless mode for tests.
+- [ ] **Typed commands** — every pad cue and `solo` typeable, landing on the bar a pad would;
+      no input becomes a cue it did not name.
+- [ ] **The show** — the whole `show.json` in one `garagem show`, network off, ≥ 2 tempos,
+      every count-in at its song's tempo, conducted from keyboard and MiniLab,
+      `setlist_report.py` passing, keeps saved from the end card. Verdict quoted.
+- [ ] **Cost** inside an estimate declared before the bake.
+- [ ] **Nothing regresses** — suite, `ruff`, `mypy`, bootstrap clean; `pytest -m live` re-run
+      at the gate; golden files move only in the commits that change parts, each saying why.
+
+### Where the phase actually is
+
+- **Stage 0 is done:** ADR-028 written and agreed. Nothing built yet.
+- **Next: Stage A, the band plays rock parts** — engines only, offline, no listening until the
+  sound is chosen in Stage B.
 
 Phase 7 was the arrangement: the band had its material, and the phase decided where things
 go in time — a solo section, relief in the form, and a fill that is announced
-([ADR-027](ADR-027-the-arrangement.md)). **Phase 8 is not planned**, and by this project's own
-method it is chosen with Fabiano from options before anything is built; what is open is listed
-under *Open after Phase 7* below.
+([ADR-027](ADR-027-the-arrangement.md)).
 
 ## Phase 7 — closed
 
@@ -77,7 +111,9 @@ assigned), `--takes N` (still without a consumer), and live generation (frozen, 
 
 ## Open after Phase 7
 
-Nothing here is scheduled. Named so none of it is rediscovered.
+Nothing here was scheduled when Phase 7 closed. Named so none of it is rediscovered. Phase 8
+(ADR-028) takes up two of these items: "next: solo" as the typed `solo` command, and swing as
+a pocket in the note data.
 
 **Asked for and not built**
 - **A pad for "next: solo".** All eight pads are assigned (`controller.toml`); giving the solo
@@ -98,7 +134,8 @@ Nothing here is scheduled. Named so none of it is rediscovered.
 **Still on ADR-000 §7's extension list, none of it scheduled**
 - Architecture C — a local symbolic engine plus M4L for sample-accurate scheduling.
 - A multimodal listening loop — captured audio back to a multimodal model.
-- Swing and microtiming via Live's Groove Pool.
+- Swing and microtiming via Live's Groove Pool — *taken up by Phase 8 as a pocket in the note
+  data; the Groove Pool itself cannot be reached from code (ADR-028).*
 - Jazz.
 
 **Dropped from the roadmap until something asks for them** (ADR-025): the sound design agent,

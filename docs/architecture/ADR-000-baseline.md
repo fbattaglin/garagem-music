@@ -294,6 +294,7 @@ Cache hits cost 10% of base input at Anthropic; the Batch API gives a further 50
 | [ADR-025](ADR-025-the-model-composes-offline.md) | **The model composes offline, and the band gets its sound**: live generation frozen, instruments before more listening, voice out of Phase 5, Phase 6 becomes the songwriter | **New** — amends §7's Phases 5 and 6 and ADR-024 §6 |
 | [ADR-026](ADR-026-the-songwriter.md) | **The songwriter**: a fifth voice, pitched material in a bake-only notation, a theme per song, and Phase 6's exit criteria | **New** — fills in §7's Phase 6 |
 | [ADR-027](ADR-027-the-arrangement.md) | **The arrangement**: a solo section, a relief rule in the form, and a fill that is announced | **New** — amends §7's Phase 7 |
+| [ADR-028](ADR-028-the-mvp-stage.md) | **The MVP's last phase**: rock parts and a chosen sound, a melody through the song, one command with a ready check and a screen, typed commands, the whole setlist in one run | **New** — amends §7's extensions and ADR-025 §3 and §5 |
 
 ADR-001 is written down in [`ADR-001-clip-ahead-and-quantised-launch.md`](ADR-001-clip-ahead-and-quantised-launch.md).
 
@@ -431,6 +432,10 @@ extensions above is it. Phase 6 gave the band its material and its closing verdi
 three things that are all about *where things go in time* — a solo section, relief in a form
 that alternates verse-chorus too long, and a fill that is announced rather than bolted on.
 The extensions stay on the list and none of them is scheduled.
+
+**Amended by [ADR-028](ADR-028-the-mvp-stage.md): Phase 8 is the MVP's last phase.** Swing
+and microtiming leave the list as a *pocket* written into the note data, because the Groove
+Pool cannot be reached from code. Architecture C, the listening loop and jazz stay on it.
 
 ---
 

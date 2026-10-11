@@ -32,6 +32,9 @@
     the bake only, and a theme written per song before its sections.
   - `ADR-027-the-arrangement.md` — Phase 7: a solo section, a relief rule in the form, and a
     fill that is announced. Where things go in time, after Phase 6 decided what they are.
+  - `ADR-028-the-mvp-stage.md` — Phase 8, the MVP's last: rock parts and a sound chosen by ear,
+    a melody through the song, and a stage — one command, a ready check, a screen, typed
+    commands and the whole setlist in one run.
 - `phase-0-findings.md` … `phase-7-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 
