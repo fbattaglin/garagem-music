@@ -1,4 +1,4 @@
-# DRM=93 BAS=40 GTR=112 KEY=32; notes sha256 e66769ab95a72ec9
+# DRM=93 BAS=40 GTR=168 KEY=32; notes sha256 db102a1bad61c2ff
 SEC bridge bars=8 key=Gm feel=shuffle bpm=150 dyn=3 tension=0.55
 CHD | D# | A# | Cm | F |
 DRM K:x.....x.x...x... S:....x.......x... H:x.x...x.x...x.x. C:x...............
@@ -17,14 +17,14 @@ BAS deg=1 oct=2 rhy:x.x...x.x...x...
 BAS deg=1 oct=2 rhy:x.x...x.x...x...
 BAS deg=1 oct=2 rhy:x.x...x.x...x...
 BAS deg=1 oct=2 rhy:x.x...x.x...x...
-GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=3,5,9,13,15
-GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,5,7,9
-GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=3,7,9,13
-GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=5,9,13
-GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=3,5,7,9,13
-GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,5,7,9,13,15
-GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,5,7,9,13
-GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,3,5,7,9
+GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,3,5,7,9,13,15
+GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,7,9,13,15
+GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=3,5,7,13,15
+GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,3,5,9,13,15
+GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,3,5,7,9,13,15
+GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,5,9,13,15
+GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,3,5,9,15
+GTR voi=pow rhy:x.x.x.x.x...x.x. palm=on acc=1,3,5,9,15
 KEY voi=triad rhy:x.......x....... reg=mid
 KEY voi=triad rhy:x.......x....... reg=mid
 KEY voi=triad rhy:x.......x....... reg=mid

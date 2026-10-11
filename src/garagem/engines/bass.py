@@ -28,9 +28,12 @@ from garagem.engines.humanise import humanise, separate
 from garagem.theory.scales import degree_to_pitch
 from garagem.theory.voicings import RANGES
 
-# Octave 2 puts every root between C2 (36) and B2 (47), comfortably inside E1-G3 whatever
-# the key — no chart can push the line off the bottom of the instrument.
-ROOT_OCTAVE = 2
+# Octave 1 and the instrument's floor together put every root on a bass's two low strings,
+# between E1 (28) and D#2 (39): roots from C to D# in octave 1 fall under E1 and `_inside`
+# lifts them an octave. Octave 2 put them all an octave above that, where a bass sounds like a
+# baritone guitar rather than the bottom of a rock band (ADR-028).
+ROOT_OCTAVE = 1
+ROOT_WINDOW = (28, 39)  # E1 - D#2
 
 # Which sixteenths the line plays, per feel. Sparse enough that `tension` has somewhere
 # to add rather than having to take away.
@@ -71,8 +74,8 @@ def play(section: Section, rng: Random) -> Part:
 
     for bar in range(section.bars):
         chord = section.chart.at(bar)
-        root = degree_to_pitch(chord, 1, ROOT_OCTAVE)
-        fifth = degree_to_pitch(chord, 5, ROOT_OCTAVE)
+        root = _inside(degree_to_pitch(chord, 1, ROOT_OCTAVE), low, high)
+        fifth = _inside(degree_to_pitch(chord, 5, ROOT_OCTAVE), low, high)
         offset = bar * SIXTEENTHS_PER_BAR
         attacks = [index for index, slot in enumerate(pulse) if slot == "x"]
         last_slot = attacks[-1]
@@ -85,7 +88,7 @@ def play(section: Section, rng: Random) -> Part:
             if section.tension > MOVING_TENSION and slot % 8 == 4:
                 pitch = fifth
             if walking and slot == last_slot:
-                pitch = _towards(section, bar, root)
+                pitch = _towards(section, bar, root, low, high)
             notes.append(
                 Note(
                     pitch=_inside(pitch, low, high),
@@ -101,16 +104,16 @@ def play(section: Section, rng: Random) -> Part:
     )
 
 
-def _towards(section: Section, bar: int, root: int) -> int:
+def _towards(section: Section, bar: int, root: int, low: int, high: int) -> int:
     """A passing tone aimed at the next bar's root, or the fifth when nothing changes.
 
     Approaching by a semitone is what a walking line does; it is also, by definition, a
     note outside the key, which is why it only appears above `WALKING_TENSION` — the
     dissonance budget at that tension has room for it and at low tension it does not.
     """
-    next_root = degree_to_pitch(section.chart.at(bar + 1), 1, ROOT_OCTAVE)
+    next_root = _inside(degree_to_pitch(section.chart.at(bar + 1), 1, ROOT_OCTAVE), low, high)
     if next_root == root:
-        return degree_to_pitch(section.chart.at(bar), 5, ROOT_OCTAVE)
+        return _inside(degree_to_pitch(section.chart.at(bar), 5, ROOT_OCTAVE), low, high)
     return next_root - 1 if next_root > root else next_root + 1
 
 

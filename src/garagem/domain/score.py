@@ -23,6 +23,7 @@ Phase 3, and compared.
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -47,6 +48,11 @@ class Instrument(StrEnum):
     golden file and parse order is unchanged by its arrival. GARAGEM/0.1 has no `LED`
     line — the notation gains one in the bake only — so the wire format still carries
     four voices while the band plays five.
+
+    **`GUITAR_DOUBLE` is no voice of the notation at all.** It is the rhythm guitar played a
+    second time, derived from the `GUITAR` part rather than written (`engines/double.py`,
+    ADR-028), so that a chorus has two guitars panned apart. It comes after `LEAD` for the same
+    reason `LEAD` came after `KEYS`, and no line carries it: see `DERIVED_INSTRUMENTS`.
     """
 
     DRUMS = "DRM"
@@ -54,6 +60,12 @@ class Instrument(StrEnum):
     GUITAR = "GTR"
     KEYS = "KEY"
     LEAD = "LED"
+    GUITAR_DOUBLE = "GT2"
+
+
+# Voices the band plays that the notation never names. Each is made from another part after
+# that part exists, so the parser does not read them and the serializer does not write them.
+DERIVED_INSTRUMENTS: Final[tuple[Instrument, ...]] = (Instrument.GUITAR_DOUBLE,)
 
 
 class Note(BaseModel):

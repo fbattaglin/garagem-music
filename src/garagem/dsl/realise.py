@@ -72,7 +72,7 @@ from garagem.domain import (
 )
 from garagem.dsl.lines import BarLine, BassLine, ChordLine, DrumLine, LeadLine, rhythm_of
 from garagem.dsl.stream import ORDER, ParsedSection
-from garagem.engines.groove import fill_for, groove_for
+from garagem.engines.groove import crash_on, fill_for, groove_for, hat_for
 from garagem.engines.humanise import humanise, separate
 from garagem.theory.percussion import CLOSED_HAT, CRASH, GHOST_VELOCITY, KICK, SNARE
 from garagem.theory.scales import (
@@ -81,7 +81,14 @@ from garagem.theory.scales import (
     degree_to_pitch,
     scale_pitch,
 )
-from garagem.theory.voicings import RANGES, Register, fit_to_range, voice, voice_lead
+from garagem.theory.voicings import (
+    RANGES,
+    Register,
+    fit_to_range,
+    power_chord,
+    voice,
+    voice_lead,
+)
 
 # Deliberately a second copy of the engines' levels rather than a shared import. See the
 # module docstring: sharing them would let a change made for model output move music a
@@ -199,7 +206,7 @@ def _drums(lines: tuple[BarLine, ...], section: Section, straighten: bool = Fals
                     continue
                 notes.append(
                     Note(
-                        pitch=pitch,
+                        pitch=hat_for(section.feel, section.dyn, slot) if field == "hat" else pitch,
                         start_beats=beats_of(offset + slot, section.feel),
                         duration_beats=HIT_BEATS,
                         velocity=_accented(velocity, slot),
@@ -214,15 +221,16 @@ def _arranged(
     """The model's grid for this bar, with the section's form imposed on it.
 
     `engines/drums.py`'s two decisions and only those. The crash is the arrangement's
-    outright — a section opens with one and a single bar-level line would otherwise
-    repeat it through the section. The fill replaces the last bar's snare and silences
-    its hat, and keeps the kick, which is what the engine does and what a drummer does.
+    outright — a section opens with one, a chorus crashes every phrase (`crash_on`), and a
+    single bar-level line would otherwise repeat it through the section. The fill replaces
+    the last bar's snare and silences its hat, and keeps the kick, which is what the engine
+    does and what a drummer does.
 
     A one-bar section has no last bar to fill: it *is* the section, and a fill would be
     the whole of it. Same guard as the engine's `section.bars > 1`.
     """
     if field == "crash":
-        return CRASH_HEAD if bar == 0 else NO_ATTACKS
+        return CRASH_HEAD if crash_on(section.dyn, bar) else NO_ATTACKS
     if bar == section.bars - 1 and section.bars > 1:
         if field == "snare":
             return fill_for(section.tension)
@@ -519,7 +527,14 @@ def _chordal(instrument: Instrument, lines: tuple[BarLine, ...], section: Sectio
 def _shape(
     chord: Chord, line: ChordLine, instrument: Instrument, previous: tuple[int, ...]
 ) -> tuple[int, ...]:
-    """Voiced, led from the last chord, and fitted to what the instrument can play."""
+    """Voiced, led from the last chord, and fitted to what the instrument can play.
+
+    A guitar's `voi=pow` is the floor guitarist's own hand shape: root, fifth and octave on the
+    low strings, slid rather than voice-led (`theory.power_chord`, ADR-028). It is the same
+    chord the serializer reads back as `pow`, so the round trip still holds.
+    """
+    if instrument is Instrument.GUITAR and line.voicing == "pow":
+        return power_chord(chord)
     shape = fit_to_range(voice(chord, line.voicing, REGISTERS[line.reg]), instrument)
     shape = fit_to_range(voice_lead(previous, shape), instrument)
     if instrument is Instrument.KEYS:

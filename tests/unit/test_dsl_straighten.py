@@ -19,7 +19,7 @@ from garagem.dsl.realise import straightened
 from garagem.engines import play_section
 from garagem.llm import StreamDone, StreamEvent, ToolInputDelta, ToolUseStart
 from garagem.theory import parse_chart, validate
-from garagem.theory.percussion import CLOSED_HAT
+from garagem.theory.percussion import HATS
 from garagem.theory.validator import grid_slots, nearest_slot
 
 # Pair 10 of the closing A/B, as the model wrote it: one of the two shuffle pairs the floor
@@ -213,7 +213,8 @@ def test_lifting_cannot_put_an_attack_back_between_the_eighths() -> None:
     def hats(straighten: bool) -> list[float]:
         score = realise(parsed_from(dsl, section), 7, straighten=straighten)
         drums = score.part(Instrument.DRUMS).notes
-        return [note.start_beats for note in drums if note.pitch == CLOSED_HAT]
+        # Open or closed: in a chorus the hat opens on the eighths (ADR-028).
+        return [note.start_beats for note in drums if note.pitch in HATS]
 
     # Unstraightened, the lift doubles `1,5,7` onto slots between the eighths...
     assert _off_the_eighths(section, hats(False), groove_bars) != []

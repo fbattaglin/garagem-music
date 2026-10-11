@@ -326,7 +326,8 @@ def test_the_kick_keeps_the_groove_through_the_build() -> None:
 
 
 def test_the_band_lets_go_of_the_final_beat_so_the_roll_is_alone() -> None:
-    section = a_section()
+    # dyn 3, so the organ is playing: in a verse it rests (ADR-028).
+    section = a_section(dyn=3)
     _, built = build_of(section)
     last_beat = beats_of(7 * SIXTEENTHS_PER_BAR + LAST_BEAT_SLOT, section.feel)
     for instrument in PITCHED:
@@ -419,7 +420,8 @@ def test_the_last_chord_rings_past_the_end_of_the_song() -> None:
     (`phase-5-findings.md` §10). The clip carries the same bar of silence, so the ring has
     somewhere to go.
     """
-    section = a_section(OUTRO, bars=4, chart=parse_chart("| Em | C | Em | Em |"))
+    # dyn 3, so the organ is playing: in a verse it rests (ADR-028).
+    section = a_section(OUTRO, bars=4, dyn=3, chart=parse_chart("| Em | C | Em | Em |"))
     ended = final_of(section)
     end = section.total_beats() + FINAL_TAIL_BARS * BEATS_PER_BAR
     for instrument in PITCHED:

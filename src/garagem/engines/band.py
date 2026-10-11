@@ -16,6 +16,10 @@ the calls changes the music, and the golden tests would say so.
 **LED goes behind them, and it is the only engine allowed to return early.** It is last,
 so the fact that it draws nothing from the generator when it rests cannot move any other
 part (`engines/lead.py`).
+
+**The second guitar is not an engine.** It is made from the finished guitar part by
+`with_double`, after every engine has run, and it draws nothing from the generator
+(`engines/double.py`, ADR-028).
 """
 
 from __future__ import annotations
@@ -26,6 +30,7 @@ from typing import Final
 
 from garagem.domain import Instrument, Part, Section, SectionScore
 from garagem.engines.bass import play as play_bass
+from garagem.engines.double import double
 from garagem.engines.drums import play as play_drums
 from garagem.engines.guitar import play as play_guitar
 from garagem.engines.keys import play as play_keys
@@ -42,16 +47,16 @@ ENGINES: Final[tuple[tuple[Instrument, Callable[[Section, Random], Part]], ...]]
 
 
 def play_section(section: Section, seed: int) -> SectionScore:
-    """Five parts and the seed that produced them. Pure, total, and offline.
+    """Six parts and the seed that produced them. Pure, total, and offline.
 
-    Five parts, not five voices sounding: the lead is silent below its own dynamic
-    (`engines/lead.py`), and a part with no notes is how this system says "chose not to
-    play" — the same distinction `dsl/serialize.py` keeps between a line of rests and no
-    line at all.
+    Six parts, not six voices sounding: the lead and the second guitar are each silent below
+    their own dynamic (`engines/lead.py`, `engines/double.py`), and a part with no notes is how
+    this system says "chose not to play" — the same distinction `dsl/serialize.py` keeps
+    between a line of rests and no line at all.
     """
     rng = Random(seed)
     parts = tuple(play(section, rng) for _, play in ENGINES)
-    return SectionScore(section=section, parts=parts, seed=seed)
+    return with_double(SectionScore(section=section, parts=parts, seed=seed))
 
 
 def completed(score: SectionScore) -> SectionScore:
@@ -65,11 +70,25 @@ def completed(score: SectionScore) -> SectionScore:
     """
     missing = [instrument for instrument, _ in ENGINES if instrument not in score.instruments()]
     if not missing:
-        return score
+        return with_double(score)
     floor = play_section(score.section, score.seed)
     order = [instrument for instrument, _ in ENGINES]
     parts = sorted(
         (*score.parts, *(floor.part(instrument) for instrument in missing)),
         key=lambda part: order.index(part.instrument),
     )
-    return score.model_copy(update={"parts": tuple(parts)})
+    return with_double(score.model_copy(update={"parts": tuple(parts)}))
+
+
+def with_double(score: SectionScore) -> SectionScore:
+    """`score` with its second guitar, made from whatever guitar part it already has.
+
+    After every other part, from the finished guitar: a model's take is doubled exactly as
+    the floor is, and a score that already carries a double is left alone, so this can run
+    twice without playing the second guitar twice (ADR-028).
+    """
+    instruments = score.instruments()
+    if Instrument.GUITAR_DOUBLE in instruments or Instrument.GUITAR not in instruments:
+        return score
+    second = double(score.part(Instrument.GUITAR), score.section)
+    return score.model_copy(update={"parts": (*score.parts, second)})

@@ -176,6 +176,7 @@ class Scheduler:
         wake_s: float = WAKE_S,
         variants: Mapping[str, Mapping[int, int]] | None = None,
         pitches: Mapping[Instrument, Mapping[int, int]] | None = None,
+        pocket: bool = True,
     ) -> None:
         self._daw = daw
         self._clock = clock
@@ -194,7 +195,11 @@ class Scheduler:
         # Variant kind -> main scene -> variant scene (ADR-022's layout). Empty: no bar cues.
         # What this Set's instruments answer to (`transport.render.Pitches`).
         self._pitches = {instrument: dict(m) for instrument, m in (pitches or {}).items()}
-        self._bar_cues = BarCues(daw, tracks, log, self._beats, variants or {}, self._pitches)
+        # Each player's lean against the beat, on the way out (`engines/pocket.py`, ADR-028).
+        self._pocket = pocket
+        self._bar_cues = BarCues(
+            daw, tracks, log, self._beats, variants or {}, self._pitches, pocket=pocket
+        )
 
         self._sections: tuple[Section, ...] = ()
         self._endings: tuple[Ending, ...] | None = None
@@ -940,7 +945,8 @@ class Scheduler:
         # that way (P6); `ms` is how much of a bar the write actually cost, which is the
         # one number `write_lead` has to be sized against and cannot be read in beats.
         started = time.monotonic()
-        for instrument, notes in render_score(score, pitches=self._pitches).items():
+        rendered = render_score(score, pitches=self._pitches, pocket=self._pocket)
+        for instrument, notes in rendered.items():
             track = self._tracks.get(instrument)
             if track is None:
                 continue

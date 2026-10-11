@@ -30,6 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from garagem.domain import (
     ATTACK,
+    DERIVED_INSTRUMENTS,
     REST,
     SIXTEENTHS_PER_BAR,
     Chart,
@@ -63,10 +64,13 @@ WIRE_INSTRUMENTS: Final[tuple[Instrument, ...]] = (
     Instrument.KEYS,
 )
 
-# The DSL's three-letter tags are `Instrument`'s own values. All five: the parser reads
-# the superset, and reading more than we write is what lets a bake carry a lead while the
-# live request does not move.
-BAR_TAGS: Final[tuple[str, ...]] = tuple(str(instrument) for instrument in Instrument)
+# The DSL's three-letter tags are `Instrument`'s own values. All five voices of the
+# notation: the parser reads the superset, and reading more than we write is what lets a bake
+# carry a lead while the live request does not move. A derived voice is not one of them: a
+# model that wrote a `GT2` line would be writing a part the band makes for itself (ADR-028).
+BAR_TAGS: Final[tuple[str, ...]] = tuple(
+    str(instrument) for instrument in Instrument if instrument not in DERIVED_INSTRUMENTS
+)
 
 # Every `SEC` field `brief()` states, and therefore every one the model can be held to.
 SEC_FIELDS: Final[tuple[str, ...]] = ("bars", "key", "feel", "bpm", "dyn", "tension")

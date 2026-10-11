@@ -33,7 +33,7 @@ import json
 from hypothesis import given
 from strategies import sections, seeds
 
-from garagem.domain import Instrument, Section
+from garagem.domain import DERIVED_INSTRUMENTS, Instrument, Section
 from garagem.dsl import WIRE_INSTRUMENTS, parse_section, realise, serialize_section
 from garagem.engines import play_section
 from garagem.llm import StreamDone, StreamEvent, ToolInputDelta, ToolUseStart
@@ -92,7 +92,10 @@ def test_what_comes_back_is_playable(section: Section, seed: int) -> None:
 
 @given(section=sections, seed=seeds)
 def test_the_bakes_notation_carries_the_whole_band(section: Section, seed: int) -> None:
-    """The superset's own round trip (ADR-026): five parts out, five parts back.
+    """The superset's own round trip (ADR-026): five notated parts out, five parts back.
+
+    The second guitar is not among them. No line carries it, and `engines.with_double` makes it
+    from the guitar that comes back (ADR-028).
 
     `pitched=True` writes a degree per struck slot and the `LED` line, so the gap the
     bar-level form leaves — one degree for a bar the bass moved inside of — is not there.
@@ -105,9 +108,10 @@ def test_the_bakes_notation_carries_the_whole_band(section: Section, seed: int) 
     assert parsed.violations == ()
     assert not parsed.truncated
     back = realise(parsed, seed, straighten=False)
-    assert back.instruments() == frozenset(Instrument)
+    notated = frozenset(Instrument) - frozenset(DERIVED_INSTRUMENTS)
+    assert back.instruments() == notated
     assert validate(back) == ()
-    for instrument in Instrument:
+    for instrument in notated:
         before = tuple(n.start_beats for n in original.part(instrument).notes)
         after = tuple(n.start_beats for n in back.part(instrument).notes)
         assert attacks(before, section) == attacks(after, section), instrument

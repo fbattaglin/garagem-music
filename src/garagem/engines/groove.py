@@ -22,7 +22,7 @@ from typing import Final
 
 from garagem.domain import SIXTEENTHS_PER_BAR, SIXTEENTHS_PER_BEAT, Feel, Grid, parse_grid
 from garagem.engines.humanise import MAX_TIMING_BEATS
-from garagem.theory.percussion import MIN_KICK_INTERVAL_MS
+from garagem.theory.percussion import CLOSED_HAT, MIN_KICK_INTERVAL_MS, OPEN_HAT
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,8 +48,11 @@ GROOVES: Final[dict[Feel, tuple[Groove, ...]]] = {
         _groove("eighths, held back", "x.......x.......", "....x.......x...", "x...x...x...x..."),
         _groove("eighths", "x.......x.......", "....x.......x...", "x.x.x.x.x.x.x.x."),
         _groove("eighths, pushed", "x.....x.x.......", "....x.......x...", "x.x.x.x.x.x.x.x."),
-        _groove("driving", "x.....x.x.....x.", "....x.......x...", "xxxxxxxxxxxxxxxx"),
-        _groove("flat out", "x..x..x.x..x..x.", "....x.......x...", "xxxxxxxxxxxxxxxx"),
+        # A chorus opens the hat on the eighths rather than closing it on the sixteenths:
+        # sixteenth hats are a disco drummer's chorus, and a rock chorus is a wash (ADR-028,
+        # `hat_for`).
+        _groove("driving", "x.....x.x.....x.", "....x.......x...", "x.x.x.x.x.x.x.x."),
+        _groove("flat out", "x..x..x.x..x..x.", "....x.......x...", "x.x.x.x.x.x.x.x."),
     ),
     Feel.STRAIGHT16: (
         _groove("sixteenths, sparse", "x.......x.......", "....x.......x...", "x.x.x.x.x.x.x.x."),
@@ -84,7 +87,7 @@ GROOVES: Final[dict[Feel, tuple[Groove, ...]]] = {
         _groove("halftime", "x.....x.........", "........x.......", "x...x...x...x..."),
         _groove("halftime, pushed", "x.....x.....x...", "........x.......", "x.x.x.x.x.x.x.x."),
         _groove("halftime, heavy", "x.....x.x...x...", "........x.......", "x.x.x.x.x.x.x.x."),
-        _groove("halftime, flat out", "x..x..x.x...x..x", "........x.......", "xxxxxxxxxxxxxxxx"),
+        _groove("halftime, flat out", "x..x..x.x...x..x", "........x.......", "x.x.x.x.x.x.x.x."),
     ),
 }
 
@@ -97,6 +100,36 @@ FILLS: Final[tuple[Grid, ...]] = (
     parse_grid("........x.xxx.xx"),
     parse_grid("....x.xxx.xxx.xx"),
 )
+
+
+# From here a chorus is an arena chorus: the hat opens and a crash marks every phrase
+# (ADR-028). Below it a verse keeps the closed hat, which is the indie half of the sound.
+OPEN_HAT_DYN: Final = 4
+PHRASE_BARS: Final = 4
+
+# The feel whose sixteenth hats are its identity. Opening them would turn a funk hat into a
+# cymbal wash, so it keeps the closed hat at every dynamic.
+CLOSED_FEELS: Final[frozenset[Feel]] = frozenset({Feel.STRAIGHT16})
+
+
+def hat_for(feel: Feel, dyn: int, slot: int) -> int:
+    """Which hi-hat a hat attack is: open on a chorus's eighths, closed everywhere else.
+
+    Shared by the floor and by `dsl/realise.py`, because the notation's `H` is "the hat" and
+    the arrangement decides which one. A model's sixteenth hat in a chorus opens on the
+    eighths and stays closed between them, which is what a drummer's foot does.
+    """
+    opening = dyn >= OPEN_HAT_DYN and feel not in CLOSED_FEELS and slot % 2 == 0
+    return OPEN_HAT if opening else CLOSED_HAT
+
+
+def crash_on(dyn: int, bar: int) -> bool:
+    """A crash opens every section, and every phrase of a chorus.
+
+    Shared with `dsl/realise.py` for the same reason as `hat_for`: the crash is the
+    arrangement's, not the take's.
+    """
+    return bar == 0 or (dyn >= OPEN_HAT_DYN and bar % PHRASE_BARS == 0)
 
 
 def groove_for(feel: Feel, dyn: int, bpm: float | None = None) -> Groove:

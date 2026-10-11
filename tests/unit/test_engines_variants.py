@@ -60,7 +60,8 @@ def slots_in_bar(section: Section, part: Part, bar: int, pitch: int | None = Non
 
 @pytest.mark.parametrize("bar", range(8))
 def test_in_every_bar_of_a_stop_the_band_plays_only_the_downbeat(bar: int) -> None:
-    section = a_section()
+    # dyn 3: in a verse the organ rests (ADR-028), and a stop of nothing proves nothing.
+    section = a_section(dyn=3)
     stopped = stop_bars(play_section(section, SEED))
     for instrument in PITCHED:
         assert slots_in_bar(section, stopped.part(instrument), bar) == {0}

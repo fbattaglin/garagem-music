@@ -29,8 +29,8 @@ from garagem.dsl import WIRE_INSTRUMENTS, ParsedSection, parse_section, realise
 from garagem.engines import MAX_TIMING_BEATS
 from garagem.engines.groove import fill_for, groove_for
 from garagem.llm import EVENT_ADAPTER, StreamEvent
-from garagem.theory import RANGES, parse_chart, validate
-from garagem.theory.percussion import CLOSED_HAT, CRASH, GHOST_VELOCITY, KICK, SNARE
+from garagem.theory import POWER_ROOTS, RANGES, parse_chart, validate
+from garagem.theory.percussion import CLOSED_HAT, CRASH, GHOST_VELOCITY, KICK, OPEN_HAT, SNARE
 
 ROOT = Path(__file__).resolve().parents[2]
 CASSETTES = ("anthropic_section", "google_section", "google_section_flash")
@@ -224,12 +224,15 @@ def test_every_bass_note_is_pulled_inside_the_instrument(octave: int) -> None:
 # ------------------------------------------------------------------------ guitar and keys
 
 
-def test_a_power_chord_has_two_notes_in_the_guitars_range() -> None:
+def test_a_guitar_power_chord_is_root_fifth_and_octave_on_the_low_strings() -> None:
+    """The floor guitarist's own shape, so `voi=pow` reads back as what it was (ADR-028)."""
     low, high = RANGES[Instrument.GUITAR]
     parsed = parsed_from("GTR voi=pow rhy:x...............\n", a_section(bars=1))
     part = realise(parsed, 7).part(Instrument.GUITAR)
-    assert len(part.notes) == 2
-    assert all(low <= note.pitch <= high for note in part.notes)
+    pitches = sorted(note.pitch for note in part.notes)
+    assert pitches == [pitches[0], pitches[0] + 7, pitches[0] + 12]
+    assert POWER_ROOTS[0] <= pitches[0] <= POWER_ROOTS[1]
+    assert all(low <= pitch <= high for pitch in pitches)
 
 
 def test_a_palm_mute_is_a_short_note() -> None:
@@ -340,10 +343,34 @@ def test_the_anthropic_cassette_realises_all_four_parts() -> None:
 
 
 def test_a_sparse_hat_is_lifted_where_the_engine_would_play_sixteenths() -> None:
-    """straight8 at dyn=4: `groove_for` plays 16 hat hits and the model writes 8."""
+    """straight16 at dyn=2: `groove_for` plays 16 hat hits and the model writes 8."""
+    parsed = parsed_from("DRM H:x.x.x.x.x.x.x.x.\n", a_section(bars=1, dyn=2, feel=Feel.STRAIGHT16))
+    part = realise(parsed, 7).part(Instrument.DRUMS)
+    assert len(slots(part, 0, CLOSED_HAT, Feel.STRAIGHT16)) == 16
+
+
+def test_a_chorus_opens_the_hat_on_the_eighths() -> None:
+    """The arena half of the sound (ADR-028): the notation's `H` is "the hat", and the
+    arrangement decides which one."""
     parsed = parsed_from("DRM H:x.x.x.x.x.x.x.x.\n", a_section(bars=1, dyn=4, feel=Feel.STRAIGHT8))
     part = realise(parsed, 7).part(Instrument.DRUMS)
-    assert len(slots(part, 0, CLOSED_HAT)) == 16
+    assert slots(part, 0, OPEN_HAT) == (0, 2, 4, 6, 8, 10, 12, 14)
+    assert slots(part, 0, CLOSED_HAT) == ()
+
+
+def test_a_sixteenth_hat_in_a_chorus_opens_on_the_eighths_and_closes_between() -> None:
+    parsed = parsed_from("DRM H:xxxxxxxxxxxxxxxx\n", a_section(bars=1, dyn=5, feel=Feel.HALFTIME))
+    part = realise(parsed, 7).part(Instrument.DRUMS)
+    assert slots(part, 0, OPEN_HAT, Feel.HALFTIME) == (0, 2, 4, 6, 8, 10, 12, 14)
+    assert slots(part, 0, CLOSED_HAT, Feel.HALFTIME) == (1, 3, 5, 7, 9, 11, 13, 15)
+
+
+def test_a_chorus_crashes_every_phrase_and_a_verse_only_its_first_bar() -> None:
+    line = "DRM K:x.......x....... S:....x.......x... H:x.x.x.x.x.x.x.x.\n"
+    chorus = realise(parsed_from(line, a_section(bars=8, dyn=4)), 7).part(Instrument.DRUMS)
+    verse = realise(parsed_from(line, a_section(bars=8, dyn=2)), 7).part(Instrument.DRUMS)
+    assert [bar for bar in range(8) if slots(chorus, bar, CRASH)] == [0, 4]
+    assert [bar for bar in range(8) if slots(verse, bar, CRASH)] == [0]
 
 
 def test_a_swung_hat_is_left_alone_however_loud_the_section() -> None:
@@ -354,7 +381,7 @@ def test_a_swung_hat_is_left_alone_however_loud_the_section() -> None:
     """
     parsed = parsed_from("DRM H:x.x.x.x.x.x.x.x.\n", a_section(bars=1, dyn=5, feel=Feel.SHUFFLE))
     part = realise(parsed, 7).part(Instrument.DRUMS)
-    assert slots(part, 0, CLOSED_HAT, Feel.SHUFFLE) == (0, 2, 4, 6, 8, 10, 12, 14)
+    assert slots(part, 0, OPEN_HAT, Feel.SHUFFLE) == (0, 2, 4, 6, 8, 10, 12, 14)
 
 
 def test_a_quiet_section_keeps_the_hat_the_model_wrote() -> None:
@@ -367,14 +394,14 @@ def test_the_lift_never_goes_denser_than_the_engine_itself_would() -> None:
     """One doubling at a time. A quarter-note hat under a sixteenth floor becomes eighths."""
     parsed = parsed_from("DRM H:x...x...x...x...\n", a_section(bars=1, dyn=4))
     part = realise(parsed, 7).part(Instrument.DRUMS)
-    assert slots(part, 0, CLOSED_HAT) == (0, 2, 4, 6, 8, 10, 12, 14)
+    assert slots(part, 0, OPEN_HAT) == (0, 2, 4, 6, 8, 10, 12, 14)
 
 
 def test_the_lift_keeps_the_attacks_the_model_wrote() -> None:
     """Doubling, not overwriting: every original hit survives, the midpoints are added."""
-    parsed = parsed_from("DRM H:x.x.x.x.x.x.x.x.\n", a_section(bars=1, dyn=4))
+    parsed = parsed_from("DRM H:x.x.x.x.x.x.x.x.\n", a_section(bars=1, dyn=2, feel=Feel.STRAIGHT16))
     part = realise(parsed, 7).part(Instrument.DRUMS)
-    assert set(range(0, 16, 2)) <= set(slots(part, 0, CLOSED_HAT))
+    assert set(range(0, 16, 2)) <= set(slots(part, 0, CLOSED_HAT, Feel.STRAIGHT16))
 
 
 def test_the_lift_touches_neither_kick_nor_snare() -> None:
@@ -401,4 +428,5 @@ def test_an_engine_section_is_never_lifted(feel: Feel, dyn: int) -> None:
     engine_hat = groove_for(feel, dyn, section.bpm)
     parsed = parsed_from(f"DRM H:{render_grid(engine_hat.hat)}\n", section)
     part = realise(parsed, 7).part(Instrument.DRUMS)
-    assert slots(part, 0, CLOSED_HAT, feel) == attacks_of(engine_hat.hat)
+    hats = {*slots(part, 0, CLOSED_HAT, feel), *slots(part, 0, OPEN_HAT, feel)}
+    assert tuple(sorted(hats)) == attacks_of(engine_hat.hat)

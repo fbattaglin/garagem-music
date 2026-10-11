@@ -16,6 +16,7 @@ from garagem.domain.harmony import (
     Quality,
 )
 from garagem.domain.score import (
+    DERIVED_INSTRUMENTS,
     MAX_BARS,
     MAX_DYN,
     MIN_DYN,
@@ -44,6 +45,7 @@ from garagem.domain.time import (
 __all__ = [
     "ATTACK",
     "BEATS_PER_BAR",
+    "DERIVED_INSTRUMENTS",
     "INTERVALS",
     "MAX_BARS",
     "MAX_DYN",

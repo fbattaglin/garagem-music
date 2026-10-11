@@ -35,7 +35,7 @@
   - `ADR-028-the-mvp-stage.md` — Phase 8, the MVP's last: rock parts and a sound chosen by ear,
     a melody through the song, and a stage — one command, a ready check, a screen, typed
     commands and the whole setlist in one run.
-- `phase-0-findings.md` … `phase-7-findings.md` — what the measurements and the
+- `phase-0-findings.md` … `phase-8-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 
 ADR format: context, decision, rejected alternatives, consequences.

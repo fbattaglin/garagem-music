@@ -34,9 +34,21 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
 
 ### Where the phase actually is
 
-- **Stage 0 is done:** ADR-028 written and agreed. Nothing built yet.
-- **Next: Stage A, the band plays rock parts** — engines only, offline, no listening until the
-  sound is chosen in Stage B.
+- **Stage 0 is done:** ADR-028 written and agreed.
+- **Stage A is built: the band plays rock parts** (`phase-8-findings.md` §1). The changes:
+  - **Guitar:** low power chords of root, fifth and octave, slid in parallel and never a
+    triad.
+  - **Double guitar:** a second guitar from `dyn` 4, its timing mirrored around the grid.
+  - **Bass:** roots on the low strings.
+  - **Drums:** open hats and phrase crashes in a chorus.
+  - **Organ:** replaces the piano. It rests in a verse, pads at `dyn` 3 and holds the chord
+    from `dyn` 4.
+  - **Pocket:** a fixed lean per player, applied on the way out to Live.
+
+  Suite at **3064 passed, 27 skipped**; every golden file moved deliberately. **Not heard yet**:
+  the sound is chosen in Stage B, and the listening is there.
+- **Next: Stage B, the band sounds like rock** — free plugins researched for Fabiano to approve,
+  `soundcheck`, the Set rebuilt by hand, and the instruments and mix pinned in `session.toml`.
 
 Phase 7 was the arrangement: the band had its material, and the phase decided where things
 go in time — a solo section, relief in the form, and a fill that is announced

@@ -8,7 +8,7 @@ and P2 rests on that floor.
 
 from __future__ import annotations
 
-from itertools import pairwise, product
+from itertools import product
 from random import Random
 
 import pytest
@@ -20,12 +20,13 @@ from garagem.domain import (
     Section,
 )
 from garagem.engines import ENGINES, play_section
-from garagem.engines.bass import ROOT_OCTAVE
+from garagem.engines.bass import ROOT_WINDOW
+from garagem.engines.bass import play as play_bass
 from garagem.engines.drums import play as play_drums
 from garagem.engines.guitar import play as play_guitar
-from garagem.engines.keys import KEYS_FLOOR
+from garagem.engines.keys import KEYS_FLOOR, ORGAN_DYN, ORGAN_FLOOR
 from garagem.engines.keys import play as play_keys
-from garagem.theory import RANGES, parse_chart, repair, validate
+from garagem.theory import POWER_ROOTS, RANGES, parse_chart, repair, validate
 from garagem.theory.percussion import CRASH, KICK, SNARE
 
 PROGRESSION = parse_chart("| Em | C | G | D |")
@@ -152,10 +153,23 @@ def test_a_tense_section_moves() -> None:
     assert len({note.pitch for note in tense.notes}) > len({note.pitch for note in still.notes})
 
 
-def test_the_root_octave_keeps_every_key_inside_the_instrument() -> None:
+def test_the_root_window_is_inside_the_instrument() -> None:
     low, high = RANGES[Instrument.BASS]
-    assert low <= (ROOT_OCTAVE + 1) * 12 <= high
-    assert low <= (ROOT_OCTAVE + 1) * 12 + 11 <= high
+    assert low <= ROOT_WINDOW[0] < ROOT_WINDOW[1] <= high
+    assert ROOT_WINDOW[1] - ROOT_WINDOW[0] == 11
+
+
+@pytest.mark.parametrize("section", BRIEFINGS, ids=lambda s: f"{s.feel}-{s.dyn}-{s.tension}")
+def test_every_bar_starts_on_a_root_on_the_low_strings(section: Section) -> None:
+    """Every key, every bar: the downbeat is between E1 and D#2 (ADR-028)."""
+    part = play_bass(section, Random(7))
+    for bar in range(section.bars):
+        downbeat = min(
+            (note for note in part.notes if abs(note.start_beats - bar * BEATS_PER_BAR) < 0.1),
+            key=lambda note: note.start_beats,
+        )
+        assert ROOT_WINDOW[0] <= downbeat.pitch <= ROOT_WINDOW[1]
+        assert downbeat.pitch % 12 == section.chart.at(bar).root
 
 
 # --------------------------------------------------------------------------------- guitar
@@ -163,14 +177,31 @@ def test_the_root_octave_keeps_every_key_inside_the_instrument() -> None:
 
 def test_a_verse_plays_power_chords() -> None:
     part = play_guitar(a_section(dyn=2), Random(7))
-    at_once = [note for note in part.notes if note.start_beats < 0.1]
-    assert len(at_once) == 2
+    at_once = sorted(note.pitch for note in part.notes if note.start_beats < 0.1)
+    root = at_once[0]
+    assert at_once == [root, root + 7, root + 12]
 
 
-def test_a_chorus_opens_the_chord_up() -> None:
-    part = play_guitar(a_section(dyn=5), Random(7))
-    at_once = [note for note in part.notes if note.start_beats < 0.1]
-    assert len(at_once) == 3
+@pytest.mark.parametrize("section", BRIEFINGS, ids=lambda s: f"{s.feel}-{s.dyn}")
+def test_the_guitar_never_plays_a_triad(section: Section) -> None:
+    """A chorus gets bigger by ringing and by a second guitar, not by a third (ADR-028)."""
+    part = play_guitar(section, Random(7))
+    for bar in range(section.bars):
+        chord = section.chart.at(bar)
+        classes = {
+            note.pitch % 12
+            for note in part.notes
+            if bar * BEATS_PER_BAR - 0.1 <= note.start_beats < (bar + 1) * BEATS_PER_BAR - 0.1
+        }
+        assert classes <= {chord.root, (chord.root + 7) % 12, (chord.root + 6) % 12}
+
+
+@pytest.mark.parametrize("section", BRIEFINGS, ids=lambda s: f"{s.feel}-{s.dyn}")
+def test_every_power_chord_has_its_root_on_the_low_strings(section: Section) -> None:
+    low, high = POWER_ROOTS
+    part = play_guitar(section, Random(7))
+    assert all(low <= note.pitch <= high + 19 for note in part.notes)
+    assert min(note.pitch for note in part.notes) <= high
 
 
 def test_a_palm_mute_is_a_short_note_and_a_quiet_one() -> None:
@@ -182,6 +213,11 @@ def test_a_palm_mute_is_a_short_note_and_a_quiet_one() -> None:
     )
 
 
+def test_a_half_time_chorus_rings_until_the_next_strum() -> None:
+    part = play_guitar(a_section(dyn=5, feel=Feel.HALFTIME), Random(7))
+    assert min(note.duration_beats for note in part.notes) > 1.5
+
+
 @pytest.mark.parametrize("section", BRIEFINGS, ids=lambda s: f"{s.feel}-{s.dyn}")
 def test_every_guitar_note_is_inside_the_instrument(section: Section) -> None:
     low, high = RANGES[Instrument.GUITAR]
@@ -189,18 +225,13 @@ def test_every_guitar_note_is_inside_the_instrument(section: Section) -> None:
     assert all(low <= note.pitch <= high for note in part.notes)
 
 
-def test_the_guitar_moves_less_than_root_position_between_chords() -> None:
+def test_the_guitar_slides_the_shape_rather_than_inverting_it() -> None:
+    """Every chord is root, fifth and octave from the bottom: never a fourth below the root."""
     part = play_guitar(a_section(bars=4, dyn=5), Random(7))
-    downbeats = [
-        sorted(note.pitch for note in part.notes if abs(note.start_beats - bar * 4) < 0.1)
-        for bar in range(4)
-    ]
-    led = sum(
-        abs(a - b)
-        for before, after in pairwise(downbeats)
-        for a, b in zip(before, after, strict=True)
-    )
-    assert led <= 4 * 12
+    for bar in range(4):
+        chord = sorted(note.pitch for note in part.notes if abs(note.start_beats - bar * 4) < 0.1)
+        assert chord[0] % 12 == PROGRESSION.at(bar).root
+        assert chord[1] - chord[0] == 7
 
 
 # ----------------------------------------------------------------------------------- keys
@@ -214,16 +245,39 @@ def test_the_keys_never_go_below_the_bass_ceiling() -> None:
         assert all(note.pitch >= KEYS_FLOOR for note in part.notes)
 
 
-def test_a_pad_spans_the_bar_and_a_stab_does_not() -> None:
-    pad = play_keys(a_section(dyn=1), Random(7))
-    stabs = play_keys(a_section(dyn=5), Random(7))
-    assert max(note.duration_beats for note in pad.notes) >= BEATS_PER_BAR - 0.1
-    assert max(note.duration_beats for note in stabs.notes) < 1.0
+@pytest.mark.parametrize("dyn", range(1, ORGAN_DYN))
+def test_the_organ_rests_in_a_verse(dyn: int) -> None:
+    """An indie verse is guitar, bass and drums (ADR-028). Empty, not missing."""
+    assert play_keys(a_section(dyn=dyn), Random(7)).notes == ()
+
+
+@pytest.mark.parametrize("dyn", range(ORGAN_DYN, 6))
+def test_the_organ_holds_every_chord_across_its_bar(dyn: int) -> None:
+    """No stabs: an organ holds the chord underneath the guitars."""
+    part = play_keys(a_section(dyn=dyn), Random(7))
+    assert part.notes
+    assert min(note.duration_beats for note in part.notes) >= BEATS_PER_BAR - 0.1
+
+
+@pytest.mark.parametrize("section", BRIEFINGS, ids=lambda s: f"{s.feel}-{s.dyn}-{s.tension}")
+def test_the_organ_sits_above_the_guitar(section: Section) -> None:
+    organ = play_keys(section, Random(7))
+    guitar = play_guitar(section, Random(7))
+    if organ.notes:
+        assert min(note.pitch for note in organ.notes) >= ORGAN_FLOOR
+        assert max(note.pitch for note in guitar.notes) < ORGAN_FLOOR
+
+
+def test_a_chorus_gets_the_whole_chord_and_a_bridge_an_open_one() -> None:
+    chorus = play_keys(a_section(dyn=4, chart=parse_chart("| Em |"), bars=1), Random(7))
+    bridge = play_keys(a_section(dyn=3, chart=parse_chart("| Em |"), bars=1), Random(7))
+    assert {note.pitch % 12 for note in chorus.notes} == {4, 7, 11}
+    assert {note.pitch % 12 for note in bridge.notes} == {4, 6, 11}
 
 
 def test_a_chart_that_disagrees_with_its_key_still_validates() -> None:
     """`| Em |` under a C briefing is a legal request, and Phase 3 will make it."""
-    section = a_section(key=0, scale="major", chart=parse_chart("| Em |"), dyn=1)
+    section = a_section(key=0, scale="major", chart=parse_chart("| Em |"), dyn=3)
     assert validate(play_section(section, 7)) == ()
 
 
@@ -251,7 +305,8 @@ def test_all_five_instruments_are_present() -> None:
 
 def test_the_parts_come_out_in_the_dsl_emission_order() -> None:
     """DRM, BAS, GTR, KEY — the order Phase 3's incremental parser will see — then LED,
-    which it never sees, behind them (ADR-026)."""
+    which it never sees, behind them (ADR-026), and the second guitar, which no notation
+    carries, last of all (ADR-028)."""
     parts = play_section(a_section(), 7).parts
     assert [part.instrument for part in parts] == [
         Instrument.DRUMS,
@@ -259,6 +314,7 @@ def test_the_parts_come_out_in_the_dsl_emission_order() -> None:
         Instrument.GUITAR,
         Instrument.KEYS,
         Instrument.LEAD,
+        Instrument.GUITAR_DOUBLE,
     ]
 
 

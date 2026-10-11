@@ -93,7 +93,8 @@ def test_every_role_in_the_session_maps_to_an_instrument() -> None:
     """A renamed track must not quietly send the bass to the drum machine."""
     spec = jam.load_session(jam.DEFAULT_SESSION)
     tracks = jam.tracks_of(spec)
-    assert set(tracks) == set(Instrument)
+    optional = {jam.ROLE_TO_INSTRUMENT[role] for role in jam.OPTIONAL_ROLES}
+    assert set(Instrument) - optional <= set(tracks) <= set(Instrument)
     assert tracks[Instrument.DRUMS] == 0
 
 

@@ -23,6 +23,7 @@ from collections.abc import Mapping
 
 from garagem.daw import MidiNote, normalised
 from garagem.domain import BEATS_PER_BAR, Instrument, Note, Part, SectionScore
+from garagem.engines.pocket import lean
 
 Pitches = Mapping[int, int]
 """What the band writes -> what this Set's instrument is sent (`session.toml`'s `pitches`).
@@ -45,12 +46,19 @@ def render_note(note: Note, *, bar_offset: int = 0, pitches: Pitches | None = No
 
 
 def render_part(
-    part: Part, *, bar_offset: int = 0, pitches: Pitches | None = None
+    part: Part, *, bar_offset: int = 0, pitches: Pitches | None = None, pocket: bool = True
 ) -> tuple[MidiNote, ...]:
-    """One instrument's notes, ready for `write_notes`."""
-    return normalised(
-        render_note(note, bar_offset=bar_offset, pitches=pitches) for note in part.notes
-    )
+    """One instrument's notes, ready for `write_notes`.
+
+    With `pocket`, each note is first moved to where its player sits against the beat
+    (`engines/pocket.py`, ADR-028). It happens here because every note that reaches Live passes
+    through here, endings and cue variants included, and because nothing upstream should see
+    it: the validator and the golden files judge the grid. The lean is applied before the kit's
+    pitch map, because it is keyed on the band's own vocabulary: a snare is a snare whichever
+    pad the Set keeps it on.
+    """
+    notes = lean(part) if pocket else part.notes
+    return normalised(render_note(note, bar_offset=bar_offset, pitches=pitches) for note in notes)
 
 
 def render_score(
@@ -58,6 +66,7 @@ def render_score(
     *,
     bar_offset: int = 0,
     pitches: Mapping[Instrument, Pitches] | None = None,
+    pocket: bool = True,
 ) -> dict[Instrument, tuple[MidiNote, ...]]:
     """Every part of a section, keyed by instrument.
 
@@ -70,6 +79,7 @@ def render_score(
             part,
             bar_offset=bar_offset,
             pitches=pitches.get(part.instrument) if pitches else None,
+            pocket=pocket,
         )
         for part in score.parts
     }

@@ -189,7 +189,12 @@ ROLE_TO_INSTRUMENT: dict[str, Instrument] = {
     "guitar": Instrument.GUITAR,
     "keys": Instrument.KEYS,
     "lead": Instrument.LEAD,
+    "guitar_double": Instrument.GUITAR_DOUBLE,
 }
+
+# Roles a Set may leave out and still be played. The second guitar is new in Phase 8 and
+# made from the first (ADR-028): a Set without its track plays one guitar, as it always did.
+OPTIONAL_ROLES: frozenset[str] = frozenset({"guitar_double"})
 
 
 def build_adapter(host: str, timeout_s: float) -> DawPort:
@@ -603,8 +608,10 @@ def main() -> int:
             return 1
 
     tracks = tracks_of(spec)
-    if len(tracks) != len(ROLE_TO_INSTRUMENT):
-        missing = sorted(set(ROLE_TO_INSTRUMENT) - {track.role for track in spec.tracks})
+    missing = sorted(
+        set(ROLE_TO_INSTRUMENT) - OPTIONAL_ROLES - {track.role for track in spec.tracks}
+    )
+    if missing:
         sys.stderr.write(f"{args.session.name} has no track for {missing}. Nothing to play on.\n")
         return 1
 

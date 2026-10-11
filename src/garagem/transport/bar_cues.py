@@ -77,6 +77,7 @@ TRACKS: Final[dict[str, tuple[Instrument, ...]]] = {
         Instrument.GUITAR,
         Instrument.KEYS,
         Instrument.LEAD,
+        Instrument.GUITAR_DOUBLE,
     ),
     FILL: (Instrument.DRUMS,),
 }
@@ -92,6 +93,7 @@ DROPPED: Final[tuple[Instrument, ...]] = (
     Instrument.GUITAR,
     Instrument.KEYS,
     Instrument.LEAD,
+    Instrument.GUITAR_DOUBLE,
 )
 
 
@@ -119,11 +121,14 @@ class BarCues:
         beats: Callable[[], float],
         scenes: Mapping[str, Mapping[int, int]],
         pitches: Mapping[Instrument, Mapping[int, int]] | None = None,
+        *,
+        pocket: bool = True,
     ) -> None:
         self._daw = daw
         self._tracks = dict(tracks)
         self._log = log
         self._beats = beats
+        self._pocket = pocket
         # Variant kind -> main scene -> the scene its variant is written into.
         self._scenes = {kind: dict(pairs) for kind, pairs in scenes.items()}
         # What this Set's instruments answer to (`transport.render.Pitches`).
@@ -328,7 +333,12 @@ class BarCues:
         try:
             ensure_clip(self._daw, at, score.section.total_beats())
             self._daw.write_notes(
-                at, render_part(variant.part(instrument), pitches=self._pitches.get(instrument))
+                at,
+                render_part(
+                    variant.part(instrument),
+                    pitches=self._pitches.get(instrument),
+                    pocket=self._pocket,
+                ),
             )
             self._daw.set_clip_legato(at, True)
         except DawError as error:

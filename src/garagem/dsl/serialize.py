@@ -70,6 +70,10 @@ VOICINGS: Final[dict[tuple[int, ...], str]] = {
 }
 
 PALM_MUTE_BEATS: Final = 0.2
+
+# What a resting guitar or keys bar names as its voicing. Any voicing would do, since a rhythm
+# of rests realises to no notes; this one is the simplest to read.
+RESTING_VOICING: Final = "triad"
 ACCENT_MARGIN: Final = 6
 
 
@@ -298,7 +302,10 @@ def _chordal_line(instrument: Instrument, bar: dict[int, list[Note]], root: int)
     tag = str(instrument)
     rhythm = "".join(ATTACK if slot in bar else REST for slot in range(SIXTEENTHS_PER_BAR))
     if not bar:
-        return f"{tag} voi=none rhy:{rhythm}"
+        # A bar the instrument rests in: a voicing the parser knows and nothing struck. This
+        # wrote `voi=none`, which no parser ever accepted; nothing rested until the organ did
+        # in a verse (ADR-028), so the line was never written before.
+        return f"{tag} voi={RESTING_VOICING} rhy:{rhythm}"
     first = bar[min(bar)]
     style = _voicing_of(tuple(sorted(note.pitch for note in first)), root)
     line = f"{tag} voi={style} rhy:{rhythm}"

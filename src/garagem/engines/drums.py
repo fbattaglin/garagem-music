@@ -1,5 +1,9 @@
 """The drummer: a groove from the table, a fill at the end, a crash at the start.
 
+A verse keeps the hat closed; a chorus opens it on the eighths and crashes every phrase
+(`groove.hat_for`, `groove.crash_on`, ADR-028). That one change is most of the difference
+between an indie verse and an arena chorus, and it is a lookup, like everything else here.
+
 Everything this engine decides comes from three fields of the briefing — `feel` picks
 the pattern's shape, `dyn` its density, `tension` how hard the last bar pushes into the
 next section. Nothing else, and no randomness beyond the humaniser, so the same briefing
@@ -26,9 +30,9 @@ from garagem.domain import (
     Section,
     beats_of,
 )
-from garagem.engines.groove import fill_for, groove_for
+from garagem.engines.groove import crash_on, fill_for, groove_for, hat_for
 from garagem.engines.humanise import humanise, separate
-from garagem.theory.percussion import CLOSED_HAT, CRASH, KICK, SNARE
+from garagem.theory.percussion import CRASH, KICK, SNARE
 
 # A hit lasts long enough to be a hit and no longer: a drum's sound is its decay, not its
 # note length, and a long MIDI note on a sampled kit changes nothing but the display.
@@ -62,9 +66,10 @@ def play(section: Section, rng: Random) -> Part:
             if groove.snare[slot]:
                 notes.append(_hit(SNARE, at, velocity, slot))
             if groove.hat[slot]:
-                notes.append(_hit(CLOSED_HAT, at, velocity - HAT_DROP, slot))
+                hat = hat_for(section.feel, section.dyn, slot)
+                notes.append(_hit(hat, at, velocity - HAT_DROP, slot))
 
-        if bar == 0:
+        if crash_on(section.dyn, bar):
             notes.append(_hit(CRASH, beats_of(offset, section.feel), velocity, 0))
 
     return Part(

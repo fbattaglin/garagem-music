@@ -20,6 +20,7 @@ from garagem.domain import (
     SectionScore,
 )
 from garagem.engines import play_section
+from garagem.engines.pocket import PART_LEANS
 from garagem.theory import parse_chart
 from garagem.transport import render_note, render_part, render_score
 
@@ -64,9 +65,16 @@ def test_a_rendered_part_is_normalised() -> None:
         instrument=Instrument.BASS,
         notes=(a_note(start_beats=2.0), a_note(start_beats=0.0), a_note(start_beats=1.0)),
     )
-    rendered = render_part(part)
+    rendered = render_part(part, pocket=False)
     assert rendered == normalised(rendered)
     assert [note.start_beats for note in rendered] == [0.0, 1.0, 2.0]
+
+
+def test_the_pocket_is_applied_on_the_way_out_and_can_be_switched_off() -> None:
+    """The bass sits just behind the beat in Live; the score never knows (ADR-028)."""
+    part = Part(instrument=Instrument.BASS, notes=(a_note(start_beats=1.0),))
+    assert render_part(part)[0].start_beats == 1.0 + PART_LEANS[Instrument.BASS]
+    assert render_part(part, pocket=False)[0].start_beats == 1.0
 
 
 def test_rendering_is_pure() -> None:

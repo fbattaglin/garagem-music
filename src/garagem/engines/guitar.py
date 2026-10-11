@@ -1,16 +1,19 @@
-"""The guitarist: power chords, voice-led, palm-muted when the section is holding back.
+"""The guitarist: power chords on the low strings, palm-muted when the section holds back.
 
-Power chords by default because that is what rock is: no third, so the same shape sits
-over a major and a minor bar and the harmony comes from the bass and the keys. Richer
-voicings arrive with `dyn`, not with cleverness.
+Power chords at every dynamic, because that is what rock is: no third, so the same shape sits
+over a major and a minor bar, and the harmony comes from the bass and the organ. A chorus gets
+bigger by ringing, and by a second guitar joining it (`engines/double.py`), not by adding a
+third to the chord. Close triads in a chorus were a keyboard player's idea of "opening up", and
+they sat in the same octave as the keys (ADR-028).
 
-**A palm mute is a short note and a soft one, not a flag.** Nothing downstream has to
-interpret it: the renderer writes a duration and a velocity, Live plays exactly that, and
-a muted chug is audibly a muted chug. A boolean would have to be understood by every
-layer between here and the audio engine.
+**The shape moves along the neck, not between inversions.** `theory.power_chord` puts each root
+on the low E or A string, and the hand slides the whole shape from chord to chord. Voice leading
+is what a pianist does, and on a power chord it produced fourths.
 
-`voice_lead` runs across every chord change, which is what stops four chords sounding
-like four chords.
+**A palm mute is a short note and a soft one, not a flag.** Nothing downstream has to interpret
+it: the renderer writes a duration and a velocity, Live plays exactly that, and a muted chug is
+audibly a muted chug. A boolean would have to be understood by every layer between here and the
+audio engine.
 """
 
 from __future__ import annotations
@@ -27,7 +30,7 @@ from garagem.domain import (
     beats_of,
 )
 from garagem.engines.humanise import humanise, separate
-from garagem.theory.voicings import Register, fit_to_range, voice, voice_lead
+from garagem.theory.voicings import power_chord
 
 # Which sixteenths get a strum, per feel. The DSL's own `rhy:` line, chosen rather than
 # generated.
@@ -47,9 +50,10 @@ MUTED_BEATS = 0.12
 RING_BEATS = 0.5
 MUTED_DROP = 14
 
-# A triad instead of a power chord once the section opens up: more information in the
-# chord, which is what a chorus wants and a verse does not.
-TRIAD_DYN = 4
+# From here the chord rings into the next strum instead of stopping on the eighth. That
+# sustain is the arena half of the sound in a chorus (ADR-028), and in a half-time chorus it
+# is the difference between two stabs a bar and two chords a bar.
+SUSTAIN_DYN = 4
 
 BASE_VELOCITY = 48
 DYN_VELOCITY = 13
@@ -58,31 +62,26 @@ DOWNBEAT_ACCENT = 10
 
 def play(section: Section, rng: Random) -> Part:
     """One guitar part for the whole section."""
-    style = "triad" if section.dyn >= TRIAD_DYN else "pow"
     muted = section.dyn < MUTED_DYN
     velocity = BASE_VELOCITY + DYN_VELOCITY * section.dyn - (MUTED_DROP if muted else 0)
     rhythm = RHYTHMS[section.feel]
+    attacks = [slot for slot, mark in enumerate(rhythm) if mark == "x"]
 
     notes: list[Note] = []
-    previous: tuple[int, ...] = ()
     for bar in range(section.bars):
-        chord = section.chart.at(bar)
-        shape = fit_to_range(voice(chord, style, Register.MID), Instrument.GUITAR)
-        shape = fit_to_range(voice_lead(previous, shape), Instrument.GUITAR)
-        previous = shape
+        shape = power_chord(section.chart.at(bar))
         offset = bar * SIXTEENTHS_PER_BAR
 
-        for slot, mark in enumerate(rhythm):
-            if mark != "x":
-                continue
+        for slot in attacks:
             at = beats_of(offset + slot, section.feel)
             accent = DOWNBEAT_ACCENT if slot % 4 == 0 else 0
+            length = _length(section, attacks, slot, muted=muted)
             for pitch in shape:
                 notes.append(
                     Note(
                         pitch=pitch,
                         start_beats=at,
-                        duration_beats=MUTED_BEATS if muted else RING_BEATS,
+                        duration_beats=length,
                         velocity=min(127, max(1, velocity + accent)),
                     )
                 )
@@ -90,3 +89,14 @@ def play(section: Section, rng: Random) -> Part:
     return Part(
         instrument=Instrument.GUITAR, notes=separate(humanise(notes, rng, feel=section.feel))
     )
+
+
+def _length(section: Section, attacks: list[int], slot: int, *, muted: bool) -> float:
+    """Muted, ringing for an eighth, or sustained until the next strum."""
+    if muted:
+        return MUTED_BEATS
+    if section.dyn < SUSTAIN_DYN:
+        return RING_BEATS
+    later = [other for other in attacks if other > slot]
+    following = later[0] if later else attacks[0] + SIXTEENTHS_PER_BAR
+    return beats_of(following, section.feel) - beats_of(slot, section.feel)

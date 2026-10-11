@@ -1,4 +1,4 @@
-# DRM=97 BAS=32 GTR=96 KEY=48; notes sha256 3353857a685485c7
+# DRM=97 BAS=32 GTR=144 KEY=48; notes sha256 c2c47d641c66d90c
 SEC verse bars=8 key=Fm feel=straight8 bpm=132 dyn=2 tension=0.35
 CHD | Fm | Fm | C# | D# |
 DRM K:x.....x.x....... S:....x.......x... H:x.x.x.x.x.x.x.x. C:x...............
@@ -17,14 +17,14 @@ BAS deg=1 oct=2 rhy:x.....x.x...x...
 BAS deg=1 oct=2 rhy:x.....x.x...x...
 BAS deg=1 oct=2 rhy:x.....x.x...x...
 BAS deg=1 oct=2 rhy:x.....x.x...x...
-GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,4,7,9,15
-GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,4,12,15
-GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,4,15
+GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=4,7,9,12,15
+GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,4,7,15
+GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,4,7,9,12
+GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=9,12,15
+GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,7
 GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,4,7,9,12,15
-GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,4
-GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=7,9,15
-GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,9,12
-GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=9,15
+GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=1,7,15
+GTR voi=pow rhy:x..x..x.x..x..x. palm=on acc=4,7,12
 KEY voi=sus4 rhy:x.......x....... reg=high
 KEY voi=sus4 rhy:x.......x....... reg=high
 KEY voi=sus4 rhy:x.......x....... reg=high

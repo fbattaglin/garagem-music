@@ -100,7 +100,8 @@ def test_a_bass_line_names_the_degree_and_the_octave() -> None:
         if line.startswith("BAS")
     )
     assert "deg=1" in line
-    assert "oct=2" in line
+    # E1, the bass's open low string: the floor's roots sit on the low strings (ADR-028).
+    assert "oct=1" in line
     assert "rhy:" in line
 
 

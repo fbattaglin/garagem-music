@@ -55,9 +55,16 @@ RANGES: Final[dict[Instrument, tuple[int, int]]] = {
     # G3 - C6: it starts where the bass stops, so the two can never share an octave, and
     # it reaches over the top of the guitar, which is where a hook has to be heard from.
     Instrument.LEAD: (55, 84),
+    # The same guitar played twice (`engines/double.py`): the same strings, the same range.
+    Instrument.GUITAR_DOUBLE: (40, 76),
 }
 
 STYLES: Final[tuple[str, ...]] = ("pow", "triad", "sus2", "sus4", "drop2", "shell")
+
+# A rock guitar's power-chord roots, from the open low E to the eleventh fret of the same
+# string: one place for each pitch class, so a progression slides along the neck rather than
+# jumping between registers.
+POWER_ROOTS: Final[tuple[int, int]] = (40, 51)  # E2 - D#3
 
 
 def voice(chord: Chord, style: str, register: Register) -> tuple[int, ...]:
@@ -82,6 +89,27 @@ def voice(chord: Chord, style: str, register: Register) -> tuple[int, ...]:
     if style == "shell":
         return tuple(base + step for step in _shell(chord))
     return _drop2(tuple(base + step for step in chord.intervals()))
+
+
+def power_chord(chord: Chord) -> tuple[int, ...]:
+    """Root, fifth and octave, with the root on a rock guitar's low E or A string.
+
+    This is the shape a rock guitarist's hand makes, and it is a different thing from
+    `voice(chord, "pow", ...)`, which is the DSL's register-relative dyad. Two differences
+    are audible.
+
+    - **Where it sits.** The root is placed between E2 and D#3 (`POWER_ROOTS`), where the
+      low strings are. Octave 3 put the roots an octave above that (ADR-028).
+    - **How it moves.** It is never voice-led. `voice_lead` turns a power chord into a
+      fourth from the bottom, which is a keyboard player's economy: a guitarist moves the
+      whole shape along the neck instead.
+
+    It always has three notes, at every dynamic and for every caller, so that the
+    serializer's `voi=pow` comes back as the same chord it read (`dsl/realise.py`).
+    """
+    low = POWER_ROOTS[0]
+    root = low + (chord.root - low) % SEMITONES_PER_OCTAVE
+    return (root, root + fifth_of(chord), root + SEMITONES_PER_OCTAVE)
 
 
 def fifth_of(chord: Chord) -> int:

@@ -67,12 +67,14 @@ from garagem.theory.validator import (
     validate,
 )
 from garagem.theory.voicings import (
+    POWER_ROOTS,
     RANGES,
     REGISTER_OCTAVES,
     STYLES,
     Register,
     fifth_of,
     fit_to_range,
+    power_chord,
     voice,
     voice_lead,
 )
@@ -97,6 +99,7 @@ __all__ = [
     "NAMES",
     "OPEN_HAT",
     "PEDAL_HAT",
+    "POWER_ROOTS",
     "RANGES",
     "REGISTER_OCTAVES",
     "RIDE",
@@ -130,6 +133,7 @@ __all__ = [
     "parse_chord",
     "pitch_classes",
     "pitch_of",
+    "power_chord",
     "register_spread",
     "render_chart",
     "render_chord",

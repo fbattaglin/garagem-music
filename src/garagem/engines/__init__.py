@@ -14,8 +14,9 @@ from garagem.engines.arranger import (
     tension_offset,
     with_climax,
 )
-from garagem.engines.band import ENGINES, completed, play_section
+from garagem.engines.band import ENGINES, completed, play_section, with_double
 from garagem.engines.coherence import coherence_of, reference_attacks
+from garagem.engines.double import DOUBLE_DYN, double
 from garagem.engines.groove import FILLS, GROOVES, Groove, fill_for, groove_for
 from garagem.engines.humanise import (
     FEEL_AMOUNT,
@@ -36,6 +37,7 @@ from garagem.engines.transitions import (
 from garagem.engines.variants import FILL_CUE_TENSION, FillStyle, fill_bars, land_bars, stop_bars
 
 __all__ = [
+    "DOUBLE_DYN",
     "ENDINGS",
     "ENGINES",
     "FEEL_AMOUNT",
@@ -60,6 +62,7 @@ __all__ = [
     "continue_from",
     "density_offset",
     "diatonic",
+    "double",
     "endings_for",
     "fill_bars",
     "fill_for",
@@ -75,4 +78,5 @@ __all__ = [
     "tail_bars",
     "tension_offset",
     "with_climax",
+    "with_double",
 ]
