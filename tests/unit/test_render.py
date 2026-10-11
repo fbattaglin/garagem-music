@@ -140,3 +140,18 @@ def test_only_the_instrument_it_is_declared_for_is_moved() -> None:
     plain = render_score(score)
     assert rendered[Instrument.BASS] == plain[Instrument.BASS]
     assert all(note.pitch != 50 for note in rendered[Instrument.DRUMS])
+
+
+def test_a_palm_mute_stays_under_the_split_and_a_ringing_chord_over_it() -> None:
+    """A sampler that picks its articulation by velocity must never get the other one."""
+    loud_chug = Note(pitch=40, start_beats=0.0, duration_beats=0.12, velocity=90)
+    quiet_strum = Note(pitch=40, start_beats=1.0, duration_beats=0.5, velocity=50)
+    part = Part(instrument=Instrument.GUITAR, notes=(loud_chug, quiet_strum))
+    rendered = render_part(part, pocket=False, palm_below=72)
+    assert [note.velocity for note in rendered] == [71, 72]
+
+
+def test_without_a_split_the_velocities_are_the_band_s_own() -> None:
+    note = Note(pitch=40, start_beats=0.0, duration_beats=0.12, velocity=90)
+    part = Part(instrument=Instrument.GUITAR, notes=(note,))
+    assert render_part(part, pocket=False)[0].velocity == 90

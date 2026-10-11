@@ -20,9 +20,13 @@ written to a file is in English.
 - `uv run mypy` — strict typing
 - `uv run python scripts/bench_latency.py` — measures p50/p95/p99 TTFT per model.
   Estimates and stops unless `--yes`; spends real money and needs API keys.
-- `uv run python scripts/bootstrap_set.py` — validates the Live Set against `session.toml`;
-  `--apply` repairs tempo, quantisation, track names and track arm. Never creates a track
-  (ADR-013).
+- `uv run python scripts/bootstrap_set.py` — validates the Live Set against `session.toml`,
+  each track's instrument by name included; `--apply` repairs tempo, quantisation, track
+  names, track arm and the mix. Never creates a track (ADR-013). `--mix` prints the open Set's
+  volume, pan and sends as lines to paste into `session.toml`.
+- `uv run python scripts/soundcheck.py` — loops a verse, a bridge and a chorus of the band so
+  its sounds can be chosen by ear while presets are swapped in Live (ADR-028). `--only ROLE`,
+  `--pocket off`. Writes the first three scenes before playing; never changes `session.toml`.
 - `uv run python scripts/probe_live.py` — walks every AbletonOSC address the adapter uses
   and reports what came back. Read-only; the cheapest place to find a wrong constant.
 - `uv run python scripts/install_abletonosc.py` — installs AbletonOSC into Live's Remote
@@ -79,6 +83,8 @@ Run `ruff` and `mypy` before any commit.
   imports `llm/`, `daw/` or `transport/` (ADR-024)
 - `setlists/` — setlist specs (`.toml`, written by hand) and their bakes (`.json`)
 - `src/garagem/obs/` — JSONL event log, metrics, latency rig, TUI
+- `src/garagem/stage/` — the application layer a person runs: roles to tracks, and (ADR-028)
+  the ready check, the show screen and the show. The only package that wires the others
 - `session.toml` — "Set as Code": the Live Set the bootstrap validates against (ADR-013)
 - `controller.toml` — "Controller as Code": which pad and knob asks the band for what.
   Every MIDI number in it was heard by `scripts/probe_minilab.py`, none guessed.

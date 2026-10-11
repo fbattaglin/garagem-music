@@ -38,6 +38,7 @@ def a_live_set() -> FakeDawAdapter:
     """A Set that already matches `session.toml` — what Step 18 builds by hand."""
     return FakeDawAdapter(
         track_names=tuple(track.name for track in SPEC.tracks),
+        device_names=[(track.instrument,) for track in SPEC.tracks],
         scenes=len(SPEC.scenes),
         tempo_bpm=SPEC.tempo_bpm,
         quantization=SPEC.quantization,

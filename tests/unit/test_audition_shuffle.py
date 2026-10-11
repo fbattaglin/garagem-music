@@ -166,6 +166,7 @@ def test_a_whole_run_against_a_fake_live(
     spec = load_session(ROOT / "session.toml")
     daw = FakeDawAdapter(
         track_names=[track.name for track in spec.tracks],
+        device_names=[(track.instrument,) for track in spec.tracks],
         scenes=max(len(spec.scenes), 4),
         tempo_bpm=spec.tempo_bpm,
         quantization=spec.quantization,

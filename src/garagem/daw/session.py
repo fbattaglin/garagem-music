@@ -45,13 +45,20 @@ KINDS: Final[tuple[str, ...]] = (
     "not_a_midi_track",
     "armed",
     "loop",
+    "wrong_instrument",
+    "volume",
+    "pan",
+    "send",
 )
 # The ones the LOM can repair. Everything else is a human's job (ADR-013).
 MAX_MIDI_NOTE: Final = 127
 
 FIXABLE_KINDS: Final[frozenset[str]] = frozenset(
-    {"tempo", "quantization", "track_name", "armed", "loop"}
+    {"tempo", "quantization", "track_name", "armed", "loop", "volume", "pan", "send"}
 )
+# A fader is a 32-bit float on the wire (`abletonosc.MIX_TOLERANCE`), and a mix this close
+# is the same mix to any ear.
+MIX_TOLERANCE: Final = 1e-3
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,8 +66,10 @@ class TrackSpec:
     index: int
     name: str
     role: str
-    # Informational: the API cannot load it. It tells the human what to drop in, and
-    # the check is only that *some* device is present.
+    # What the human loads, since the API cannot (ADR-013). Checked by name since ADR-028:
+    # some device on the track must be called this, or start with it ("Kontakt" matches
+    # "Kontakt 8"). The kit drifted from Dry Session to Gen Purpose unnoticed while the check
+    # was only that *some* device was present. Empty means any instrument will do.
     instrument: str
     # `None` means the Set may have it either way. The band's tracks declare `false`: an
     # armed MIDI track plays whatever the MiniLab sends, cue pads included (ADR-022).
@@ -70,6 +79,15 @@ class TrackSpec:
     # rather than of the music: `theory/percussion.py` stays the band's own vocabulary, and
     # this table says where this kit keeps it. Empty means the two already agree.
     pitches: tuple[tuple[int, int], ...] = ()
+    # The mix, as Live stores it (ADR-028): the fader 0.0-1.0 where 0.85 is 0 dB, the pan
+    # -1.0 (left) to 1.0, and one level per return track. `None` means the Set may have any.
+    volume: float | None = None
+    pan: float | None = None
+    sends: tuple[float, ...] | None = None
+    # The velocity below which this Set's guitar plays a palm mute. A sampler that picks its
+    # articulation by velocity needs the band's muted notes and its ringing ones never to
+    # cross; `transport/render.py` keeps them apart. `None`: the instrument does not care.
+    palm_mute_below: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,6 +120,10 @@ class ObservedSet:
     scene_count: int
     armed: tuple[bool, ...] = ()
     loop: bool | None = None
+    # Per track, read only when the spec declares a mix (ADR-028).
+    volumes: tuple[float, ...] = ()
+    pans: tuple[float, ...] = ()
+    sends: tuple[tuple[float, ...], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -190,6 +212,10 @@ def _tracks(path: Path, entries: Sequence[dict[str, Any]]) -> tuple[TrackSpec, .
             instrument=str(entry.get("instrument", "")),
             armed=_armed(path, entry),
             pitches=_pitches(path, entry),
+            volume=_level(path, entry, "volume", 0.0, 1.0),
+            pan=_level(path, entry, "pan", -1.0, 1.0),
+            sends=_sends(path, entry),
+            palm_mute_below=_palm(path, entry),
         )
         for entry in entries
     )
@@ -201,6 +227,42 @@ def _tracks(path: Path, entries: Sequence[dict[str, Any]]) -> tuple[TrackSpec, .
     if len(set(names)) != len(names):
         raise SessionSpecError(f"{path}: duplicate track names in {names}")
     return tracks
+
+
+def _level(path: Path, entry: dict[str, Any], key: str, low: float, high: float) -> float | None:
+    if key not in entry:
+        return None
+    value = entry[key]
+    if isinstance(value, bool) or not isinstance(value, int | float) or not low <= value <= high:
+        raise SessionSpecError(
+            f"{path}: track {entry.get('index')} {key} must be a number in {low}..{high}, "
+            f"got {value!r}"
+        )
+    return float(value)
+
+
+def _sends(path: Path, entry: dict[str, Any]) -> tuple[float, ...] | None:
+    if "sends" not in entry:
+        return None
+    raw = entry["sends"]
+    if not isinstance(raw, list):
+        raise SessionSpecError(f"{path}: track {entry.get('index')} sends must be a list")
+    return tuple(
+        _level(path, {"index": entry.get("index"), "send": level}, "send", 0.0, 1.0) or 0.0
+        for level in raw
+    )
+
+
+def _palm(path: Path, entry: dict[str, Any]) -> int | None:
+    if "palm_mute_below" not in entry:
+        return None
+    value = entry["palm_mute_below"]
+    if isinstance(value, bool) or not isinstance(value, int) or not 2 <= value <= MAX_MIDI_NOTE:
+        raise SessionSpecError(
+            f"{path}: track {entry.get('index')} palm_mute_below must be a velocity in "
+            f"2..{MAX_MIDI_NOTE}, got {value!r}"
+        )
+    return value
 
 
 def _armed(path: Path, entry: dict[str, Any]) -> bool | None:
@@ -235,9 +297,14 @@ def _contiguous(path: Path, kind: str, indices: Sequence[int]) -> None:
         )
 
 
-def observe(daw: DawPort) -> ObservedSet:
-    """One snapshot of the open Set, in the shape `diff_session` needs."""
+def observe(daw: DawPort, spec: SessionSpec | None = None) -> ObservedSet:
+    """One snapshot of the open Set, in the shape `diff_session` needs.
+
+    The mix is read only when `spec` declares one, and only as many sends as it names: a
+    Set checked against a spec with no mix costs no more requests than it ever did.
+    """
     names = daw.track_names()
+    volumes, pans, sends = _mix(daw, spec, len(names)) if spec is not None else ((), (), ())
     return ObservedSet(
         tempo_bpm=daw.tempo(),
         quantization=daw.quantization(),
@@ -247,7 +314,25 @@ def observe(daw: DawPort) -> ObservedSet:
         scene_count=daw.scene_count(),
         armed=tuple(daw.track_armed(index) for index in range(len(names))),
         loop=daw.song_loop(),
+        volumes=volumes,
+        pans=pans,
+        sends=sends,
     )
+
+
+def _mix(
+    daw: DawPort, spec: SessionSpec, count: int
+) -> tuple[tuple[float, ...], tuple[float, ...], tuple[tuple[float, ...], ...]]:
+    declared = [t for t in spec.tracks if t.volume is not None or t.pan is not None or t.sends]
+    if not declared:
+        return (), (), ()
+    returns = max((len(track.sends or ()) for track in spec.tracks), default=0)
+    volumes = tuple(daw.track_volume(index) for index in range(count))
+    pans = tuple(daw.track_pan(index) for index in range(count))
+    sends = tuple(
+        tuple(daw.track_send(index, send) for send in range(returns)) for index in range(count)
+    )
+    return volumes, pans, sends
 
 
 def diff_session(spec: SessionSpec, observed: ObservedSet) -> tuple[Divergence, ...]:
@@ -327,7 +412,8 @@ def diff_session(spec: SessionSpec, observed: ObservedSet) -> tuple[Divergence, 
                     track=track.index,
                 )
             )
-        if not observed.device_names[track.index]:
+        devices = observed.device_names[track.index]
+        if not devices:
             found.append(
                 Divergence(
                     "no_instrument",
@@ -337,6 +423,17 @@ def diff_session(spec: SessionSpec, observed: ObservedSet) -> tuple[Divergence, 
                     track=track.index,
                 )
             )
+        elif track.instrument and not _carries(devices, track.instrument):
+            found.append(
+                Divergence(
+                    "wrong_instrument",
+                    f"track {track.index} ({track.name}) carries {list(devices)}, "
+                    f"but it wants {track.instrument!r}",
+                    False,
+                    track=track.index,
+                )
+            )
+        found.extend(_mix_divergences(track, observed))
 
     if len(observed.track_names) > len(spec.tracks):
         extra = observed.track_names[len(spec.tracks) :]
@@ -353,13 +450,59 @@ def diff_session(spec: SessionSpec, observed: ObservedSet) -> tuple[Divergence, 
     return tuple(found)
 
 
+def _carries(devices: Sequence[str], instrument: str) -> bool:
+    wanted = instrument.casefold()
+    return any(device.casefold().startswith(wanted) for device in devices)
+
+
+def _mix_divergences(track: TrackSpec, observed: ObservedSet) -> list[Divergence]:
+    found: list[Divergence] = []
+    where = f"track {track.index} ({track.name})"
+    if track.volume is not None and track.index < len(observed.volumes):
+        seen = observed.volumes[track.index]
+        if abs(seen - track.volume) > MIX_TOLERANCE:
+            found.append(
+                Divergence(
+                    "volume",
+                    f"{where} fader is {seen:.3f}, expected {track.volume:.3f}",
+                    True,
+                    track=track.index,
+                )
+            )
+    if track.pan is not None and track.index < len(observed.pans):
+        seen = observed.pans[track.index]
+        if abs(seen - track.pan) > MIX_TOLERANCE:
+            found.append(
+                Divergence(
+                    "pan",
+                    f"{where} pan is {seen:+.2f}, expected {track.pan:+.2f}",
+                    True,
+                    track=track.index,
+                )
+            )
+    if track.sends is not None and track.index < len(observed.sends):
+        seen_sends = observed.sends[track.index]
+        for send, level in enumerate(track.sends):
+            if send < len(seen_sends) and abs(seen_sends[send] - level) > MIX_TOLERANCE:
+                found.append(
+                    Divergence(
+                        "send",
+                        f"{where} send {chr(ord('A') + send)} is {seen_sends[send]:.3f}, "
+                        f"expected {level:.3f}",
+                        True,
+                        track=track.index,
+                    )
+                )
+    return found
+
+
 def apply_session(daw: DawPort, spec: SessionSpec) -> tuple[Divergence, ...]:
     """Repair what the LOM can repair; return what is left for a human.
 
     Idempotent by construction: the second pass finds nothing fixable and therefore
     issues no writes at all — not "writes the same thing again".
     """
-    for divergence in diff_session(spec, observe(daw)):
+    for divergence in diff_session(spec, observe(daw, spec)):
         if divergence.kind == "tempo":
             daw.set_tempo(spec.tempo_bpm)
         elif divergence.kind == "quantization":
@@ -372,7 +515,41 @@ def apply_session(daw: DawPort, spec: SessionSpec) -> tuple[Divergence, ...]:
             wanted = spec.tracks[divergence.track].armed
             if wanted is not None:
                 daw.set_track_armed(divergence.track, wanted)
-    return diff_session(spec, observe(daw))
+        elif divergence.kind in ("volume", "pan", "send") and divergence.track is not None:
+            _apply_mix(daw, spec.tracks[divergence.track], divergence.kind)
+    return diff_session(spec, observe(daw, spec))
+
+
+def _apply_mix(daw: DawPort, track: TrackSpec, kind: str) -> None:
+    if kind == "volume" and track.volume is not None:
+        daw.set_track_volume(track.index, track.volume)
+    elif kind == "pan" and track.pan is not None:
+        daw.set_track_pan(track.index, track.pan)
+    elif kind == "send" and track.sends is not None:
+        for send, level in enumerate(track.sends):
+            if abs(daw.track_send(track.index, send) - level) > MIX_TOLERANCE:
+                daw.set_track_send(track.index, send, level)
+
+
+def render_mix(daw: DawPort, spec: SessionSpec, returns: int = 2) -> str:
+    """The open Set's mix as `session.toml` lines, one block per track, to paste in.
+
+    The mix is made by ear in Live and pinned afterwards: nobody should have to type a fader
+    position. Read-only.
+    """
+    lines: list[str] = []
+    for track in spec.tracks:
+        sends = ", ".join(f"{daw.track_send(track.index, send):.3f}" for send in range(returns))
+        lines.extend(
+            [
+                f"# track {track.index}: {track.name}",
+                f"volume = {daw.track_volume(track.index):.3f}",
+                f"pan = {daw.track_pan(track.index):.2f}",
+                f"sends = [{sends}]",
+                "",
+            ]
+        )
+    return "\n".join(lines)
 
 
 def ensure_clip(daw: DawPort, at: ClipAddress, length_beats: float) -> None:
@@ -407,8 +584,14 @@ def _instruction(divergence: Divergence) -> str:
             )
         case "no_instrument":
             return (
-                " — open the Set and load the preset named above onto that track;"
-                " they are all Core Library presets, so search the browser by name"
+                " — open the Set and load the instrument named above onto that track:"
+                " search Live's browser by its name (Plug-Ins for Kontakt, Analog Lab)"
+            )
+        case "wrong_instrument":
+            return (
+                " — in Live, click that track, find the instrument named above in the"
+                " browser and drag it onto the track's device area, replacing the one there;"
+                " or, if the one there is the one you chose, write its name in session.toml"
             )
         case "extra_track":
             return " — remove them in Live, or add them to session.toml if they belong"

@@ -26,6 +26,7 @@ from garagem.daw import (
     load_session,
     observe,
     render_divergences,
+    render_mix,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -414,7 +415,7 @@ def test_the_report_says_who_fixes_each_line_and_how() -> None:
     # The preset by name, not a generic "drop Drift on it": since ADR-025 every track
     # wants a particular Core Library preset, and the report is what he reads in Live.
     assert "'Electric Bass Raw'" in report
-    assert "load the preset named above" in report
+    assert "load the instrument named above" in report
 
 
 def test_a_track_says_which_notes_its_instrument_answers_to(tmp_path: Path) -> None:
@@ -438,3 +439,86 @@ def test_the_shipped_set_declares_the_kits_toms() -> None:
     """The Dry Session Kit keeps a ride where the band writes its high tom."""
     drums = load_session(SHIPPED).tracks[0]
     assert dict(drums.pitches) == {50: 47, 47: 45, 45: 43, 43: 41}
+
+
+# -------------------------------------------------------- the sound as code (ADR-028)
+
+MIXED_TOML = SPEC_TOML.replace(
+    'name = "BASS"\ninstrument = "Drift"',
+    'name = "BASS"\ninstrument = "Drift"\nvolume = 0.7\npan = -0.5\nsends = [0.25, 0.0]\n'
+    "palm_mute_below = 72",
+)
+
+
+def test_a_track_carrying_another_instrument_is_a_job_for_a_human(tmp_path: Path) -> None:
+    """The kit drifted from Dry Session to Gen Purpose while only *some* device was checked."""
+    spec = load_session(a_spec(tmp_path))
+    daw = FakeDawAdapter(
+        track_names=("DRUMS", "BASS"),
+        device_names=[("Gen Purpose Kit",), ("Drift",)],
+        scenes=2,
+        tempo_bpm=132.0,
+    )
+    divergences = diff_session(spec, observe(daw, spec))
+    assert kinds(divergences) == ["wrong_instrument"]
+    assert not divergences[0].fixable
+    assert "Gen Purpose Kit" in render_divergences(divergences)
+
+
+def test_an_instrument_is_matched_by_the_start_of_its_device_name(tmp_path: Path) -> None:
+    """`Kontakt` in session.toml is the plugin Live calls `Kontakt 8`."""
+    body = SPEC_TOML.replace(
+        'name = "BASS"\ninstrument = "Drift"', 'name = "BASS"\ninstrument = "kontakt"'
+    )
+    spec = load_session(a_spec(tmp_path, body))
+    daw = FakeDawAdapter(
+        track_names=("DRUMS", "BASS"),
+        device_names=[("Drift",), ("Kontakt 8", "Utility")],
+        scenes=2,
+        tempo_bpm=132.0,
+    )
+    assert diff_session(spec, observe(daw, spec)) == ()
+
+
+def test_the_mix_is_read_and_parsed_from_the_track(tmp_path: Path) -> None:
+    bass = load_session(a_spec(tmp_path, MIXED_TOML)).tracks[1]
+    assert (bass.volume, bass.pan, bass.sends, bass.palm_mute_below) == (0.7, -0.5, (0.25, 0.0), 72)
+
+
+@pytest.mark.parametrize(
+    "line",
+    ["volume = 1.5", "pan = -2", "sends = [0.2, 3]", 'volume = "loud"', "palm_mute_below = 0"],
+)
+def test_a_mix_value_out_of_range_is_refused_with_the_file_named(tmp_path: Path, line: str) -> None:
+    body = SPEC_TOML.replace(
+        'name = "BASS"\ninstrument = "Drift"', f'name = "BASS"\ninstrument = "Drift"\n{line}'
+    )
+    with pytest.raises(SessionSpecError, match=r"session\.toml"):
+        load_session(a_spec(tmp_path, body))
+
+
+def test_the_mix_is_applied_and_a_second_pass_writes_nothing(tmp_path: Path) -> None:
+    spec = load_session(a_spec(tmp_path, MIXED_TOML))
+    daw = matching_daw()
+    assert kinds(diff_session(spec, observe(daw, spec))) == ["volume", "pan", "send"]
+    assert apply_session(daw, spec) == ()
+    assert (daw.track_volume(1), daw.track_pan(1), daw.track_send(1, 0)) == (0.7, -0.5, 0.25)
+    daw.calls.clear()
+    assert apply_session(daw, spec) == ()
+    assert not [call for call in daw.calls if call.startswith("set_")]
+
+
+def test_a_spec_without_a_mix_reads_no_fader(tmp_path: Path) -> None:
+    """A Set checked against an older spec costs no more requests than it ever did."""
+    spec = load_session(a_spec(tmp_path))
+    daw = matching_daw()
+    observe(daw, spec)
+    assert "track_volume" not in daw.calls
+
+
+def test_the_mix_is_printed_as_lines_to_paste_into_the_spec(tmp_path: Path) -> None:
+    spec = load_session(a_spec(tmp_path))
+    daw = matching_daw()
+    daw.set_track_pan(1, -0.5)
+    printed = render_mix(daw, spec)
+    assert "# track 1: BASS\nvolume = 0.850\npan = -0.50\nsends = [0.000, 0.000]" in printed

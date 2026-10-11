@@ -177,6 +177,7 @@ class Scheduler:
         variants: Mapping[str, Mapping[int, int]] | None = None,
         pitches: Mapping[Instrument, Mapping[int, int]] | None = None,
         pocket: bool = True,
+        palms: Mapping[Instrument, int] | None = None,
     ) -> None:
         self._daw = daw
         self._clock = clock
@@ -197,8 +198,17 @@ class Scheduler:
         self._pitches = {instrument: dict(m) for instrument, m in (pitches or {}).items()}
         # Each player's lean against the beat, on the way out (`engines/pocket.py`, ADR-028).
         self._pocket = pocket
+        # The velocity each guitar's sampler splits palm mute from sustain at (`session.toml`).
+        self._palms = dict(palms or {})
         self._bar_cues = BarCues(
-            daw, tracks, log, self._beats, variants or {}, self._pitches, pocket=pocket
+            daw,
+            tracks,
+            log,
+            self._beats,
+            variants or {},
+            self._pitches,
+            pocket=pocket,
+            palms=self._palms,
         )
 
         self._sections: tuple[Section, ...] = ()
@@ -945,7 +955,9 @@ class Scheduler:
         # that way (P6); `ms` is how much of a bar the write actually cost, which is the
         # one number `write_lead` has to be sized against and cannot be read in beats.
         started = time.monotonic()
-        rendered = render_score(score, pitches=self._pitches, pocket=self._pocket)
+        rendered = render_score(
+            score, pitches=self._pitches, pocket=self._pocket, palms=self._palms
+        )
         for instrument, notes in rendered.items():
             track = self._tracks.get(instrument)
             if track is None:

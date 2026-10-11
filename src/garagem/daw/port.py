@@ -256,6 +256,33 @@ class DawPort(Protocol):
         """Whether a launch of this clip takes over the playing clip's position (ADR-022)."""
         ...
 
+    def clip_looping(self, at: ClipAddress) -> bool: ...
+
+    def set_clip_looping(self, at: ClipAddress, on: bool) -> None:
+        """Whether the clip starts again when it ends. The sound check loops; a jam does not
+        need to, because the next section is always fired before the last one ends."""
+        ...
+
+    # ------------------------------------------------------------------------- the mix
+
+    def track_volume(self, track: int) -> float:
+        """The track's fader as Live stores it, 0.0 to 1.0: 0.85 is 0 dB (ADR-028)."""
+        ...
+
+    def set_track_volume(self, track: int, volume: float) -> None: ...
+
+    def track_pan(self, track: int) -> float:
+        """-1.0 is hard left, 1.0 hard right."""
+        ...
+
+    def set_track_pan(self, track: int, pan: float) -> None: ...
+
+    def track_send(self, track: int, send: int) -> float:
+        """How much of the track goes to return `send` (0 is A), 0.0 to 1.0."""
+        ...
+
+    def set_track_send(self, track: int, send: int, level: float) -> None: ...
+
     # ------------------------------------------------------------------------ the beat
 
     def listen_beats(self, handler: BeatHandler) -> None:

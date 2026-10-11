@@ -70,6 +70,7 @@ def live(monkeypatch: pytest.MonkeyPatch) -> FakeDawAdapter:
     spec = jam.load_session(jam.DEFAULT_SESSION)
     daw = FakeDawAdapter(
         track_names=[track.name for track in spec.tracks],
+        device_names=[(track.instrument,) for track in spec.tracks],
         scenes=max(len(spec.scenes), 4),
         tempo_bpm=spec.tempo_bpm,
         quantization=spec.quantization,

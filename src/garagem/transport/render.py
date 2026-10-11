@@ -23,6 +23,7 @@ from collections.abc import Mapping
 
 from garagem.daw import MidiNote, normalised
 from garagem.domain import BEATS_PER_BAR, Instrument, Note, Part, SectionScore
+from garagem.engines.guitar import articulated
 from garagem.engines.pocket import lean
 
 Pitches = Mapping[int, int]
@@ -46,7 +47,12 @@ def render_note(note: Note, *, bar_offset: int = 0, pitches: Pitches | None = No
 
 
 def render_part(
-    part: Part, *, bar_offset: int = 0, pitches: Pitches | None = None, pocket: bool = True
+    part: Part,
+    *,
+    bar_offset: int = 0,
+    pitches: Pitches | None = None,
+    pocket: bool = True,
+    palm_below: int | None = None,
 ) -> tuple[MidiNote, ...]:
     """One instrument's notes, ready for `write_notes`.
 
@@ -56,8 +62,13 @@ def render_part(
     it: the validator and the golden files judge the grid. The lean is applied before the kit's
     pitch map, because it is keyed on the band's own vocabulary: a snare is a snare whichever
     pad the Set keeps it on.
+
+    With `palm_below`, a palm mute is kept under that velocity and a ringing note over it,
+    for an instrument that chooses its articulation by velocity (`engines.guitar.articulated`).
     """
     notes = lean(part) if pocket else part.notes
+    if palm_below is not None:
+        notes = articulated(notes, palm_below)
     return normalised(render_note(note, bar_offset=bar_offset, pitches=pitches) for note in notes)
 
 
@@ -67,6 +78,7 @@ def render_score(
     bar_offset: int = 0,
     pitches: Mapping[Instrument, Pitches] | None = None,
     pocket: bool = True,
+    palms: Mapping[Instrument, int] | None = None,
 ) -> dict[Instrument, tuple[MidiNote, ...]]:
     """Every part of a section, keyed by instrument.
 
@@ -80,6 +92,7 @@ def render_score(
             bar_offset=bar_offset,
             pitches=pitches.get(part.instrument) if pitches else None,
             pocket=pocket,
+            palm_below=palms.get(part.instrument) if palms else None,
         )
         for part in score.parts
     }

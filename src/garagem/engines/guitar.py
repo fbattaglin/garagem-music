@@ -18,7 +18,9 @@ audio engine.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from random import Random
+from typing import Final
 
 from garagem.domain import (
     SIXTEENTHS_PER_BAR,
@@ -49,6 +51,11 @@ MUTED_DYN = 3
 MUTED_BEATS = 0.12
 RING_BEATS = 0.5
 MUTED_DROP = 14
+
+# Up to this long a guitar note is a palm mute, wherever it came from: the floor's chug, a
+# model's `palm=on`, a stop's downbeat is not. The serializer reads the notation by the
+# same length (`dsl/serialize.PALM_MUTE_BEATS`).
+PALM_MUTE_BEATS: Final = 0.2
 
 # From here the chord rings into the next strum instead of stopping on the eighth. That
 # sustain is the arena half of the sound in a chorus (ADR-028), and in a half-time chorus it
@@ -100,3 +107,24 @@ def _length(section: Section, attacks: list[int], slot: int, *, muted: bool) -> 
     later = [other for other in attacks if other > slot]
     following = later[0] if later else attacks[0] + SIXTEENTHS_PER_BAR
     return beats_of(following, section.feel) - beats_of(slot, section.feel)
+
+
+def articulated(notes: Iterable[Note], below: int) -> tuple[Note, ...]:
+    """Every palm mute under `below` and every ringing note at or over it.
+
+    For a sampled guitar that picks its articulation by velocity (Stratus, ADR-028): the
+    humaniser moves velocities by up to 12, which carries a loud chug over the split and a
+    quiet strum under it, and the sampler would play each as the other. Clamped here, on the
+    way out, the split is a contract rather than a likelihood. `below` is the Set's own
+    number, declared in `session.toml` beside the instrument it describes.
+    """
+    return tuple(
+        note.model_copy(
+            update={
+                "velocity": min(note.velocity, below - 1)
+                if note.duration_beats <= PALM_MUTE_BEATS
+                else max(note.velocity, below)
+            }
+        )
+        for note in notes
+    )

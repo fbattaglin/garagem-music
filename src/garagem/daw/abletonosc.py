@@ -94,6 +94,22 @@ GET_CLIP_LENGTH: Final = "/live/clip/get/length"
 ADD_NOTES: Final = "/live/clip/add/notes"
 REMOVE_NOTES: Final = "/live/clip/remove/notes"
 GET_NOTES: Final = "/live/clip/get/notes"
+GET_CLIP_LOOPING: Final = "/live/clip/get/looping"
+SET_CLIP_LOOPING: Final = "/live/clip/set/looping"
+
+# The mix (ADR-028). Volume and panning live on the track's mixer device in the LOM, and
+# AbletonOSC answers them with the track index first, like every other track getter. A
+# send's reply carries the send index too.
+GET_VOLUME: Final = "/live/track/get/volume"
+SET_VOLUME: Final = "/live/track/set/volume"
+GET_PANNING: Final = "/live/track/get/panning"
+SET_PANNING: Final = "/live/track/set/panning"
+GET_SEND: Final = "/live/track/get/send"
+SET_SEND: Final = "/live/track/set/send"
+
+# A fader is a 32-bit float on the wire: a value read back is equal to the one written
+# to about seven digits, never exactly.
+MIX_TOLERANCE: Final = 1e-3
 
 # `scripts/probe_live.py` walks exactly this tuple, so a version skew in AbletonOSC is
 # found by one command rather than by an integration test failing for a reason nobody
@@ -135,6 +151,14 @@ ALL_ADDRESSES: Final[tuple[str, ...]] = (
     ADD_NOTES,
     REMOVE_NOTES,
     GET_NOTES,
+    GET_CLIP_LOOPING,
+    SET_CLIP_LOOPING,
+    GET_VOLUME,
+    SET_VOLUME,
+    GET_PANNING,
+    SET_PANNING,
+    GET_SEND,
+    SET_SEND,
 )
 
 
@@ -461,6 +485,45 @@ class AbletonOSCAdapter:
         self._transport.send(SET_CLIP_LEGATO, at.track, at.scene, on)
         if (seen := self.clip_legato(at)) != on:
             raise _unconfirmed(SET_CLIP_LEGATO, on, seen)
+
+    def clip_looping(self, at: ClipAddress) -> bool:
+        return bool(self._clip_reply(GET_CLIP_LOOPING, at)[0])
+
+    def set_clip_looping(self, at: ClipAddress, on: bool) -> None:
+        self._transport.send(SET_CLIP_LOOPING, at.track, at.scene, on)
+        if (seen := self.clip_looping(at)) != on:
+            raise _unconfirmed(SET_CLIP_LOOPING, on, seen)
+
+    # -- the mix
+
+    def track_volume(self, track: int) -> float:
+        reply = self._transport.request(GET_VOLUME, track)
+        return float(self._after_index(GET_VOLUME, track, reply)[0])
+
+    def set_track_volume(self, track: int, volume: float) -> None:
+        self._transport.send(SET_VOLUME, track, volume)
+        if abs((seen := self.track_volume(track)) - volume) > MIX_TOLERANCE:
+            raise _unconfirmed(SET_VOLUME, volume, seen)
+
+    def track_pan(self, track: int) -> float:
+        reply = self._transport.request(GET_PANNING, track)
+        return float(self._after_index(GET_PANNING, track, reply)[0])
+
+    def set_track_pan(self, track: int, pan: float) -> None:
+        self._transport.send(SET_PANNING, track, pan)
+        if abs((seen := self.track_pan(track)) - pan) > MIX_TOLERANCE:
+            raise _unconfirmed(SET_PANNING, pan, seen)
+
+    def track_send(self, track: int, send: int) -> float:
+        reply = self._after_index(GET_SEND, track, self._transport.request(GET_SEND, track, send))
+        if len(reply) != 2 or int(reply[0]) != send:
+            raise _bad_reply(GET_SEND, f"expected send {send} and a level, got {reply!r}")
+        return float(reply[1])
+
+    def set_track_send(self, track: int, send: int, level: float) -> None:
+        self._transport.send(SET_SEND, track, send, level)
+        if abs((seen := self.track_send(track, send)) - level) > MIX_TOLERANCE:
+            raise _unconfirmed(SET_SEND, level, seen)
 
     # -- internals
 

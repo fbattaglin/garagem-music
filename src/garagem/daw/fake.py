@@ -28,6 +28,9 @@ from garagem.daw.port import BeatHandler, ClipAddress, MidiNote, Quantization, n
 # `session.toml`'s own track names, in its own order (ADR-013, ADR-026).
 DEFAULT_TRACKS: tuple[str, ...] = ("DRUMS", "BASS", "GTR", "KEYS", "LEAD")
 DEFAULT_DEVICE: str = "Drift"
+# A new track in Live: the fader at 0 dB, centred, both sends off.
+DEFAULT_VOLUME: float = 0.85
+DEFAULT_RETURNS: int = 2
 
 
 @dataclass
@@ -35,6 +38,8 @@ class _Clip:
     length_beats: float
     notes: tuple[MidiNote, ...] = ()
     legato: bool = False
+    # Live creates a clip looping, and so does the fake.
+    looping: bool = True
 
 
 class FakeDawAdapter:
@@ -66,6 +71,9 @@ class FakeDawAdapter:
             list(midi_tracks) if midi_tracks is not None else [True] * len(self._track_names)
         )
         self._armed = list(armed) if armed is not None else [False] * len(self._track_names)
+        self._volumes = [DEFAULT_VOLUME] * len(self._track_names)
+        self._pans = [0.0] * len(self._track_names)
+        self._sends = [[0.0] * DEFAULT_RETURNS for _ in self._track_names]
         self._scenes = scenes
         self._tempo_bpm = tempo_bpm
         self._quantization = quantization
@@ -255,6 +263,44 @@ class FakeDawAdapter:
         self._record("set_clip_legato")
         self._clip(at).legato = on
 
+    def clip_looping(self, at: ClipAddress) -> bool:
+        self._record("clip_looping")
+        return self._clip(at).looping
+
+    def set_clip_looping(self, at: ClipAddress, on: bool) -> None:
+        self._record("set_clip_looping")
+        self._clip(at).looping = on
+
+    # -- the mix
+
+    def track_volume(self, track: int) -> float:
+        self._record("track_volume")
+        self._track(track)
+        return self._volumes[track]
+
+    def set_track_volume(self, track: int, volume: float) -> None:
+        self._record("set_track_volume")
+        self._track(track)
+        self._volumes[track] = volume
+
+    def track_pan(self, track: int) -> float:
+        self._record("track_pan")
+        self._track(track)
+        return self._pans[track]
+
+    def set_track_pan(self, track: int, pan: float) -> None:
+        self._record("set_track_pan")
+        self._track(track)
+        self._pans[track] = pan
+
+    def track_send(self, track: int, send: int) -> float:
+        self._record("track_send")
+        return self._sends[track][self._send(track, send)]
+
+    def set_track_send(self, track: int, send: int, level: float) -> None:
+        self._record("set_track_send")
+        self._sends[track][self._send(track, send)] = level
+
     # -- internals
 
     def _record(self, method: str) -> None:
@@ -272,6 +318,12 @@ class FakeDawAdapter:
     def _track(self, track: int) -> None:
         if not 0 <= track < len(self._track_names):
             raise DawError(f"track {track} does not exist (the Set has {len(self._track_names)})")
+
+    def _send(self, track: int, send: int) -> int:
+        self._track(track)
+        if not 0 <= send < DEFAULT_RETURNS:
+            raise DawError(f"send {send} does not exist (the Set has {DEFAULT_RETURNS} returns)")
+        return send
 
     def _clip(self, at: ClipAddress) -> _Clip:
         key = self._key(at)

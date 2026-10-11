@@ -126,7 +126,7 @@ These are non-negotiable, and most are enforced by tests rather than by conventi
 | | |
 |---|---|
 | Python | 3.12, managed with [uv](https://docs.astral.sh/uv/) |
-| Ableton Live | 12 (Lite is enough: 4 of its 8 tracks and 8 scenes are used), with AbletonOSC |
+| Ableton Live | 12 (Lite is enough: 5 or 6 of its 8 tracks and 8 scenes are used), with AbletonOSC |
 | Operating system | macOS for performances, since Live and CoreMIDI run there. The test suite runs anywhere Python does. |
 | Optional | An Arturia MiniLab 3 to conduct, and an Anthropic API key to generate |
 
@@ -146,17 +146,21 @@ uv run python scripts/install_abletonosc.py    # installs the Remote Script
 
 1. In Live's preferences, choose **AbletonOSC** as a Control Surface, then quit and reopen
    Live.
-2. Open a Set with four MIDI tracks and an instrument on each, laid out as
-   [`session.toml`](session.toml) describes. It names the four Core Library presets the band
-   plays — a Drum Rack kit, a sampled bass, a muted electric guitar and a grand piano — and,
-   per track, which notes that instrument answers to, since a sampled kit lays its pieces out
-   where its maker put them.
+2. Open a Set with a MIDI track per role and an instrument on each, laid out as
+   [`session.toml`](session.toml) describes: drums, bass, guitar, keys and lead, and optionally
+   a second guitar (ADR-028). `session.toml` names the instrument each track must carry, and
+   the bootstrap checks it by name. Per track it also records which notes that instrument
+   answers to, since a sampled kit lays its pieces out where its maker put them, and the mix.
+   The sounds are chosen by ear with `scripts/soundcheck.py`, which loops a verse, a bridge and
+   a chorus of the band while presets are swapped in Live.
 3. Validate the Set, and let the bootstrap repair what can be repaired safely: tempo, launch
    quantisation, track names and arm state. It never creates a track.
 
 ```bash
 uv run python scripts/bootstrap_set.py --apply
 uv run python scripts/probe_live.py            # read-only walk of every OSC address used
+uv run python scripts/soundcheck.py            # loop the band, to choose its sounds by ear
+uv run python scripts/bootstrap_set.py --mix   # print the Set's mix, to paste into session.toml
 ```
 
 ### Play

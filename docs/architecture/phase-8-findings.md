@@ -55,3 +55,43 @@ adds the second guitar, open hats, phrase crashes and the held organ: the arena 
     and is silent below `dyn` 4;
   - the organ sits above the guitar;
   - every lean stays within the room the grid leaves the humaniser.
+
+## 2. The band's sound, chosen by ear (Stage B) — the tools, before the listening
+
+What Stage B needs from code is built. The sound itself is chosen by Fabiano, by ear, in Live.
+
+### Chosen with him: Shreddage 3 Stratus FREE for the guitars
+
+The installed Live is 12 Lite, which blocks every amp and cabinet device. Of the free options
+researched, Fabiano chose Impact Soundworks' **Shreddage 3 Stratus FREE** on 2026-10-11. It
+is a sampled electric guitar with palm mutes, sustains and up- and downstrokes, and it carries
+its own amp and cabinets. It runs in the free Kontakt Player. Its articulations can be chosen
+by velocity, so the band needs no keyswitch notes: muted notes below a split, ringing notes
+above it.
+
+### What was built
+
+- **`palm_mute_below` in `session.toml`.** The humaniser moves a velocity by up to 12, which
+  carries a loud chug over any split and a quiet strum under it. `engines.guitar.articulated`
+  clamps them on the way out, so the split is a contract rather than a likelihood. Off unless a
+  track declares it.
+- **The instrument is checked by name.** A device on the track must be called what
+  `session.toml` says, or start with it. This would have caught the kit drifting from Dry
+  Session to Gen Purpose, which `session.toml` now records.
+- **The mix as code.** `volume`, `pan` and `sends` per track are read, diffed and applied
+  through AbletonOSC, each write confirmed by a read within a float's tolerance. `bootstrap_set.py
+  --mix` prints the open Set's mix as lines to paste in, so nobody types a fader position. A
+  second `--apply` writes nothing.
+- **`scripts/soundcheck.py`.** It loops a verse, a bridge and a chorus of the band. `--only
+  ROLE` plays one role and `--pocket off` turns the players' leans off. A wrong instrument is
+  reported but does not stop it, because choosing instruments is what it is for. A Set it
+  cannot write into, or one that is already playing, is refused.
+- **`src/garagem/stage/`** begins. It holds the roles table that `jam.py` and the sound check
+  share, and Stage D grows from it.
+
+Suite at **3088 passed, 27 skipped**.
+
+### Waiting on Fabiano
+
+Installing Kontakt Player and Stratus, building the six-track Set, choosing the sounds with
+the sound check, pinning the mix, and one jam's verdict against the arena/indie reference.

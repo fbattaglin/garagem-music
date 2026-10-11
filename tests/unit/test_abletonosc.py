@@ -36,6 +36,7 @@ from garagem.daw.abletonosc import (
     GET_BEAT,
     GET_CLIP_LEGATO,
     GET_CLIP_LENGTH,
+    GET_CLIP_LOOPING,
     GET_DEVICE_NAMES,
     GET_HAS_CLIP,
     GET_HAS_MIDI_INPUT,
@@ -44,18 +45,25 @@ from garagem.daw.abletonosc import (
     GET_METER_LEVEL,
     GET_NOTES,
     GET_NUM_SCENES,
+    GET_PANNING,
     GET_QUANTIZATION,
+    GET_SEND,
     GET_SONG_TIME,
     GET_TEMPO,
     GET_TRACK_ARM,
     GET_TRACK_NAMES,
+    GET_VOLUME,
     REMOVE_NOTES,
     SET_CLIP_LEGATO,
+    SET_CLIP_LOOPING,
     SET_LOOP,
+    SET_PANNING,
     SET_QUANTIZATION,
+    SET_SEND,
     SET_TEMPO,
     SET_TRACK_ARM,
     SET_TRACK_NAME,
+    SET_VOLUME,
     START_LISTEN_BEAT,
     START_PLAYING,
     STOP_LISTEN_BEAT,
@@ -91,6 +99,10 @@ HEALTHY: dict[str, tuple[OscArg, ...]] = {
     GET_CLIP_LEGATO: (3, 1, True),
     GET_CLIP_LENGTH: (3, 1, 16.0),
     GET_NOTES: (3, 1),
+    GET_CLIP_LOOPING: (3, 1, True),
+    GET_VOLUME: (3, 0.85),
+    GET_PANNING: (3, -0.5),
+    GET_SEND: (3, 0, 0.25),
 }
 
 
@@ -430,3 +442,50 @@ def test_unlistening_stops_live_pushing_and_drops_the_route() -> None:
 def test_the_three_beat_addresses_are_in_all_addresses() -> None:
     """`probe_live.py` walks that tuple; an address missing from it is never checked."""
     assert {START_LISTEN_BEAT, STOP_LISTEN_BEAT, GET_BEAT} <= set(ALL_ADDRESSES)
+
+
+# ------------------------------------------------------------------- the mix (ADR-028)
+
+
+def test_looping_is_set_on_the_clip_and_confirmed() -> None:
+    transport = serving()
+    adapter(transport).set_clip_looping(AT, True)
+    assert transport.sent == [(SET_CLIP_LOOPING, (3, 1, True)), (GET_CLIP_LOOPING, (3, 1))]
+
+
+def test_the_mix_is_read_from_the_track_and_each_setter_confirms() -> None:
+    transport = serving()
+    daw = adapter(transport)
+    assert daw.track_volume(3) == pytest.approx(0.85)
+    assert daw.track_pan(3) == pytest.approx(-0.5)
+    assert daw.track_send(3, 0) == pytest.approx(0.25)
+    transport.sent.clear()
+    daw.set_track_volume(3, 0.85)
+    daw.set_track_pan(3, -0.5)
+    daw.set_track_send(3, 0, 0.25)
+    assert transport.sent == [
+        (SET_VOLUME, (3, 0.85)),
+        (GET_VOLUME, (3,)),
+        (SET_PANNING, (3, -0.5)),
+        (GET_PANNING, (3,)),
+        (SET_SEND, (3, 0, 0.25)),
+        (GET_SEND, (3, 0)),
+    ]
+
+
+def test_a_fader_within_a_float_of_the_value_is_confirmed() -> None:
+    """A 32-bit float on the wire never reads back exactly."""
+    transport = serving(GET_VOLUME=(3, 0.8500001))
+    adapter(transport).set_track_volume(3, 0.85)
+
+
+def test_a_fader_that_did_not_move_is_not_confirmed() -> None:
+    transport = serving(GET_VOLUME=(3, 0.5))
+    with pytest.raises(DawWriteNotConfirmedError, match="did not take"):
+        adapter(transport).set_track_volume(3, 0.85)
+
+
+def test_a_send_reply_for_another_send_is_refused() -> None:
+    transport = serving(GET_SEND=(3, 1, 0.25))
+    with pytest.raises(DawProtocolError):
+        adapter(transport).track_send(3, 0)

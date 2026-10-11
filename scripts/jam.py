@@ -108,7 +108,7 @@ from garagem.daw import (
 from garagem.daw.errors import SessionSpecError
 from garagem.daw.live_log import control_surfaces, latest_log, listening_to
 from garagem.daw.session import SessionSpec
-from garagem.domain import Feel, Instrument, Section
+from garagem.domain import Feel, Section
 from garagem.engines import Ending, SongBrief, arrange, endings_for, with_climax
 from garagem.engines.arranger import CHORUS
 from garagem.llm import (
@@ -142,6 +142,14 @@ from garagem.setlist import (
     briefings,
     drifted,
     load_setlist,
+)
+from garagem.stage import (  # noqa: F401 — re-exported for the tests and the scripts
+    OPTIONAL_ROLES,
+    ROLE_TO_INSTRUMENT,
+    missing_roles,
+    palms_of,
+    pitches_of,
+    tracks_of,
 )
 from garagem.transport import (
     BAR_TIMEOUT_S,
@@ -179,22 +187,6 @@ CASSETTE_PREFIX = "cassette:"
 # failure — the deterministic engine plays section one, which is P2 working as designed.
 PRIME_MARGIN_S = 1.0
 PRIME_POLL_S = 0.05
-
-# `session.toml` names roles; the engines name instruments. This is the one place the two
-# vocabularies meet, and it is a table rather than a convention so a renamed track cannot
-# quietly send the bass to the drum machine.
-ROLE_TO_INSTRUMENT: dict[str, Instrument] = {
-    "drums": Instrument.DRUMS,
-    "bass": Instrument.BASS,
-    "guitar": Instrument.GUITAR,
-    "keys": Instrument.KEYS,
-    "lead": Instrument.LEAD,
-    "guitar_double": Instrument.GUITAR_DOUBLE,
-}
-
-# Roles a Set may leave out and still be played. The second guitar is new in Phase 8 and
-# made from the first (ADR-028): a Set without its track plays one guitar, as it always did.
-OPTIONAL_ROLES: frozenset[str] = frozenset({"guitar_double"})
 
 
 def build_adapter(host: str, timeout_s: float) -> DawPort:
@@ -385,24 +377,6 @@ def variant_scenes(spec: SessionSpec) -> dict[str, dict[int, int]]:
     return {
         kind: {named[main]: named[variant] for main, variant in zip(MAIN_SCENES, pair, strict=True)}
         for kind, pair in VARIANT_SCENES.items()
-    }
-
-
-def tracks_of(spec: SessionSpec) -> dict[Instrument, int]:
-    """Which Live track each instrument plays on, from the Set spec."""
-    return {
-        ROLE_TO_INSTRUMENT[track.role]: track.index
-        for track in spec.tracks
-        if track.role in ROLE_TO_INSTRUMENT
-    }
-
-
-def pitches_of(spec: SessionSpec) -> dict[Instrument, dict[int, int]]:
-    """What each instrument's Live device answers to, from the Set spec (ADR-013)."""
-    return {
-        ROLE_TO_INSTRUMENT[track.role]: dict(track.pitches)
-        for track in spec.tracks
-        if track.role in ROLE_TO_INSTRUMENT and track.pitches
     }
 
 
@@ -608,9 +582,7 @@ def main() -> int:
             return 1
 
     tracks = tracks_of(spec)
-    missing = sorted(
-        set(ROLE_TO_INSTRUMENT) - OPTIONAL_ROLES - {track.role for track in spec.tracks}
-    )
+    missing = missing_roles(spec)
     if missing:
         sys.stderr.write(f"{args.session.name} has no track for {missing}. Nothing to play on.\n")
         return 1
@@ -637,7 +609,7 @@ def main() -> int:
             sys.stderr.write(f"{exc}\n")
             return 1
 
-        divergences = diff_session(spec, observe(daw))
+        divergences = diff_session(spec, observe(daw, spec))
         if divergences:
             sys.stderr.write(render_divergences(divergences))
             sys.stderr.write("Run scripts/bootstrap_set.py before playing.\n")
@@ -705,6 +677,7 @@ def main() -> int:
             plan=shared,
             variants=variants,
             pitches=pitches_of(spec),
+            palms=palms_of(spec),
         )
         scheduler.run(form, endings=endings)
         if not scheduler.finished:

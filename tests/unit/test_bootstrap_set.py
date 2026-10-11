@@ -15,9 +15,10 @@ from types import ModuleType
 
 import pytest
 
-from garagem.daw import DawUnavailableError, FakeDawAdapter, Quantization
+from garagem.daw import DawUnavailableError, FakeDawAdapter, Quantization, load_session
 
 ROOT = Path(__file__).resolve().parents[2]
+SESSION = ROOT / "session.toml"
 
 
 def _load_bootstrap() -> ModuleType:
@@ -36,6 +37,8 @@ bootstrap = _load_bootstrap()
 def matching_daw(**extra: object) -> FakeDawAdapter:
     base: dict[str, object] = {
         "track_names": ("DRUMS", "BASS", "GTR", "KEYS", "LEAD"),
+        # What `session.toml` names, since the bootstrap checks the instrument by name.
+        "device_names": [(track.instrument,) for track in load_session(SESSION).tracks],
         # As many as `session.toml` declares: ADR-022 lays out eight.
         "scenes": 8,
         "tempo_bpm": 132.0,

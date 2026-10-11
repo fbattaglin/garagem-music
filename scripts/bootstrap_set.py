@@ -3,6 +3,7 @@
     uv run python scripts/bootstrap_set.py             # check only: reports, changes nothing
     uv run python scripts/bootstrap_set.py --apply     # repairs tempo, quantisation, names, arm
     uv run python scripts/bootstrap_set.py --apply --force   # even while Live is playing
+    uv run python scripts/bootstrap_set.py --mix       # print the Set's mix, to paste in
 
 Four rules, each of them load-bearing (ADR-013):
 
@@ -37,6 +38,7 @@ from garagem.daw import (
     load_session,
     observe,
     render_divergences,
+    render_mix,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -56,6 +58,11 @@ def main() -> int:
         "--apply",
         action="store_true",
         help="repair what the Live API can repair. Without it, nothing is written.",
+    )
+    parser.add_argument(
+        "--mix",
+        action="store_true",
+        help="print the open Set's volume, pan and sends as session.toml lines. Writes nothing.",
     )
     parser.add_argument(
         "--force",
@@ -83,7 +90,12 @@ def main() -> int:
             )
             return 1
 
-        left = apply_session(daw, spec) if args.apply else diff_session(spec, observe(daw))
+        if args.mix:
+            # Read-only: the mix is made by ear in Live and pinned by pasting this in.
+            sys.stdout.write(render_mix(daw, spec))
+            return 0
+
+        left = apply_session(daw, spec) if args.apply else diff_session(spec, observe(daw, spec))
         if not left:
             sys.stderr.write(f"{args.session.name}: the Set matches.\n")
             return 0

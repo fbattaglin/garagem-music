@@ -55,6 +55,7 @@ from garagem.daw.session import (
     load_session,
     observe,
     render_divergences,
+    render_mix,
 )
 
 __all__ = [
@@ -105,4 +106,5 @@ __all__ = [
     "notes_payload",
     "observe",
     "render_divergences",
+    "render_mix",
 ]

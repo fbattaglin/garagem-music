@@ -47,8 +47,16 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
 
   Suite at **3064 passed, 27 skipped**; every golden file moved deliberately. **Not heard yet**:
   the sound is chosen in Stage B, and the listening is there.
-- **Next: Stage B, the band sounds like rock** — free plugins researched for Fabiano to approve,
-  `soundcheck`, the Set rebuilt by hand, and the instruments and mix pinned in `session.toml`.
+- **Stage B's tools are built; the sound waits on Fabiano** (`phase-8-findings.md` §2).
+  - **Guitar plugin:** Shreddage 3 Stratus FREE, chosen on 2026-10-11, with its articulation
+    split by velocity (`palm_mute_below`).
+  - **Instrument check:** the instrument is checked by name, which would have caught the kit
+    drift.
+  - **The mix as code:** `bootstrap_set.py --mix` and `--apply`.
+  - **`scripts/soundcheck.py`:** loops the band so the sounds can be chosen by ear.
+
+  Suite at **3088 passed, 27 skipped**. Still to do, by hand in Live: install Kontakt Player
+  and Stratus, build the six-track Set, choose the sounds, pin the mix, and give the verdict.
 
 Phase 7 was the arrangement: the band had its material, and the phase decided where things
 go in time — a solo section, relief in the form, and a fill that is announced
