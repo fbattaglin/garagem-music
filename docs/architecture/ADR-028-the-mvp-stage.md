@@ -73,6 +73,11 @@ Phase 6's shuffle, and it passes under ADR-025 §7's light gate:
 
 **3. The sound is chosen once, by hand and by ear, and then pinned as code.**
 - Free plugins for the guitar. Fabiano installs only what he approves from a researched list.
+  **Amended 2026-10-11:** he chose Shreddage 3 Stratus FREE, then dropped it while installing.
+  Kontakt Player came with upsells and installers, and Stratus still needed two accounts, a
+  download manager and an activation app. Kontakt was removed. The guitars are Core Library's
+  palm-muted Strat through Lite's Saturator, with EQ Three's high band down for a cabinet. If a
+  chorus sounds thin, the next step is one plugin with no account: Blue Cat's Free Amp.
 - An organ on keys: Analog Lab's B-3, or Drift's Organ Analog as the Lite-only fallback.
 - Six of Lite's eight tracks.
 - `session.toml` names each track's instrument and its mix. The bootstrap checks the
@@ -156,8 +161,9 @@ it is seeded, logged and tested like everything else.
 Free plugins come first; this stays the fallback if they disappoint.
 
 **Running the guitar through Lite's Saturator alone.** This needs no installation and has a
-lower ceiling, worst of all for an arena chorus. It stays the floor beneath the plugins, not the
-plan.
+lower ceiling, worst of all for an arena chorus. It was the floor beneath the plugins, not the
+plan, until the plugin's install proved heavier than its sound was worth (amended above). It is
+the plan now, and its ceiling is heard in Stage B's sound check.
 
 **Going straight from one song into the next.** A medley sounds continuous, but a change of key
 and tempo with no pause sounds raw. Declined.
@@ -175,10 +181,11 @@ one engine at a time, with the reason in the message. Setlists are safe: a bake 
 takes and plays what was baked. The floor's sections in them, however, are played by the new
 engines.
 
-**The Set is no longer reproducible from Core Library alone.** A plugin is a dependency outside
-`uv`. That is why the bootstrap now checks instruments by name and the README lists every
+**The Set may no longer be reproducible from Core Library alone.** A plugin is a dependency
+outside `uv`. That is why the bootstrap now checks instruments by name and the README lists every
 install step. If a plugin is missing, the check fails with what to install, rather than the
-show playing a silent track.
+show playing a silent track. Since the guitars stayed in Core Library, the only plugin left is
+the organ, and only if it is Analog Lab's.
 
 **The approved verdicts are re-earned.** Phase 2's band, the endings, the shuffle and the lead
 were approved on the old parts and the old sound. Stage B's jam and the show are where they

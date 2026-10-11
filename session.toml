@@ -15,7 +15,7 @@
 # guitar (role `guitar_double`); a Set without it plays one guitar.
 #
 # `instrument` is checked by name since ADR-028: some device on the track must be called
-# this, or start with it ("Kontakt" matches Live's "Kontakt 8"). The check used to be only
+# this, or start with it ("Analog Lab" matches Live's "Analog Lab V"). The check used to be only
 # that *some* device was present, and the kit drifted from Dry Session to Gen Purpose
 # unnoticed. Phase 1 played everything on Drift (ADR-013); ADR-025 gave the band Core
 # Library instruments; ADR-028 chooses the sound by ear with `scripts/soundcheck.py`.
@@ -68,22 +68,19 @@ armed = false
 index = 2
 name = "GTR"
 role = "guitar"
-# Shreddage 3 Stratus FREE inside Kontakt Player (ADR-028): a sampled electric guitar with
-# its own amp, because Lite blocks every amp device. A crunch tone, panned left. Its TACT
-# articulations are set by velocity, Mute 1-71 and Sustain 72-127, which is the split below:
-# the band's palm mutes are kept under it and its ringing chords over it.
-instrument = "Kontakt"
-palm_mute_below = 72
+# Core Library's palm-muted Strat, driven by Lite's Saturator, with EQ Three's high band
+# down to stand in for a cabinet (ADR-028, amended 2026-10-11: Kontakt Player and Stratus
+# were dropped). A crunch tone, panned left. One sample, so no articulation split.
+instrument = "Guitar Electric Muted"
 armed = false
 
 [[track]]
 index = 3
 name = "GTR 2"
 role = "guitar_double"
-# The second guitar (ADR-028): GTR duplicated, so it carries the same Stratus and the same
-# articulation split, with a high-gain tone, panned right. Silent below a chorus.
-instrument = "Kontakt"
-palm_mute_below = 72
+# The second guitar (ADR-028): GTR duplicated, with a heavier Saturator preset, panned
+# right. Silent below a chorus.
+instrument = "Guitar Electric Muted"
 armed = false
 
 [[track]]
@@ -100,8 +97,7 @@ index = 5
 name = "LEAD"
 role = "lead"
 # Core Library, Simpler-based, so every edition of Live can load it. A clean electric
-# against the rhythm guitars: the hook has to come through the band. Stage C may give it
-# its own Stratus.
+# against the rhythm guitars: the hook has to come through the band.
 instrument = "Guitar Electric Clean"
 armed = false
 

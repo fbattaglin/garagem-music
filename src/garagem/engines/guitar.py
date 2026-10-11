@@ -112,7 +112,7 @@ def _length(section: Section, attacks: list[int], slot: int, *, muted: bool) -> 
 def articulated(notes: Iterable[Note], below: int) -> tuple[Note, ...]:
     """Every palm mute under `below` and every ringing note at or over it.
 
-    For a sampled guitar that picks its articulation by velocity (Stratus, ADR-028): the
+    For a sampled guitar that picks its articulation by velocity (ADR-028): the
     humaniser moves velocities by up to 12, which carries a loud chug over the split and a
     quiet strum under it, and the sampler would play each as the other. Clamped here, on the
     way out, the split is a contract rather than a likelihood. `below` is the Set's own

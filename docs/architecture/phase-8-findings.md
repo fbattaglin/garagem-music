@@ -60,14 +60,29 @@ adds the second guitar, open hats, phrase crashes and the held organ: the arena 
 
 What Stage B needs from code is built. The sound itself is chosen by Fabiano, by ear, in Live.
 
-### Chosen with him: Shreddage 3 Stratus FREE for the guitars
+### The guitars: Lite's own, after Stratus was dropped
 
-The installed Live is 12 Lite, which blocks every amp and cabinet device. Of the free options
-researched, Fabiano chose Impact Soundworks' **Shreddage 3 Stratus FREE** on 2026-10-11. It
-is a sampled electric guitar with palm mutes, sustains and up- and downstrokes, and it carries
-its own amp and cabinets. It runs in the free Kontakt Player. Its articulations can be chosen
-by velocity, so the band needs no keyswitch notes: muted notes below a split, ringing notes
-above it.
+Fabiano first chose Impact Soundworks' **Shreddage 3 Stratus FREE** (2026-10-11), a sampled
+electric guitar with its own amp, palm mutes and sustains, which runs in the free Kontakt
+Player. Installing it, he dropped it: *"Muita confusao instalar o contact player. Ele vem cheio
+de catchy stuff e freemiuns e uopgrades e acabou instalando várias coisas na minha máquina."*
+
+Kontakt Player was removed, more than 1 GB of it. That covered the app, its AU, VST3, VST and AAX
+plugins, its factory content, its preferences and its eight installer receipts. Nothing of it
+ran in the background. Stratus still needed an Impact Soundworks account, their download
+manager, a Native Instruments account and Native Access, so none of that was installed.
+
+The guitars are now Core Library's **Guitar Electric Muted**, one palm-muted Strat sample,
+through Lite's **Saturator**, with EQ Three's high band turned down to stand in for a cabinet.
+GTR 2 gets a heavier Saturator preset. Nothing to install, no account, no licence.
+
+- **The ceiling is the sample, not the drive.** One palm-muted note, stretched across the neck,
+  chugs well in a verse. A chorus asks it to ring, and a palm mute does not ring. That is where
+  the sound check will tell.
+- **The next step, if a chorus is thin, is one plugin with no account:** Blue Cat's Free Amp
+  in place of the Saturator. It changes the amp, not the sample.
+- **`palm_mute_below` is gone from `session.toml`.** A single sample has no split to protect.
+  The clamp stays in code, off unless a track declares it.
 
 ### What was built
 
@@ -93,8 +108,7 @@ Suite at **3088 passed, 27 skipped**.
 
 ### Waiting on Fabiano
 
-Installing Kontakt Player and Stratus, building the six-track Set, choosing the sounds with
-the sound check, pinning the mix, and one jam's verdict against the arena/indie reference.
+Building the six-track Set, choosing the sounds with the sound check, pinning the mix, and one jam's verdict against the arena/indie reference.
 
 ## 3. A melody through the song (Stage C)
 

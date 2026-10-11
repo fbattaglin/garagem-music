@@ -67,8 +67,8 @@ class TrackSpec:
     name: str
     role: str
     # What the human loads, since the API cannot (ADR-013). Checked by name since ADR-028:
-    # some device on the track must be called this, or start with it ("Kontakt" matches
-    # "Kontakt 8"). The kit drifted from Dry Session to Gen Purpose unnoticed while the check
+    # some device on the track must be called this, or start with it ("Analog Lab" matches
+    # "Analog Lab V"). The kit drifted from Dry Session to Gen Purpose unnoticed while the check
     # was only that *some* device was present. Empty means any instrument will do.
     instrument: str
     # `None` means the Set may have it either way. The band's tracks declare `false`: an
@@ -585,7 +585,7 @@ def _instruction(divergence: Divergence) -> str:
         case "no_instrument":
             return (
                 " — open the Set and load the instrument named above onto that track:"
-                " search Live's browser by its name (Plug-Ins for Kontakt, Analog Lab)"
+                " search Live's browser by its name (Plug-Ins for Analog Lab)"
             )
         case "wrong_instrument":
             return (

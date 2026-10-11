@@ -48,15 +48,16 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
   Suite at **3064 passed, 27 skipped**; every golden file moved deliberately. **Not heard yet**:
   the sound is chosen in Stage B, and the listening is there.
 - **Stage B's tools are built; the sound waits on Fabiano** (`phase-8-findings.md` §2).
-  - **Guitar plugin:** Shreddage 3 Stratus FREE, chosen on 2026-10-11, with its articulation
-    split by velocity (`palm_mute_below`).
+  - **Guitars:** Core Library's palm-muted Strat through Lite's Saturator. Shreddage 3
+    Stratus FREE was chosen on 2026-10-11 and dropped the same day: Kontakt Player's install
+    was too heavy, and it was removed.
   - **Instrument check:** the instrument is checked by name, which would have caught the kit
     drift.
   - **The mix as code:** `bootstrap_set.py --mix` and `--apply`.
   - **`scripts/soundcheck.py`:** loops the band so the sounds can be chosen by ear.
 
-  Suite at **3088 passed, 27 skipped**. Still to do, by hand in Live: install Kontakt Player
-  and Stratus, build the six-track Set, choose the sounds, pin the mix, and give the verdict.
+  Suite at **3088 passed, 27 skipped**. Still to do, by hand in Live: build the six-track Set,
+  choose the sounds, pin the mix, and give the verdict.
 - **Stage C is built: a melody through the song** (`phase-8-findings.md` §3).
   - **The floor:** it sings a verse tune and a chorus tune per song (`Section.tune`). The
     chorus is higher; the last bar lands on the root. Swept over 70 944 sections: 0 violations.
