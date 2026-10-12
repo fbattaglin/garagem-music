@@ -46,11 +46,14 @@ FORBIDDEN: dict[str, frozenset[str]] = {
     # ADR-024: a setlist is music written ahead of time, not the way it is fetched or played.
     # The bake script brings the model and `jam.py` brings Live; the format knows neither.
     "setlist": frozenset({"llm", "daw", "transport", "control", "obs"}),
+    # ADR-029: an EXS instrument in, a Live preset out, as bytes and text. Reading Apple's
+    # files, running `afconvert` and writing into Live's User Library are the script's.
+    "sounds": INFRASTRUCTURE,
 }
 
 # The layers `domain-purity.md` governs: no I/O of any kind, and no unseeded randomness.
 # `transport/` is deliberately not among them — it opens a socket for a living.
-PURE_LAYERS: tuple[str, ...] = ("domain", "theory", "engines")
+PURE_LAYERS: tuple[str, ...] = ("domain", "theory", "engines", "sounds")
 
 # What `realtime.md` forbids on the musical path, as import names. Narrower than
 # `IMPURE_MODULES` on purpose: `transport/` may read a clock and touch a thread, and the

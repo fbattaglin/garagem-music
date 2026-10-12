@@ -78,6 +78,9 @@ Phase 6's shuffle, and it passes under ADR-025 §7's light gate:
   download manager and an activation app. Kontakt was removed. The guitars are Core Library's
   palm-muted Strat through Lite's Saturator, with EQ Three's high band down for a cabinet. If a
   chorus sounds thin, the next step is one plugin with no account: Blue Cat's Free Amp.
+  **Amended again the same day by [ADR-029](ADR-029-the-band-borrows-garagebands-library.md):**
+  the guitars, then the drums and the bass, are GarageBand's own, rebuilt as Lite presets by
+  code, with the Saturator and the EQ Three inside each preset.
 - An organ on keys: Analog Lab's B-3, or Drift's Organ Analog as the Lite-only fallback.
 - Six of Lite's eight tracks.
 - `session.toml` names each track's instrument and its mix. The bootstrap checks the

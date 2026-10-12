@@ -67,7 +67,17 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
   - **Cost:** about $0.10 spent.
 
   Suite at **3246 passed, 27 skipped**. Not heard yet.
-- **Next: Stage D, the stage** — one command, a ready check, the show screen and typed commands.
+- **Stage B re-planned: the guitars come from GarageBand** (ADR-029,
+  `phase-8-findings.md` §4).
+  - **Why:** no installers, and Lite cannot be upgraded cheaply into an amp.
+  - **What:** `scripts/import_garageband.py` rebuilds GarageBand's Vintage Strat and Warm
+    Electric as Lite presets: every string, ringing and palm-muted, then a crunch or heavy
+    drive.
+  - **Cost:** nothing downloaded, 42 MB in the User Library.
+
+  Suite at **3288 passed, 27 skipped**. **Waiting on Fabiano:** a five-minute listen to the
+  Strat on GTR and GTR 2. A yes brings the drums and the bass through the same import.
+- **Then: Stage D, the stage** — one command, a ready check, the show screen and typed commands.
 
 Phase 7 was the arrangement: the band had its material, and the phase decided where things
 go in time — a solo section, relief in the form, and a fill that is announced

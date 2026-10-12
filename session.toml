@@ -68,20 +68,24 @@ armed = false
 index = 2
 name = "GTR"
 role = "guitar"
-# Core Library's palm-muted Strat, driven by Lite's Saturator, with EQ Three's high band
-# down to stand in for a cabinet (ADR-028, amended 2026-10-11: Kontakt Player and Stratus
-# were dropped). A crunch tone, panned left. One sample, so no articulation split.
-instrument = "Guitar Electric Muted"
+# GarageBand's Vintage Strat, rebuilt for Lite by `scripts/import_garageband.py` (ADR-029):
+# every string sampled ringing and palm-muted, then Lite's Saturator and an EQ Three for a
+# cabinet, all inside the one preset. The crunch, panned left.
+instrument = "GB Vintage Strat"
 armed = false
+# The preset plays its palm mutes below this velocity and its ringing notes from it. The import
+# builds it from this number, so the two change together.
+palm_mute_below = 80
 
 [[track]]
 index = 3
 name = "GTR 2"
 role = "guitar_double"
-# The second guitar (ADR-028): GTR duplicated, with a heavier Saturator preset, panned
-# right. Silent below a chorus.
-instrument = "Guitar Electric Muted"
+# The second guitar (ADR-028): GTR duplicated, playing the same Strat with the heavier drive,
+# panned right. Silent below a chorus.
+instrument = "GB Vintage Strat Heavy"
 armed = false
+palm_mute_below = 80
 
 [[track]]
 index = 4

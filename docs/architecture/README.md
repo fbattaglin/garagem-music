@@ -35,6 +35,8 @@
   - `ADR-028-the-mvp-stage.md` — Phase 8, the MVP's last: rock parts and a sound chosen by ear,
     a melody through the song, and a stage — one command, a ready check, a screen, typed
     commands and the whole setlist in one run.
+  - `ADR-029-the-band-borrows-garagebands-library.md` — Stage B re-planned: GarageBand's own
+    instruments rebuilt as Lite presets by code, with nothing downloaded; guitar first.
 - `phase-0-findings.md` … `phase-8-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 

@@ -27,6 +27,10 @@ written to a file is in English.
 - `uv run python scripts/soundcheck.py` — loops a verse, a bridge and a chorus of the band so
   its sounds can be chosen by ear while presets are swapped in Live (ADR-028). `--only ROLE`,
   `--pocket off`. Writes the first three scenes before playing; never changes `session.toml`.
+- `uv run python scripts/import_garageband.py` — rebuilds GarageBand's guitars as Live 12 Lite
+  presets in the User Library: every string ringing and palm-muted, then a crunch or heavy drive
+  (ADR-029). Reads Apple's files, decodes with macOS's `afconvert`; downloads nothing, commits
+  nothing. `--dry-run` shows the zones; `--palm-mute-below` must match `session.toml`.
 - `uv run python scripts/probe_live.py` — walks every AbletonOSC address the adapter uses
   and reports what came back. Read-only; the cheapest place to find a wrong constant.
 - `uv run python scripts/install_abletonosc.py` — installs AbletonOSC into Live's Remote
@@ -81,6 +85,8 @@ Run `ruff` and `mypy` before any commit.
   never imported by `transport/` or the pure layers (ADR-021, ADR-022)
 - `src/garagem/setlist/` — online pre-production, offline playback. The format only; never
   imports `llm/`, `daw/` or `transport/` (ADR-024)
+- `src/garagem/sounds/` — EXS reader, zone mapping and `.adg` writer (ADR-029). Pure: bytes and
+  text in and out; the script does the file I/O and `afconvert`
 - `setlists/` — setlist specs (`.toml`, written by hand) and their bakes (`.json`)
 - `src/garagem/obs/` — JSONL event log, metrics, latency rig, TUI
 - `src/garagem/stage/` — the application layer a person runs: roles to tracks, and (ADR-028)

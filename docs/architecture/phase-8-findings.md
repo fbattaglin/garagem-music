@@ -163,3 +163,54 @@ out, and it would add about $0.0175.
 
 **Not heard yet.** The floor's melody plays in the sound check and any jam. The model's
 melodies are heard after the show's bake, which waits on Stage E's tempo per song.
+
+## 4. The guitars come from GarageBand (Stage B, re-planned: ADR-029)
+
+After a restart, Fabiano asked for a re-plan around what Stage B had taught: *"Minimizar
+downloads … eu tenho garage band, posso comprar uma guitarra paga se ela valer muito a pena …
+vamos ser criativos"*. He chose to rebuild GarageBand's own instruments for Live, with
+nothing downloaded: guitar first, then drums and bass.
+
+### What is on disk, and what was built
+
+- **The Vintage Strat** has every string sampled on its own, ringing and palm-muted. It is
+  239 zones over one 16-bit mono file of 9.7 minutes. Its offsets sit in an EXS file that
+  `sounds/exs.py` now reads. It parses 211 of the Mac's 214 EXS instruments, and the three it
+  refuses are a newer format that none of the band's instruments use.
+- **The mapping keeps 58 of the 239 zones**:
+  - each key on one string, the lowest that reaches it in the first frets;
+  - palm mutes below velocity 80, ringing notes from 80, with the loud layer from 122;
+  - every key from 36 to 91 and every velocity from 1 to 127 plays exactly one sample;
+  - taps, ready-made chords and GarageBand's one-string groups are dropped.
+- **Four presets**, in User Library › Presets › Instruments › Instrument Rack › GARAGEM:
+  *GB Vintage Strat*, *GB Vintage Strat Heavy*, *GB Warm Electric* and *GB Warm Electric Heavy*.
+  - Each is the sample rack nested inside an outer rack, then Saturator, then an EQ Three as
+    the cabinet (lows −6 dB under 120 Hz, highs −20 dB over 3.5 kHz).
+  - The crunch drives 15 dB on a medium curve; Heavy drives 27 dB on a hard curve. Both are
+    starting points.
+  - The samples take 42 MB, and an import takes about a second. A second run writes the same
+    bytes.
+
+### Found on the way
+
+- **GarageBand normalises every sample and puts the level back in the zone.** The kits use
+  this from −15 to −27 dB per layer, so the zone's level and its group's are carried into each
+  Simpler. The Strat's only non-zero zones are taps, which are dropped.
+- **The Strat's high E has one zone with its velocity range off**, lying over a soft layer
+  with no loud layer beside it. Logic plays it as the loud layer, so the mapping trims it to the
+  velocities nobody else plays instead of dropping it.
+- **The Set had never been made six tracks.** The saved Set still has five, with a piano on
+  KEYS and no Saturator, so the import prints the Live steps, including making GTR 2.
+
+### Measured
+
+- The suite is at **3288 passed and 27 skipped**. `ruff` and `mypy` are clean. `sounds/` is held
+  pure by the architecture test.
+- **Nothing of Apple's or Ableton's is committed.** The tests build EXS bytes and stand-in
+  templates of their own. Where Live is installed, a test also edits Live's real templates.
+
+### Waiting on Fabiano
+
+**Not heard yet.** He drags *GB Vintage Strat* onto GTR and *GB Vintage Strat Heavy* onto GTR 2,
+then runs `soundcheck.py --only guitar --only guitar_double` for about five minutes. A yes
+goes on to the drums and the bass. A no means looking at a paid guitar.

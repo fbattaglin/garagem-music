@@ -128,6 +128,7 @@ These are non-negotiable, and most are enforced by tests rather than by conventi
 | Python | 3.12, managed with [uv](https://docs.astral.sh/uv/) |
 | Ableton Live | 12 (Lite is enough: 5 or 6 of its 8 tracks and 8 scenes are used), with AbletonOSC |
 | Operating system | macOS for performances, since Live and CoreMIDI run there. The test suite runs anywhere Python does. |
+| Sounds | GarageBand, opened once with its sounds downloaded: its guitars are rebuilt as Live presets ([ADR-029](docs/architecture/ADR-029-the-band-borrows-garagebands-library.md)) |
 | Optional | An Arturia MiniLab 3 to conduct, and an Anthropic API key to generate |
 
 ### Install and verify
@@ -152,11 +153,16 @@ uv run python scripts/install_abletonosc.py    # installs the Remote Script
    the bootstrap checks it by name. Per track it also records which notes that instrument
    answers to, since a sampled kit lays its pieces out where its maker put them, and the mix.
    The sounds are chosen by ear with `scripts/soundcheck.py`, which loops a verse, a bridge and
-   a chorus of the band while presets are swapped in Live.
+   a chorus of the band while presets are swapped in Live. The guitars are GarageBand's own,
+   rebuilt for Lite by `scripts/import_garageband.py` (ADR-029). Nothing is downloaded, but
+   GarageBand must be installed and opened once. The import writes four presets to User
+   Library › Presets › Instruments › Instrument Rack › GARAGEM and prints which goes on which
+   track: *GB Vintage Strat* on GTR, *GB Vintage Strat Heavy* on GTR 2.
 3. Validate the Set, and let the bootstrap repair what can be repaired safely: tempo, launch
    quantisation, track names and arm state. It never creates a track.
 
 ```bash
+uv run python scripts/import_garageband.py     # GarageBand's guitars as Live presets
 uv run python scripts/bootstrap_set.py --apply
 uv run python scripts/probe_live.py            # read-only walk of every OSC address used
 uv run python scripts/soundcheck.py            # loop the band, to choose its sounds by ear
@@ -245,6 +251,7 @@ src/garagem/
 ├── transport/   BarClock, ScoreBuffer, CueQueue, FormPlan, the clip-ahead scheduler
 ├── control/     ControllerPort, the MiniLab 3 adapter (mido), a fake controller
 ├── setlist/     online pre-production, offline playback
+├── sounds/      GarageBand's EXS instruments read and rebuilt as Live presets. No I/O
 └── obs/         JSONL event log, metrics, performance report
 scripts/         performance, probes, benchmarks, recording and listening tests
 tests/           unit · property · golden · regression · integration (live)
@@ -269,7 +276,9 @@ evidence, or when a criterion is explicitly waived in an ADR with its threshold 
 | 3 | First structural generation, one call per section | Closed · 2026-09-01 · one waiver ([ADR-018](docs/architecture/ADR-018-the-ab-waiver.md)) |
 | 4 | The full band and the tactical layer, conducted from the MiniLab | Closed · 2026-09-13 · one waiver ([ADR-023](docs/architecture/ADR-023-the-second-ab-waiver.md)) |
 | 5 | Setlist Mode for offline shows, curated with keep and veto, on the band's own instruments | Closed · 2026-09-17 · no waiver |
-| 6 | The songwriter: whole songs composed offline, with riffs, bass lines and a lead voice | **Current** ([ADR-025](docs/architecture/ADR-025-the-model-composes-offline.md)) |
+| 6 | The songwriter: whole songs composed offline, with riffs, bass lines and a lead voice | Closed · 2026-09-20 · one deviation, no waiver |
+| 7 | The arrangement: a solo section, relief in the form, an announced fill | Closed · 2026-10-10 · no deviation, no waiver |
+| 8 | The MVP: modern rock parts and sound, a melody, and a stage you can run | **Current** ([ADR-028](docs/architecture/ADR-028-the-mvp-stage.md), [ADR-029](docs/architecture/ADR-029-the-band-borrows-garagebands-library.md)) |
 
 **One finding shapes what comes next.** In the last three blind listening tests, 36 pairs in
 all, sections written by the model and by the deterministic floor were preferred equally, 18 to
