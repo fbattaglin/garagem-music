@@ -83,8 +83,9 @@ GUITAR_VOICE: Final = Voice(volume_db=-12.0, release_ms=150.0, voices=12)
 MEDIUM_CURVE: Final = "2"
 HARD_CURVE: Final = "3"
 # EQ Three's gains are amplitudes: 1 is 0 dB.
+UNITY: Final = "1"
 MINUS_6_DB: Final = "0.5"
-MINUS_20_DB: Final = "0.1"
+MINUS_15_DB: Final = "0.178"
 
 
 @dataclass(frozen=True)
@@ -98,15 +99,18 @@ class Drive:
 
 
 # Starting points, to be moved by ear in Live. The cabinet is the same for both: lows under
-# 120 Hz down 6 dB so the drive does not turn to mud, highs over 3.5 kHz down 20 dB, which is
-# roughly where a guitar speaker gives up.
+# 120 Hz down 6 dB so the drive does not turn to mud, the mids where the guitar lives left
+# alone, highs over 5 kHz down 15 dB, which is roughly where a guitar speaker gives up. Every
+# band is set: the template is Core Library's "Hi", which silences the lows and the mids, and a
+# band left out keeps its -70 dB (phase-8-findings §4).
 CRUNCH: Final = Drive(suffix="", pre_drive_db=15.0, curve=MEDIUM_CURVE, post_drive_db=-12.0)
 HEAVY: Final = Drive(suffix=" Heavy", pre_drive_db=27.0, curve=HARD_CURVE, post_drive_db=-20.0)
 CABINET: Final = (
     ("GainLo", MINUS_6_DB),
     ("FreqLo", "120"),
-    ("GainHi", MINUS_20_DB),
-    ("FreqHi", "3500"),
+    ("GainMid", UNITY),
+    ("GainHi", MINUS_15_DB),
+    ("FreqHi", "5000"),
 )
 
 

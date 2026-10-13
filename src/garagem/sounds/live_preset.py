@@ -153,6 +153,9 @@ def _effect(wrapper: ET.Element, index: int, effect: Effect) -> ET.Element:
     if len(root) != 1:
         raise PresetTemplateError("an effect template holds exactly one device")
     device = copy.deepcopy(root[0])
+    # Saved alone, a device has no `Id`; inside a rack Live lists it by one, and refuses the
+    # whole preset as corrupt without it ("Not all list members have Ids").
+    device.set("Id", "0")
     _set(device, "UserName", effect.name)
     for parameter, value in effect.settings:
         # An automatable knob keeps its value in `Manual`; a switch like Oversampling, on itself.

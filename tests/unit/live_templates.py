@@ -131,6 +131,7 @@ EQ_THREE = """<?xml version="1.0" encoding="UTF-8"?>
   <FilterEQ3>
     <UserName Value="" />
     <GainLo><Manual Value="0.00031622799" /></GainLo>
+    <GainMid><Manual Value="0.00031622799" /></GainMid>
     <GainHi><Manual Value="1.48977268" /></GainHi>
     <FreqLo><Manual Value="249.999969" /></FreqLo>
     <FreqHi><Manual Value="1766.57275" /></FreqHi>

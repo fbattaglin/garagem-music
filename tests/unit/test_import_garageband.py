@@ -7,8 +7,10 @@ something is missing, and that a second run changes nothing.
 
 from __future__ import annotations
 
+import gzip
 import importlib.util
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from types import ModuleType
 
@@ -102,6 +104,25 @@ def test_each_guitar_becomes_a_crunch_and_a_heavy_preset_over_one_set_of_samples
     out = capsys.readouterr().out
     assert "Drag GB Vintage Strat onto the GTR track" in out
     assert "palm_mute_below = 80" in out
+
+
+def test_the_cabinet_sets_every_band_so_none_of_the_templates_cuts_survive(
+    garageband: Path,
+) -> None:
+    """Core Library's "Hi" silences the lows and the mids. A band the cabinet left out kept its
+    -70 dB, and the first guitar heard in Live was quiet and muffled."""
+    importer.main(["--user-library", str(garageband)])
+    preset = garageband / "Presets/Instruments/Instrument Rack/GARAGEM/GB Vintage Strat.adg"
+    cabinet = ET.fromstring(gzip.decompress(preset.read_bytes())).find(".//FilterEQ3")
+    assert cabinet is not None
+
+    def gain(band: str) -> float:
+        manual = cabinet.find(f"{band}/Manual")
+        assert manual is not None
+        return float(manual.get("Value", "nan"))
+
+    assert gain("GainMid") == 1.0
+    assert all(gain(band) >= 0.1 for band in ("GainLo", "GainMid", "GainHi"))
 
 
 def test_a_second_run_writes_the_same_bytes_and_leaves_nothing_stale(garageband: Path) -> None:

@@ -162,6 +162,20 @@ def test_with_effects_the_samples_are_nested_and_followed_by_the_drive() -> None
     assert value(cabinet, "GainLo/Manual") == "0.00031622799"
 
 
+def test_every_device_in_the_rack_has_the_id_live_lists_it_by() -> None:
+    """Live refuses a preset as corrupt when a device in it has no `Id`. An effect's `.adv`
+    holds its device with none, so the copy must be given one."""
+    rack = read(instrument_rack(RACK, "GB", "", CHAINS, VOICE, DRIVE))
+    held = [device for holder in rack.iter("Device") for device in holder]
+    assert {d.tag for d in held} == {
+        "InstrumentGroupDevice",
+        "OriginalSimpler",
+        "Saturator",
+        "FilterEQ3",
+    }
+    assert all(d.get("Id") == "0" for d in held)
+
+
 def test_the_same_chains_write_the_same_bytes() -> None:
     first = instrument_rack(RACK, "GB", "x", CHAINS, VOICE, DRIVE)
     assert instrument_rack(RACK, "GB", "x", CHAINS, VOICE, DRIVE) == first
@@ -214,3 +228,4 @@ def test_the_installed_lives_own_presets_take_the_same_edits() -> None:
         "Saturator",
         "FilterEQ3",
     ]
+    assert all("Id" in device.attrib for holder in rack.iter("Device") for device in holder)

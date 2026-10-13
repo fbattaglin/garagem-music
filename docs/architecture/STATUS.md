@@ -75,8 +75,9 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
     drive.
   - **Cost:** nothing downloaded, 42 MB in the User Library.
 
-  Suite at **3288 passed, 27 skipped**. **Waiting on Fabiano:** a five-minute listen to the
-  Strat on GTR and GTR 2. A yes brings the drums and the bass through the same import.
+  Suite at **3290 passed, 27 skipped**. **Heard, and the gate passes** (2026-10-12), after two
+  fixes the first listens found: *"Agora sim acredito que estamos em um lugar melhor"*. Next,
+  the drums and the bass through the same import.
 - **Then: Stage D, the stage** — one command, a ready check, the show screen and typed commands.
 
 Phase 7 was the arrangement: the band had its material, and the phase decided where things

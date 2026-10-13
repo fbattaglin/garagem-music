@@ -185,7 +185,7 @@ nothing downloaded: guitar first, then drums and bass.
 - **Four presets**, in User Library › Presets › Instruments › Instrument Rack › GARAGEM:
   *GB Vintage Strat*, *GB Vintage Strat Heavy*, *GB Warm Electric* and *GB Warm Electric Heavy*.
   - Each is the sample rack nested inside an outer rack, then Saturator, then an EQ Three as
-    the cabinet (lows −6 dB under 120 Hz, highs −20 dB over 3.5 kHz).
+    the cabinet (lows −6 dB under 120 Hz, mids untouched, highs −15 dB over 5 kHz).
   - The crunch drives 15 dB on a medium curve; Heavy drives 27 dB on a hard curve. Both are
     starting points.
   - The samples take 42 MB, and an import takes about a second. A second run writes the same
@@ -199,18 +199,31 @@ nothing downloaded: guitar first, then drums and bass.
 - **The Strat's high E has one zone with its velocity range off**, lying over a soft layer
   with no loud layer beside it. Logic plays it as the loud layer, so the mapping trims it to the
   velocities nobody else plays instead of dropping it.
+- **Live refused the first presets as corrupt**, and the first listen heard the old guitar.
+  Its log said *"Not all list members have Ids"*: a device saved alone as an `.adv` has no
+  `Id`, and inside a rack Live needs one. The Saturator and the EQ Three now get `Id="0"`, and
+  every pair Core Library always writes with an `Id` was checked against the presets: none
+  missing. A test now holds it. Live's `Log.txt` is where a refused preset says why.
+- **Then the Strat was heard, and it was the cabinet's fault:** *"O som está com o volume baixo
+  e abafado. Não soa como uma guitarra"*. The EQ Three came from Core Library's "Hi", which
+  silences the lows and the mids, and the cabinet never set the mids: everything from 120 Hz to
+  3.5 kHz played at −70 dB. Every band is set now, and a test holds that none stays silenced.
+  An edited template keeps whatever it is not told.
 - **The Set had never been made six tracks.** The saved Set still has five, with a piano on
   KEYS and no Saturator, so the import prints the Live steps, including making GTR 2.
 
 ### Measured
 
-- The suite is at **3288 passed and 27 skipped**. `ruff` and `mypy` are clean. `sounds/` is held
+- The suite is at **3290 passed and 27 skipped**. `ruff` and `mypy` are clean. `sounds/` is held
   pure by the architecture test.
 - **Nothing of Apple's or Ableton's is committed.** The tests build EXS bytes and stand-in
   templates of their own. Where Live is installed, a test also edits Live's real templates.
 
-### Waiting on Fabiano
+### Heard: the gate passes
 
-**Not heard yet.** He drags *GB Vintage Strat* onto GTR and *GB Vintage Strat Heavy* onto GTR 2,
-then runs `soundcheck.py --only guitar --only guitar_double` for about five minutes. A yes
-goes on to the drums and the bass. A no means looking at a paid guitar.
+With both fixes in, *GB Vintage Strat* on GTR and *GB Vintage Strat Heavy* on GTR 2, in
+`soundcheck.py --only guitar --only guitar_double` (2026-10-12): *"Agora sim acredito que
+estamos em um lugar melhor. A musica era repetitiva, mas acho que essa era a intencao"*. The
+repetition is the sound check's loop, by design. Better, not finished: the drive and the
+cabinet are still starting points for the ear. The drums and the bass go next, through the
+same import.
