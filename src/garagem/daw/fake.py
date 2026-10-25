@@ -54,6 +54,8 @@ class FakeDawAdapter:
         device_names: Sequence[Sequence[str]] | None = None,
         midi_tracks: Sequence[bool] | None = None,
         armed: Sequence[bool] | None = None,
+        volumes: Sequence[float] | None = None,
+        pans: Sequence[float] | None = None,
         scenes: int = 2,
         tempo_bpm: float = 120.0,
         quantization: Quantization = Quantization.BAR,
@@ -71,8 +73,10 @@ class FakeDawAdapter:
             list(midi_tracks) if midi_tracks is not None else [True] * len(self._track_names)
         )
         self._armed = list(armed) if armed is not None else [False] * len(self._track_names)
-        self._volumes = [DEFAULT_VOLUME] * len(self._track_names)
-        self._pans = [0.0] * len(self._track_names)
+        self._volumes = (
+            list(volumes) if volumes is not None else [DEFAULT_VOLUME] * len(self._track_names)
+        )
+        self._pans = list(pans) if pans is not None else [0.0] * len(self._track_names)
         self._sends = [[0.0] * DEFAULT_RETURNS for _ in self._track_names]
         self._scenes = scenes
         self._tempo_bpm = tempo_bpm

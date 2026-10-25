@@ -16,6 +16,7 @@ from types import ModuleType
 import pytest
 
 from garagem.daw import DawUnavailableError, FakeDawAdapter, Quantization, load_session
+from garagem.daw.fake import DEFAULT_VOLUME
 
 ROOT = Path(__file__).resolve().parents[2]
 SESSION = ROOT / "session.toml"
@@ -35,10 +36,14 @@ bootstrap = _load_bootstrap()
 
 
 def matching_daw(**extra: object) -> FakeDawAdapter:
+    tracks = load_session(SESSION).tracks
     base: dict[str, object] = {
-        "track_names": [track.name for track in load_session(SESSION).tracks],
+        "track_names": [track.name for track in tracks],
         # What `session.toml` names, since the bootstrap checks the instrument by name.
-        "device_names": [(track.instrument,) for track in load_session(SESSION).tracks],
+        "device_names": [(track.instrument,) for track in tracks],
+        # And the mix it pins, where it pins one.
+        "volumes": [DEFAULT_VOLUME if t.volume is None else t.volume for t in tracks],
+        "pans": [0.0 if track.pan is None else track.pan for track in tracks],
         # As many as `session.toml` declares: ADR-022 lays out eight.
         "scenes": 8,
         "tempo_bpm": 132.0,

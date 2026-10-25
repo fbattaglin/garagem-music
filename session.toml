@@ -73,9 +73,11 @@ name = "GTR"
 role = "guitar"
 # GarageBand's Vintage Strat, rebuilt for Lite by `scripts/import_garageband.py` (ADR-029):
 # every string sampled ringing and palm-muted, then Lite's Saturator and an EQ Three for a
-# cabinet, all inside the one preset. The crunch, panned left.
+# cabinet, all inside the one preset. The crunch, panned left: alone in a verse, beside the
+# double in a chorus. 0.6 each way is a starting point for the ear (2026-10-25).
 instrument = "GB Vintage Strat"
 armed = false
+pan = -0.6
 # The preset plays its palm mutes below this velocity and its ringing notes from it. The import
 # builds it from this number, so the two change together.
 palm_mute_below = 80
@@ -88,6 +90,7 @@ role = "guitar_double"
 # panned right. Silent below a chorus.
 instrument = "GB Vintage Strat Heavy"
 armed = false
+pan = 0.6
 palm_mute_below = 80
 
 [[track]]

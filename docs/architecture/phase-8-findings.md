@@ -263,6 +263,7 @@ alguns"*. The bootstrap finds the Set matching `session.toml`.
 - **The guitars were never panned.** `session.toml` describes the crunch on the left and the
   heavy double on the right, but declares no `pan`. `--mix` reads both at the centre, so in a
   chorus the double plays on top of the first guitar instead of beside it. Every fader is at
-  0 dB, and no track sends to a return.
+  0 dB, and no track sends to a return. **Now panned 0.6 each way**, declared in
+  `session.toml` and applied by the bootstrap, as a starting point for the ear. Not heard yet.
 - The song played to its end with 0 beats lost, from disk, for $0.000. Eight of its sixteen
   takes play differently from their bake, because Stage A's parts now realise them.

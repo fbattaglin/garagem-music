@@ -81,7 +81,7 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
   and *GB SoCal Kit* are pinned in `session.toml`, with the kit's `pitches` empty, and Analog
   Lab's *Jazz B-3 Organ* is on KEYS. **Heard in a song** (2026-10-25): *"foi agradável e tinha
   um swag"*, but *"não me pareceu exatamente um rock arena estilo foo fighters"*. The guitars
-  turned out never to have been panned.
+  turned out never to have been panned; they are now 0.6 left and right, not heard yet.
 - **Open, found on the way and not caused by it:** Hypothesis found a floor section that fails
   `test_the_floor_is_never_messy` — a two-bar Locrian halftime verse at 55 BPM, `dyn` 1,
   `register_spread` 0.786 against 0.8. It reproduces with the engines untouched by this work,

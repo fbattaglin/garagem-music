@@ -19,6 +19,7 @@ import pytest
 from garagem.agents import deadline_for, worth_asking
 from garagem.control import FakeController, load_controller
 from garagem.daw import DawPort, DawTimeoutError, FakeDawAdapter
+from garagem.daw.fake import DEFAULT_VOLUME
 from garagem.domain import Feel, Instrument, MacroKind, Section
 from garagem.engines import SongBrief
 from garagem.transport import ScoreBuffer
@@ -71,6 +72,8 @@ def live(monkeypatch: pytest.MonkeyPatch) -> FakeDawAdapter:
     daw = FakeDawAdapter(
         track_names=[track.name for track in spec.tracks],
         device_names=[(track.instrument,) for track in spec.tracks],
+        volumes=[DEFAULT_VOLUME if t.volume is None else t.volume for t in spec.tracks],
+        pans=[0.0 if track.pan is None else track.pan for track in spec.tracks],
         scenes=max(len(spec.scenes), 4),
         tempo_bpm=spec.tempo_bpm,
         quantization=spec.quantization,
