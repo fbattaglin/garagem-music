@@ -47,21 +47,24 @@ loop = false
 index = 0
 name = "DRUMS"
 role = "drums"
-# Gen Purpose Kit since 2026-09-17, found by ADR-028's exploration: the Set held it while
-# this line still said Dry Session Kit, and nothing checked.
-instrument = "Gen Purpose Kit"
+# Drum Kit Designer's SoCal kit, rebuilt for Lite by `scripts/import_garageband.py` (ADR-029);
+# "GB Heavy Kit" is the other one. Before it, Core Library's Gen Purpose Kit.
+instrument = "GB SoCal Kit"
 armed = false
-# Where this kit keeps the toms. The band writes the General MIDI notes in
-# `theory/percussion.py`; the Dry Session Kit laid its four toms one piece lower and kept a
-# ride where the band writes its high tom, and the Gen Purpose Kit has the same layout. Read
-# off the kit's own pads, not guessed. An empty table means the two already agree.
-pitches = { 50 = 47, 47 = 45, 45 = 43, 43 = 41 }
+# Where this kit keeps the pieces the band writes as the General MIDI notes in
+# `theory/percussion.py`. The import puts every piece on its note (`sounds/kit.py`), so the
+# table is empty. Gen Purpose Kit needed { 50 = 47, 47 = 45, 45 = 43, 43 = 41 }: its four toms
+# one piece lower, read off its own pads.
+pitches = {}
 
 [[track]]
 index = 1
 name = "BASS"
 role = "bass"
-instrument = "Electric Bass Raw"
+# GarageBand's Picked Rock Bass, rebuilt by the import an octave below where GarageBand maps it,
+# so the band's low E (28) is the string's. "GB Fingerstyle Bass" is the softer one. Before it,
+# Core Library's Electric Bass Raw.
+instrument = "GB Picked Rock Bass"
 armed = false
 
 [[track]]
@@ -91,8 +94,9 @@ palm_mute_below = 80
 index = 4
 name = "KEYS"
 role = "keys"
-# An organ (ADR-028): a B-3 from Arturia's Analog Lab, or Drift's "Organ Analog" if Analog
-# Lab's licence does not open one — then this line says "Organ Analog".
+# An organ (ADR-028): Arturia's Analog Lab, on its "Jazz B-3 Organ" preset, chosen by ear on
+# 2026-10-25 as quieter in the band than the other organs. The bootstrap sees the plugin, not
+# the preset. Drift's "Organ Analog" is the stand-in that needs no licence.
 instrument = "Analog Lab"
 armed = false
 

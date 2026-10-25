@@ -2,13 +2,15 @@
 
 Logic picks a zone with more than a key and a velocity: the Strat chooses its string by what
 the player did last, and its palm mute by a key switch. Live's rack chooses by key and
-velocity only, so the choice is made here, once, and written down as `Part`s.
+velocity only, so the choice is made here, once, and written down as `Part`s. The drum kits'
+choices are in `kit.py`.
 """
 
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from itertools import groupby
 from typing import Final
 
 from garagem.sounds.exs import ExsInstrument, ExsZone
@@ -28,6 +30,14 @@ STRING_FLOORS: Final[dict[int, int]] = {6: 0, 5: 45, 4: 50, 3: 55, 2: 59, 1: 64}
 # ready-made chords and GarageBand's own one-string groups (`GB_Main`, `Mute_GB`) do not match.
 STRING_GROUP: Final = re.compile(r"^([1-6]) [A-G]_(Main|Mute)$")
 
+# A group Logic plays when a key is let go: the bass's `E-BASS PICK NOTE OFF 1`, the sound of a
+# string being stopped. Live's rack would play it as a note, so it is left out.
+RELEASE_GROUP: Final = re.compile(r"NOTE OFF", re.IGNORECASE)
+
+# GarageBand maps its basses an octave above where they sound: the low E, 41 Hz, is on key 40
+# (measured on Picked Rock's and Fingerstyle's samples). The band writes the low E as 28.
+BASS_OCTAVE_DOWN: Final = -12
+
 NOTE_NAMES: Final = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 
 
@@ -43,6 +53,9 @@ class Part:
     key_hi: int
     vel_lo: int
     vel_hi: int
+    # The key that plays the sample at its own pitch. Logic's root for the guitar; an octave
+    # down for a bass; for a drum, the note it answers, less any interval it is moved by.
+    root: int
 
 
 def guitar_parts(instrument: ExsInstrument, palm_mute_below: int) -> tuple[Part, ...]:
@@ -70,7 +83,10 @@ def guitar_parts(instrument: ExsInstrument, palm_mute_below: int) -> tuple[Part,
         key_lo, key_hi = max(zone.key_lo, floor), min(zone.key_hi, ceiling)
         if key_lo > key_hi:
             continue
-        vel_lo, vel_hi = rescale(zone.vel_lo, zone.vel_hi, bands[articulation])
+        velocities = group_velocities(instrument, zone)
+        if velocities is None:
+            continue
+        vel_lo, vel_hi = rescale(*velocities, bands[articulation])
         if vel_lo > vel_hi:
             # A soft layer squeezed out of a band one velocity wide.
             continue
@@ -79,23 +95,73 @@ def guitar_parts(instrument: ExsInstrument, palm_mute_below: int) -> tuple[Part,
                 name=f"{note_name(zone.root)} {_STRING_NAMES[string]} {articulation.lower()}"
                 + _layer(zone),
                 zone=zone,
-                gain_db=zone.volume_db + instrument.groups[zone.group].volume_db,
+                gain_db=gain(instrument, zone),
                 key_lo=key_lo,
                 key_hi=key_hi,
                 vel_lo=vel_lo,
                 vel_hi=vel_hi,
+                root=zone.root,
             )
         )
     return without_overlaps(parts)
 
 
+def multisample_parts(instrument: ExsInstrument, transpose: int = 0) -> tuple[Part, ...]:
+    """Every zone where Logic maps it, `transpose` semitones away, without its release noises.
+
+    Each zone answers the velocities both it and its group do: the basses keep their five
+    layers on the group, and every zone in a layer answers 0..127.
+    """
+    parts: list[Part] = []
+    for zone in instrument.zones:
+        if zone.group >= 0 and RELEASE_GROUP.search(instrument.groups[zone.group].name):
+            continue
+        velocities = group_velocities(instrument, zone)
+        if velocities is None:
+            continue
+        vel_lo, vel_hi = rescale(*velocities, (MIN_VELOCITY, MAX_VELOCITY))
+        key_lo = max(zone.key_lo + transpose, 0)
+        key_hi = min(zone.key_hi + transpose, MAX_KEY)
+        root = zone.root + transpose
+        if key_lo > key_hi or vel_lo > vel_hi or not 0 <= root <= MAX_KEY:
+            continue
+        parts.append(
+            Part(
+                name=f"{note_name(root)} {vel_lo}-{vel_hi}",
+                zone=zone,
+                gain_db=gain(instrument, zone),
+                key_lo=key_lo,
+                key_hi=key_hi,
+                vel_lo=vel_lo,
+                vel_hi=vel_hi,
+                root=root,
+            )
+        )
+    return without_overlaps(parts)
+
+
+def group_velocities(instrument: ExsInstrument, zone: ExsZone) -> tuple[int, int] | None:
+    """The velocities, out of 0..127, that the zone and its group both answer, if any."""
+    if zone.group < 0:
+        return zone.vel_lo, zone.vel_hi
+    group = instrument.groups[zone.group]
+    low, high = max(zone.vel_lo, group.vel_lo), min(zone.vel_hi, group.vel_hi)
+    return (low, high) if low <= high else None
+
+
+def gain(instrument: ExsInstrument, zone: ExsZone) -> int:
+    """The zone's level and its group's, in dB, as Logic adds them."""
+    return zone.volume_db + (instrument.groups[zone.group].volume_db if zone.group >= 0 else 0)
+
+
 def without_overlaps(parts: list[Part]) -> tuple[Part, ...]:
     """Every key and velocity played by one part at most, the most specific one.
 
-    The Strat's high E string has one zone with its velocity range switched off, lying over
-    a soft layer at the same keys, and no loud layer beside it: in Logic it is the loud layer.
-    So the narrower part wins, and a wider one over exactly the same keys keeps the velocities
-    nobody else plays. A wider one over other keys gives way altogether.
+    The narrower part wins, and a wider one keeps only the keys and velocities nobody else
+    plays. The Strat's high E string has one zone with its velocity range switched off, lying
+    over a soft layer at the same keys: in Logic it is the loud layer, and here it keeps the loud
+    velocities. Picked Rock's loudest layer runs its B3 zone to the top of the keyboard, under
+    its D4 zone: it keeps the B3 and the C4.
     """
     kept: list[Part] = []
     ranked = sorted(
@@ -107,15 +173,31 @@ def without_overlaps(parts: list[Part]) -> tuple[Part, ...]:
         ),
     )
     for _, part in ranked:
-        rivals = [other for other in kept if _overlap(part, other)]
-        if not rivals:
-            kept.append(part)
-        elif all((r.key_lo, r.key_hi) == (part.key_lo, part.key_hi) for r in rivals):
-            kept += [
-                Part(part.name, part.zone, part.gain_db, part.key_lo, part.key_hi, lo, hi)
-                for lo, hi in _uncovered(part.vel_lo, part.vel_hi, rivals)
-            ]
+        kept += _remainder(part, [other for other in kept if _overlap(part, other)])
     return tuple(sorted(kept, key=lambda p: (p.key_lo, p.vel_lo)))
+
+
+def _remainder(part: Part, rivals: list[Part]) -> list[Part]:
+    """`part` less everything a rival plays: one part per run of keys left the same way."""
+    if not rivals:
+        return [part]
+    left = [
+        (
+            key,
+            _uncovered(
+                part.vel_lo, part.vel_hi, [r for r in rivals if r.key_lo <= key <= r.key_hi]
+            ),
+        )
+        for key in range(part.key_lo, part.key_hi + 1)
+    ]
+    pieces: list[Part] = []
+    for runs, keys in groupby(left, key=lambda item: item[1]):
+        played = [key for key, _ in keys]
+        pieces += [
+            replace(part, key_lo=played[0], key_hi=played[-1], vel_lo=lo, vel_hi=hi)
+            for lo, hi in runs
+        ]
+    return pieces
 
 
 def _uncovered(low: int, high: int, rivals: list[Part]) -> list[tuple[int, int]]:

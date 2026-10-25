@@ -18,7 +18,7 @@ from garagem.sounds.live_preset import (
     instrument_rack,
 )
 
-VOICE = Voice(volume_db=-12.0, release_ms=150.0, voices=12)
+VOICE = Voice(volume_db=-12.0, release_ms=150.0, voices=12, sustain_db=0.0, velocity_to_volume=1.0)
 CORE_LIBRARY = Path("/Applications/Ableton Live 12 Lite.app/Contents/App-Resources/Core Library")
 REAL_RACK = CORE_LIBRARY / "Racks/Instrument Racks/Guitar/Guitar Electric Clean.adg"
 
@@ -125,6 +125,8 @@ def test_every_simpler_shares_the_voice() -> None:
     for simpler in rack.iter("OriginalSimpler"):
         assert value(simpler, "VolumeAndPan/Volume/Manual") == "-12"
         assert value(simpler, "VolumeAndPan/Envelope/ReleaseTime/Manual") == "150"
+        assert value(simpler, "VolumeAndPan/Envelope/SustainLevel/Manual") == "1"
+        assert value(simpler, "VolumeAndPan/VolumeVelScale/Manual") == "1"
         assert value(simpler, "Filter/IsOn/Manual") == "false"
         assert value(simpler, "Globals/NumVoices") == "12"
 

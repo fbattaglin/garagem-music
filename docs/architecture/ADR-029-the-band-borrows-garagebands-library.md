@@ -52,6 +52,13 @@ That is Lite's own way to multisample. The rack is copied from a preset the inst
   ring. `engines.guitar.articulated` already clamps every guitar note to this split, so the
   split is a contract and not a hope.
 - **Left out:** taps, ready-made chords and GarageBand's one-string groups.
+- **The bass's octave.** GarageBand maps its basses an octave above where they sound, so the
+  import moves them down: the band's low E (28) is the string's 41 Hz.
+- **The kit's pieces** (`sounds/kit.py`). Each note the band writes gets one piece, at up to
+  eight velocity layers. The hi-hat's seven openings are chosen by how long they ring: closed
+  `o1`, open `o5`. The kits have three toms and the band writes four, so the low tom is the mid
+  tom three semitones down. `session.toml`'s `pitches` for the kit becomes empty.
+- **Left out:** the bass's release noises, played by Logic when a key is let go.
 
 **4. The drive is inside the preset.** The sample rack is nested in an outer rack and followed by
 Lite's Saturator and an EQ Three standing in for a cabinet, the way Core Library nests its own
@@ -60,7 +67,8 @@ brings a driven guitar, and the knobs are starting points that are moved by ear.
 
 **5. The guitar goes first, and its listen decides whether the plan goes on.** The drums and the
 bass use the same pipeline, but they come only after the guitar's verdict. If the verdict is no,
-the next step is a paid guitar, with its install steps checked before anything is bought.
+the next step is a paid guitar, with its install steps checked before anything is bought. The
+guitar passed on 2026-10-12 (phase-8-findings §4), and the bass and the kits followed.
 
 ## Rejected alternatives
 
@@ -90,3 +98,8 @@ and none of them is used.
 **The XML is Live's, not ours.** If a future Live changes the preset format, the import still
 copies its shape from that Live's own template. A rename of the elements it edits makes the
 import fail with the missing element's name, instead of writing a preset that loads silent.
+
+**GarageBand's samples are normalised, so the dynamics are the presets' to set.** Logic plays
+them through its velocity curve, and the zones' levels assume it: a soft kick is set 8 dB above
+a hard one. Each preset says how far velocity pulls the volume: the kits in full, the guitars
+and the basses at Core Library's guitar's 35%.

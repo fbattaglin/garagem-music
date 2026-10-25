@@ -79,7 +79,11 @@ RACK = f"""<?xml version="1.0" encoding="UTF-8"?>
                 <Filter><IsOn><Manual Value="true" /></IsOn></Filter>
                 <VolumeAndPan>
                   <Volume><Manual Value="-19.7999992" /></Volume>
-                  <Envelope><ReleaseTime><Manual Value="2000.00012" /></ReleaseTime></Envelope>
+                  <VolumeVelScale><Manual Value="0.349999994" /></VolumeVelScale>
+                  <Envelope>
+                    <SustainLevel><Manual Value="0.0003162277571" /></SustainLevel>
+                    <ReleaseTime><Manual Value="2000.00012" /></ReleaseTime>
+                  </Envelope>
                 </VolumeAndPan>
                 <Globals><NumVoices Value="9" /></Globals>
               </OriginalSimpler>

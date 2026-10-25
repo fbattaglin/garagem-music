@@ -9,7 +9,9 @@ from exs_bytes import Sample, Zone, chunk, exs
 
 from garagem.sounds.exs import ExsError, parse_exs
 
-STRAT = Path("/Library/Application Support/Logic/Sampler Instruments/08 Guitars/Vintage Strat.exs")
+LOGIC = Path("/Library/Application Support/Logic/Sampler Instruments")
+STRAT = LOGIC / "08 Guitars/Vintage Strat.exs"
+PICKED_BASS = LOGIC / "02 Bass/02 Electric Bass/Picked Rock Bass.exs"
 
 
 def one_zone(**fields: object) -> bytes:
@@ -53,6 +55,25 @@ def test_every_field_comes_back_as_written() -> None:
     (sample,) = instrument.samples
     assert (sample.folder, sample.file) == ("/Library/x", "Strat_consolidated.caf")
     assert (sample.frames, sample.rate, sample.bits) == (300_000, 44100, 24)
+
+
+def test_a_group_keeps_its_velocity_range_and_one_written_without_answers_all() -> None:
+    data = exs(
+        [Zone(root=40, key_lo=40, key_hi=41, group=1)],
+        [("Group #3", 5), ("Group #4", 5, 46, 70)],
+        [Sample("bass.aif", frames=1000)],
+    )
+    groups = parse_exs(data).groups
+    assert [(g.name, g.vel_lo, g.vel_hi) for g in groups] == [
+        ("Group #3", 0, 127),
+        ("Group #4", 46, 70),
+    ]
+
+
+def test_a_group_with_its_velocities_the_wrong_way_round_is_refused() -> None:
+    data = exs([Zone(root=40, key_lo=40, key_hi=41)], [("Group #4", 5, 70, 46)], [Sample("b", 10)])
+    with pytest.raises(ExsError, match="Group #4"):
+        parse_exs(data)
 
 
 def test_a_zone_with_its_velocity_range_off_answers_every_velocity() -> None:
@@ -106,3 +127,11 @@ def test_garagebands_vintage_strat_reads_as_six_strings_ringing_and_muted() -> N
         if instrument.groups[z.group].name == "6 E_Main" and z.root == 40
     ]
     assert sorted(low_e) == [(0, 113), (114, 127)]
+
+
+@pytest.mark.skipif(not PICKED_BASS.is_file(), reason="GarageBand's library is not on this machine")
+def test_garagebands_picked_bass_keeps_its_five_layers_on_its_groups() -> None:
+    instrument = parse_exs(PICKED_BASS.read_bytes())
+    layers = sorted((g.vel_lo, g.vel_hi) for g in instrument.groups if "NOTE OFF" not in g.name)
+    assert layers == [(0, 45), (46, 70), (71, 95), (96, 115), (116, 127)]
+    assert all((z.vel_lo, z.vel_hi) == (0, 127) for z in instrument.zones)

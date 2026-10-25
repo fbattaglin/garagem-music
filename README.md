@@ -128,7 +128,7 @@ These are non-negotiable, and most are enforced by tests rather than by conventi
 | Python | 3.12, managed with [uv](https://docs.astral.sh/uv/) |
 | Ableton Live | 12 (Lite is enough: 5 or 6 of its 8 tracks and 8 scenes are used), with AbletonOSC |
 | Operating system | macOS for performances, since Live and CoreMIDI run there. The test suite runs anywhere Python does. |
-| Sounds | GarageBand, opened once with its sounds downloaded: its guitars are rebuilt as Live presets ([ADR-029](docs/architecture/ADR-029-the-band-borrows-garagebands-library.md)) |
+| Sounds | GarageBand, opened once with its sounds downloaded: its guitars, basses and drum kits are rebuilt as Live presets ([ADR-029](docs/architecture/ADR-029-the-band-borrows-garagebands-library.md)) |
 | Optional | An Arturia MiniLab 3 to conduct, and an Anthropic API key to generate |
 
 ### Install and verify
@@ -153,16 +153,17 @@ uv run python scripts/install_abletonosc.py    # installs the Remote Script
    the bootstrap checks it by name. Per track it also records which notes that instrument
    answers to, since a sampled kit lays its pieces out where its maker put them, and the mix.
    The sounds are chosen by ear with `scripts/soundcheck.py`, which loops a verse, a bridge and
-   a chorus of the band while presets are swapped in Live. The guitars are GarageBand's own,
-   rebuilt for Lite by `scripts/import_garageband.py` (ADR-029). Nothing is downloaded, but
-   GarageBand must be installed and opened once. The import writes four presets to User
-   Library › Presets › Instruments › Instrument Rack › GARAGEM and prints which goes on which
-   track: *GB Vintage Strat* on GTR, *GB Vintage Strat Heavy* on GTR 2.
+   a chorus of the band while presets are swapped in Live. The guitars, the bass and the kit
+   are GarageBand's own, rebuilt for Lite by `scripts/import_garageband.py` (ADR-029). Nothing
+   is downloaded, but GarageBand must be installed and opened once. The import writes its
+   presets to User Library › Presets › Instruments › Instrument Rack › GARAGEM and prints which
+   goes on which track: *GB Vintage Strat* on GTR, *GB Vintage Strat Heavy* on GTR 2, *GB Picked
+   Rock Bass* on BASS and *GB SoCal Kit* on DRUMS.
 3. Validate the Set, and let the bootstrap repair what can be repaired safely: tempo, launch
    quantisation, track names and arm state. It never creates a track.
 
 ```bash
-uv run python scripts/import_garageband.py     # GarageBand's guitars as Live presets
+uv run python scripts/import_garageband.py     # GarageBand's guitars, bass and kit as presets
 uv run python scripts/bootstrap_set.py --apply
 uv run python scripts/probe_live.py            # read-only walk of every OSC address used
 uv run python scripts/soundcheck.py            # loop the band, to choose its sounds by ear

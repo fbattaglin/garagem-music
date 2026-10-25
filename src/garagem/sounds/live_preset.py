@@ -69,6 +69,12 @@ class Voice:
     release_ms: float
     # Simpler's polyphony. A power chord ringing into the next is six voices.
     voices: int
+    # Where the envelope settles after its decay. The template's is -70 dB, which fades a held
+    # note over the decay; at 0 dB the sample's own decay is all there is, as a drum needs.
+    sustain_db: float
+    # How much a soft note is quieter than a hard one, 0 to 1: Simpler's "Vel" under Volume.
+    # GarageBand's samples are normalised, so this is where the dynamics are.
+    velocity_to_volume: float
 
 
 @dataclass(frozen=True)
@@ -207,7 +213,9 @@ def _chain(model: ET.Element, index: int, chain: Chain, voice: Voice) -> ET.Elem
     simpler = _find(branch, "DevicePresets/AbletonDevicePreset/Device/OriginalSimpler")
     _set(simpler, "UserName", "")
     _manual(simpler, "VolumeAndPan/Volume", f"{voice.volume_db:g}")
+    _manual(simpler, "VolumeAndPan/VolumeVelScale", f"{voice.velocity_to_volume:g}")
     _manual(simpler, "VolumeAndPan/Envelope/ReleaseTime", f"{voice.release_ms:g}")
+    _manual(simpler, "VolumeAndPan/Envelope/SustainLevel", f"{10 ** (voice.sustain_db / 20):.6g}")
     _manual(simpler, "Filter/IsOn", "false")
     _set(simpler, "Globals/NumVoices", str(voice.voices))
 

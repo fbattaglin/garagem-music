@@ -1,24 +1,27 @@
-"""Rebuilds GarageBand's guitars as Live presets, from the files already on this Mac (ADR-029).
+"""Rebuilds GarageBand's guitars, basses and drum kits as Live presets, from this Mac (ADR-029).
 
     uv run python scripts/import_garageband.py --dry-run    # what would be built; writes nothing
-    uv run python scripts/import_garageband.py              # the four guitar presets
+    uv run python scripts/import_garageband.py              # every preset
+    uv run python scripts/import_garageband.py --only drums --only bass
     uv run python scripts/import_garageband.py --palm-mute-below 80
 
-GarageBand's library holds a Vintage Strat and a Warm Electric with every string sampled on its
-own, ringing and palm-muted, at two strengths. Live 12 Lite cannot open them (EXS is Logic's
-format, and Lite has no Sampler), so each becomes an Instrument Rack of Simplers, one per
-sample, zoned by key and velocity:
+Live 12 Lite cannot open GarageBand's instruments (EXS is Logic's format, and Lite has no
+Sampler), so each becomes an Instrument Rack of Simplers, one per sample, zoned by key and
+velocity:
 
-- every note is played on one string, the lowest that reaches it in the first frets;
-- velocities under `palm_mute_below` play the palm mute, and the rest ring.
+- **Guitars:** the Vintage Strat and the Warm Electric, every string sampled ringing and
+  palm-muted. Each note is played on one string, the lowest that reaches it in the first frets,
+  and velocities under `palm_mute_below` play the palm mute. The rack sits inside another,
+  followed by Lite's Saturator and an EQ Three standing in for a speaker cabinet. Each guitar
+  comes twice: a crunch for GTR (the indie verse) and a heavier one for GTR 2 (the arena chorus).
+- **Basses:** Picked Rock and Fingerstyle, in their five velocity layers, an octave below where
+  GarageBand maps them, so the band's low E is the string's.
+- **Kits:** Drum Kit Designer's SoCal and Heavy, each piece on the note the band writes for it
+  (`sounds/kit.py`), so `session.toml`'s `pitches` for the kit is empty.
 
-That rack sits inside another, followed by Lite's Saturator and an EQ Three standing in for
-a speaker cabinet, so one drag brings a driven guitar. Each guitar comes twice: a crunch for
-GTR (the indie verse) and a heavier one for GTR 2 (the arena chorus). Their knobs are starting
-points; the sound is chosen by ear in Live (ADR-028).
-
-The split is read from `session.toml`'s guitar track, or `--palm-mute-below`, and must be the
-number the track declares: the band clamps every guitar note to it on the way out.
+Their knobs are starting points; the sound is chosen by ear in Live (ADR-028). The split is read
+from `session.toml`'s guitar track, or `--palm-mute-below`, and must be the number the track
+declares: the band clamps every guitar note to it on the way out.
 
 Nothing is downloaded. Apple's files are only read, and audio is decoded with macOS's own
 `afconvert`. The WAVs and the preset go into Live's User Library, never into this repository.
@@ -42,6 +45,7 @@ from typing import Final
 from garagem.daw import SessionSpecError, load_session
 from garagem.sounds.audio import cut
 from garagem.sounds.exs import ExsError, ExsInstrument, ExsSample, ExsZone, parse_exs
+from garagem.sounds.kit import KitError, kit_parts
 from garagem.sounds.live_preset import (
     Chain,
     Effect,
@@ -50,7 +54,7 @@ from garagem.sounds.live_preset import (
     Voice,
     instrument_rack,
 )
-from garagem.sounds.mapping import Part, guitar_parts
+from garagem.sounds.mapping import BASS_OCTAVE_DOWN, Part, guitar_parts, multisample_parts
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SESSION = ROOT / "session.toml"
@@ -75,8 +79,24 @@ EQ_TEMPLATE: Final = Path("Devices/Audio Effects/EQ Three/Hi.adv")
 # clamps both to this split (`engines.guitar.articulated`), so it moves a few notes, never many.
 DEFAULT_PALM_MUTE_BELOW: Final = 80
 # GarageBand's samples peak near 0 dBFS, and a power chord is three of them: 12 dB of room
-# keeps the chord out of clipping before the Saturator, which is where the drive belongs.
-GUITAR_VOICE: Final = Voice(volume_db=-12.0, release_ms=150.0, voices=12)
+# keeps the chord out of clipping before the Saturator, which is where the drive belongs. The
+# sustain and the velocity's pull on the volume are the template's, which the Strat was
+# approved with: a held chord fades over the Simpler's 21-second decay, under the string's own.
+GUITAR_VOICE: Final = Voice(
+    volume_db=-12.0, release_ms=150.0, voices=12, sustain_db=-70.0, velocity_to_volume=0.35
+)
+# A held note rings as long as the string does and stops when it is let go; four voices let one
+# note ring into the next without a click. As even as the guitar: a rock bass is.
+BASS_VOICE: Final = Voice(
+    volume_db=-12.0, release_ms=100.0, voices=4, sustain_db=0.0, velocity_to_volume=0.35
+)
+# Every hit rings out, as in Core Library's own kits: a release of a minute means a note's end
+# never cuts a cymbal. Two voices per layer let a hit ring under the next. Drum Kit Designer's
+# layers are normalised and its zone levels assume Logic's velocity curve (a soft kick is set
+# 8 dB above a hard one), so velocity carries the dynamics in full.
+KIT_VOICE: Final = Voice(
+    volume_db=-10.0, release_ms=60000.0, voices=2, sustain_db=0.0, velocity_to_volume=1.0
+)
 
 
 # Saturator's curves, as Live numbers them.
@@ -125,7 +145,27 @@ GUITARS: Final = (
     Source("GB Vintage Strat", Path("08 Guitars/Vintage Strat.exs")),
     Source("GB Warm Electric", Path("08 Guitars/Warm Electric.exs")),
 )
+ELECTRIC_BASS: Final = Path("02 Bass/02 Electric Bass")
+BASSES: Final = (
+    Source("GB Picked Rock Bass", ELECTRIC_BASS / "Picked Rock Bass.exs"),
+    Source("GB Fingerstyle Bass", ELECTRIC_BASS / "Fingerstyle Electric Bass.exs"),
+)
+DRUM_KIT_DESIGNER: Final = Path(
+    "03 Drums & Percussion/04 Drum Kit Designer/Drum Kit Designer/Stereo"
+)
+KITS: Final = (
+    Source("GB SoCal Kit", DRUM_KIT_DESIGNER / "SoCal Kit.exs"),
+    Source("GB Heavy Kit", DRUM_KIT_DESIGNER / "Heavy Kit.exs"),
+)
+FAMILIES: Final = {"guitar": GUITARS, "bass": BASSES, "drums": KITS}
 DRIVES: Final = (CRUNCH, HEAVY)
+
+
+@dataclass(frozen=True)
+class Preset:
+    name: str
+    voice: Voice
+    effects: tuple[Effect, ...]
 
 
 @dataclass(frozen=True)
@@ -141,28 +181,41 @@ class NotOnThisMacError(RuntimeError):
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse(argv)
+    families = list(dict.fromkeys(args.only or FAMILIES))
     try:
         split = args.palm_mute_below or _split_from(args.session)
         templates = None if args.dry_run else _templates(args.live)
-        for source in GUITARS:
-            instrument = _instrument(source)
-            parts = guitar_parts(instrument, split)
-            if args.dry_run:
-                sys.stdout.write(_table(source, instrument, parts, split))
-                continue
-            assert templates is not None
-            sys.stdout.write(_build(source, instrument, parts, templates, args.user_library))
-    except (NotOnThisMacError, ExsError, PresetTemplateError, SessionSpecError) as exc:
+        for family in families:
+            for source in FAMILIES[family]:
+                instrument = _instrument(source)
+                parts = _parts(family, instrument, split)
+                if args.dry_run:
+                    heading = _heading(family, split)
+                    sys.stdout.write(_table(source, instrument, parts, heading))
+                    continue
+                assert templates is not None
+                presets = _presets(family, source, templates)
+                built = _build(
+                    source, instrument, parts, presets, templates.rack, args.user_library
+                )
+                sys.stdout.write(built)
+    except (NotOnThisMacError, ExsError, KitError, PresetTemplateError, SessionSpecError) as exc:
         sys.stderr.write(f"{exc}\n")
         return 1
     if not args.dry_run:
-        sys.stdout.write(_next_steps(split))
+        sys.stdout.write(_next_steps(families, split))
     return 0
 
 
 def _parse(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
     parser.add_argument("--dry-run", action="store_true", help="show the zones; write nothing")
+    parser.add_argument(
+        "--only",
+        action="append",
+        choices=sorted(FAMILIES),
+        help="import only these; repeat for more (default: all)",
+    )
     parser.add_argument(
         "--palm-mute-below",
         type=int,
@@ -200,6 +253,32 @@ def _templates(live: Path | None) -> Templates:
     )
 
 
+def _parts(family: str, instrument: ExsInstrument, split: int) -> tuple[Part, ...]:
+    if family == "guitar":
+        return guitar_parts(instrument, split)
+    if family == "bass":
+        return multisample_parts(instrument, BASS_OCTAVE_DOWN)
+    return kit_parts(instrument)
+
+
+def _presets(family: str, source: Source, templates: Templates) -> tuple[Preset, ...]:
+    """A guitar once per drive; a bass and a kit once, dry."""
+    if family == "guitar":
+        return tuple(
+            Preset(source.name + drive.suffix, GUITAR_VOICE, _effects(drive, templates))
+            for drive in DRIVES
+        )
+    return (Preset(source.name, BASS_VOICE if family == "bass" else KIT_VOICE, ()),)
+
+
+def _heading(family: str, split: int) -> str:
+    if family == "guitar":
+        return f"palm mute below velocity {split}"
+    if family == "bass":
+        return "an octave below GarageBand's keys, the low E on 28"
+    return "each piece on the note the band writes"
+
+
 def _instrument(source: Source) -> ExsInstrument:
     path = LOGIC_INSTRUMENTS / source.exs
     if not path.is_file():
@@ -227,13 +306,14 @@ def _build(
     source: Source,
     instrument: ExsInstrument,
     parts: Sequence[Part],
-    templates: Templates,
+    presets: Sequence[Preset],
+    rack: str,
     library: Path,
 ) -> str:
-    """The samples once, then one preset per drive, each playing them."""
+    """The samples once, then each preset playing them."""
     preset_dir = library / PRESETS
-    zones = _zones_in_order(parts)
-    files = _write_samples(instrument, zones, library / SAMPLES / source.name, preset_dir)
+    roots = _roots_in_order(parts)
+    files = _write_samples(instrument, roots, library / SAMPLES / source.name, preset_dir)
     chains = [
         Chain(
             name=part.name,
@@ -241,7 +321,7 @@ def _build(
             key_hi=part.key_hi,
             vel_lo=part.vel_lo,
             vel_hi=part.vel_hi,
-            root=part.zone.root,
+            root=part.root,
             tune_cents=part.zone.tune_cents,
             gain_db=part.gain_db,
             sample=files[part.zone],
@@ -253,14 +333,11 @@ def _build(
         "garagem's scripts/import_garageband.py (ADR-029)."
     )
     preset_dir.mkdir(parents=True, exist_ok=True)
-    for drive in DRIVES:
-        name = source.name + drive.suffix
-        data = instrument_rack(
-            templates.rack, name, annotation, chains, GUITAR_VOICE, _effects(drive, templates)
-        )
-        (preset_dir / f"{name}.adg").write_bytes(data)
+    for preset in presets:
+        data = instrument_rack(rack, preset.name, annotation, chains, preset.voice, preset.effects)
+        (preset_dir / f"{preset.name}.adg").write_bytes(data)
     megabytes = sum(file.size for file in files.values()) / 1e6
-    names = " and ".join(source.name + drive.suffix for drive in DRIVES)
+    names = " and ".join(preset.name for preset in presets)
     return f"{names}: {len(chains)} zones over {len(files)} samples, {megabytes:.0f} MB\n"
 
 
@@ -280,18 +357,23 @@ def _effects(drive: Drive, templates: Templates) -> tuple[Effect, ...]:
     return (saturator, cabinet)
 
 
-def _zones_in_order(parts: Sequence[Part]) -> list[ExsZone]:
-    """Every zone the parts play, once each, in the order the parts first play them."""
-    return list(dict.fromkeys(part.zone for part in parts))
+def _roots_in_order(parts: Sequence[Part]) -> dict[ExsZone, int]:
+    """Every zone the parts play, once each, in the order the parts first play them, with the
+    root that first part plays it at: a sample's file is named by it."""
+    roots: dict[ExsZone, int] = {}
+    for part in parts:
+        roots.setdefault(part.zone, part.root)
+    return roots
 
 
 def _write_samples(
-    instrument: ExsInstrument, zones: Sequence[ExsZone], sample_dir: Path, preset_dir: Path
+    instrument: ExsInstrument, roots: dict[ExsZone, int], sample_dir: Path, preset_dir: Path
 ) -> dict[ExsZone, SampleFile]:
     if sample_dir.exists():
         # Only this instrument's own folder, which nothing but this script writes into.
         shutil.rmtree(sample_dir)
     sample_dir.mkdir(parents=True)
+    zones = list(roots)
     numbers = {zone: number for number, zone in enumerate(zones, start=1)}
     files: dict[ExsZone, SampleFile] = {}
     by_sample: dict[int, list[ExsZone]] = {}
@@ -303,7 +385,7 @@ def _write_samples(
             wav = _decoded(_audio_file(sample), sample.bits, Path(scratch))
             cuts = cut(wav, [(zone.start, zone.end) for zone in these])
             for zone, piece in zip(these, cuts, strict=True):
-                path = sample_dir / f"{numbers[zone]:03d} {zone.root}.wav"
+                path = sample_dir / f"{numbers[zone]:03d} {roots[zone]}.wav"
                 path.write_bytes(piece.data)
                 files[zone] = SampleFile(
                     path=str(path),
@@ -330,10 +412,9 @@ def _decoded(source: Path, bits: int, scratch: Path) -> bytes:
     return target.read_bytes()
 
 
-def _table(source: Source, instrument: ExsInstrument, parts: Sequence[Part], split: int) -> str:
+def _table(source: Source, instrument: ExsInstrument, parts: Sequence[Part], heading: str) -> str:
     lines = [
-        f"{source.name} — from {instrument.name or source.exs.name}, "
-        f"palm mute below velocity {split}:",
+        f"{source.name} — from {instrument.name or source.exs.name}, {heading}:",
         f"  {'zone':<24} {'keys':>7} {'velocity':>9} {'root':>5} {'seconds':>8}",
     ]
     for part in parts:
@@ -341,25 +422,40 @@ def _table(source: Source, instrument: ExsInstrument, parts: Sequence[Part], spl
         seconds = (part.zone.end - part.zone.start) / rate
         lines.append(
             f"  {part.name:<24} {part.key_lo:>3}-{part.key_hi:<3} "
-            f"{part.vel_lo:>4}-{part.vel_hi:<4} {part.zone.root:>5} {seconds:>8.1f}"
+            f"{part.vel_lo:>4}-{part.vel_hi:<4} {part.root:>5} {seconds:>8.1f}"
         )
     lines.append(f"  {len(parts)} zones\n\n")
     return "\n".join(lines)
 
 
-def _next_steps(split: int) -> str:
-    return (
-        "\nIn Live, with the Set open:\n"
-        "  1. In the browser on the left, open User Library > Presets > Instruments >\n"
-        "     Instrument Rack > GARAGEM.\n"
-        "  2. Drag GB Vintage Strat onto the GTR track's name. Live swaps its instrument.\n"
-        "  3. If there is no GTR 2 yet: click GTR's name, press Cmd-D to duplicate it, and\n"
-        "     rename the copy GTR 2 (Cmd-R). It must sit right under GTR.\n"
-        "  4. Drag GB Vintage Strat Heavy onto GTR 2's name.\n"
-        "  5. Save the Set (Cmd-S).\n"
-        f"Then session.toml's GTR and GTR 2 say palm_mute_below = {split}, and you listen:\n"
-        "  uv run python scripts/soundcheck.py --only guitar --only guitar_double\n"
-    )
+def _next_steps(families: Sequence[str], split: int) -> str:
+    steps = [
+        "In the browser on the left, open User Library > Presets > Instruments >\n"
+        "     Instrument Rack > GARAGEM.",
+    ]
+    roles: list[str] = []
+    if "guitar" in families:
+        steps += [
+            "Drag GB Vintage Strat onto the GTR track's name. Live swaps its instrument.",
+            "If there is no GTR 2 yet: click GTR's name, press Cmd-D to duplicate it, and\n"
+            "     rename the copy GTR 2 (Cmd-R). It must sit right under GTR.",
+            "Drag GB Vintage Strat Heavy onto GTR 2's name.",
+        ]
+        roles += ["guitar", "guitar_double"]
+    if "bass" in families:
+        steps.append("Drag GB Picked Rock Bass onto the BASS track's name.")
+        roles.append("bass")
+    if "drums" in families:
+        steps.append("Drag GB SoCal Kit onto the DRUMS track's name.")
+        roles.append("drums")
+    steps.append("Save the Set (Cmd-S).")
+    lines = ["", "In Live, with the Set open:"]
+    lines += [f"  {number}. {step}" for number, step in enumerate(steps, start=1)]
+    if "guitar" in families:
+        lines.append(f"session.toml's GTR and GTR 2 must say palm_mute_below = {split}.")
+    only = "".join(f" --only {role}" for role in roles) if len(families) < len(FAMILIES) else ""
+    lines += ["Then listen:", f"  uv run python scripts/soundcheck.py{only}", ""]
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":

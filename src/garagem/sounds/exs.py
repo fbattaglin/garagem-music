@@ -46,8 +46,11 @@ ZONE_GROUP_AT: Final = 172
 ZONE_SAMPLE_AT: Final = 176
 ZONE_BYTES: Final = 180
 
-# Offsets inside a group chunk.
+# Offsets inside a group chunk. A group's velocity range narrows its zones': the Picked Rock
+# Bass keeps its five layers here, every zone in them answering 0..127.
 GROUP_VOLUME_AT: Final = 84
+GROUP_VEL_LO_AT: Final = 89
+GROUP_VEL_HI_AT: Final = 90
 
 # A zone whose velocity range is off answers every velocity, whatever its two bytes say.
 VELOCITY_RANGE_ON: Final = 0x08
@@ -91,6 +94,8 @@ class ExsZone:
 class ExsGroup:
     name: str
     volume_db: int
+    vel_lo: int = 0
+    vel_hi: int = MAX_MIDI
 
 
 @dataclass(frozen=True)
@@ -180,10 +185,18 @@ def _zone(chunk: bytes, at: int) -> ExsZone:
 
 
 def _group(chunk: bytes, at: int) -> ExsGroup:
-    if len(chunk) <= GROUP_VOLUME_AT:
-        raise ExsError(f"the group at byte {at} is too short to hold its level")
+    if len(chunk) <= GROUP_VEL_HI_AT:
+        raise ExsError(f"the group at byte {at} is too short to hold its level and velocities")
     (volume,) = struct.unpack_from("<b", chunk, GROUP_VOLUME_AT)
-    return ExsGroup(name=_text(chunk, NAME_AT, NAME_BYTES), volume_db=volume)
+    group = ExsGroup(
+        name=_text(chunk, NAME_AT, NAME_BYTES),
+        volume_db=volume,
+        vel_lo=chunk[GROUP_VEL_LO_AT],
+        vel_hi=chunk[GROUP_VEL_HI_AT],
+    )
+    if not group.vel_lo <= group.vel_hi <= MAX_MIDI:
+        raise ExsError(f"group {group.name!r} has its velocities the wrong way round")
+    return group
 
 
 def _sample(chunk: bytes, at: int) -> ExsSample:

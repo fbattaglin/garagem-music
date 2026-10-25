@@ -436,10 +436,12 @@ def test_a_pitch_outside_midi_is_refused(tmp_path: Path) -> None:
         load_session(a_spec(tmp_path, body))
 
 
-def test_the_shipped_set_declares_the_kits_toms() -> None:
-    """The Dry Session Kit keeps a ride where the band writes its high tom."""
+def test_the_shipped_kit_keeps_every_piece_on_the_bands_own_notes() -> None:
+    """GarageBand's kits are imported with each piece on its General MIDI note (ADR-029); the
+    Core Library kits before them kept a ride where the band writes its high tom."""
     drums = load_session(SHIPPED).tracks[0]
-    assert dict(drums.pitches) == {50: 47, 47: 45, 45: 43, 43: 41}
+    assert drums.instrument.startswith("GB ")
+    assert dict(drums.pitches) == {}
 
 
 # -------------------------------------------------------- the sound as code (ADR-028)

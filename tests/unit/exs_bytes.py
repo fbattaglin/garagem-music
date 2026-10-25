@@ -7,6 +7,7 @@ offsets drift, the round trip in `test_sounds_exs.py` says so.
 from __future__ import annotations
 
 import struct
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 ZONE_BODY = 148
@@ -43,14 +44,14 @@ class Sample:
 
 def exs(
     zones: list[Zone],
-    groups: list[tuple[str, int]],
+    groups: Sequence[tuple[str, int] | tuple[str, int, int, int]],
     samples: list[Sample],
     name: str = "Test Guitar",
 ) -> bytes:
     """An instrument: its header, then zones, groups and samples, as Logic orders them."""
     out = chunk(0, name, bytes(4))
     out += b"".join(_zone(zone) for zone in zones)
-    out += b"".join(_group(group, volume) for group, volume in groups)
+    out += b"".join(_group(*group) for group in groups)
     out += b"".join(_sample(sample) for sample in samples)
     return out
 
@@ -75,9 +76,10 @@ def _zone(zone: Zone) -> bytes:
     return chunk(1, zone.name, bytes(body))
 
 
-def _group(name: str, volume: int) -> bytes:
+def _group(name: str, volume: int, vel_lo: int = 0, vel_hi: int = 127) -> bytes:
     body = bytearray(GROUP_BODY)
     struct.pack_into("<b", body, 0, volume)
+    body[5], body[6] = vel_lo, vel_hi
     return chunk(2, name, bytes(body))
 
 

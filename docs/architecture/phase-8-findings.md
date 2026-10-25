@@ -212,6 +212,29 @@ nothing downloaded: guitar first, then drums and bass.
 - **The Set had never been made six tracks.** The saved Set still has five, with a piano on
   KEYS and no Saturator, so the import prints the Live steps, including making GTR 2.
 
+### The bass and the kits (step 2), built and not heard yet
+
+- **Picked Rock and Fingerstyle basses**, 85 and 95 zones, every key from 0 to 115 at every
+  velocity played by exactly one sample.
+  - **An octave down.** The sample on GarageBand's key 40 measured 42 Hz: the low E. Core
+    Library's bass reached the same place with a +24 transpose on its Simpler.
+  - **The five velocity layers live on the groups**, every zone in them answering 0..127. The
+    reader now reads a group's velocities; 36 of the Mac's instruments narrow them.
+  - **The string's release is left out**: Logic plays it when a key is let go.
+  - **A wider zone keeps what nobody else plays.** Picked Rock's loudest B3 runs to the top of
+    the keyboard under its D4. Dropping it outright left the loudest B3 and C4 silent. The
+    guitars' 106 parts came out the same under the new rule.
+- **SoCal and Heavy kits**, 85 parts each: eleven pieces, one per note the band writes, at up to
+  eight velocity layers.
+  - **The hi-hat, by how long it rings** (measured on SoCal): `o1` 120 ms to `o7` 990 ms. Closed
+    is `o1`, open `o5` (590 ms), pedal the foot's group.
+  - **Three toms for the band's four**: the low tom is the mid tom three semitones down.
+  - **Normalised layers.** Every layer peaks near 0 dBFS, and the zone levels assume Logic's
+    velocity curve (the kick's run from +3 dB soft to −5 dB hard). So the kit's Simplers take
+    velocity in full, sustain at 0 dB and release over a minute, as Core Library's kits do.
+- **The samples now take 169 MB** of the User Library. The guitars' were left byte for byte as
+  they were, so the saved Set's GTR and GTR 2 still find theirs.
+
 ### Measured
 
 - The suite is at **3290 passed and 27 skipped**. `ruff` and `mypy` are clean. `sounds/` is held
@@ -227,3 +250,19 @@ estamos em um lugar melhor. A musica era repetitiva, mas acho que essa era a int
 repetition is the sound check's loop, by design. Better, not finished: the drive and the
 cabinet are still starting points for the ear. The drums and the bass go next, through the
 same import.
+
+### The whole band, heard in a song
+
+With *GB SoCal Kit*, *GB Picked Rock Bass*, both Strats and Analog Lab's *Jazz B-3 Organ* on
+KEYS, in `jam.py --setlist setlists/arrangement.json --song 1` (2026-10-25): *"Achei que soou
+bem legal. Não me pareceu exatamente um rock arena estilo foo fighters mas foi agradável e
+tinha um swag."* On the organ, after trying several: *"achei esse B-3 mais discreto que
+alguns"*. The bootstrap finds the Set matching `session.toml`.
+
+- **The verdict names the gap: the arena half of the reference.** The criterion stays open.
+- **The guitars were never panned.** `session.toml` describes the crunch on the left and the
+  heavy double on the right, but declares no `pan`. `--mix` reads both at the centre, so in a
+  chorus the double plays on top of the first guitar instead of beside it. Every fader is at
+  0 dB, and no track sends to a return.
+- The song played to its end with 0 beats lost, from disk, for $0.000. Eight of its sixteen
+  takes play differently from their bake, because Stage A's parts now realise them.

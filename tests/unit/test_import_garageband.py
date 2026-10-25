@@ -18,6 +18,8 @@ import pytest
 from exs_bytes import Sample, Zone, exs
 from live_templates import EQ_THREE, RACK, SATURATOR
 from test_sounds_audio import ramp
+from test_sounds_kit import kit_exs
+from test_sounds_mapping import bass_exs
 
 ROOT = Path(__file__).resolve().parents[2]
 SESSION = ROOT / "session.toml"
@@ -53,12 +55,19 @@ def a_guitar(folder: Path) -> bytes:
 def garageband(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     instruments = tmp_path / "Sampler Instruments"
     samples = tmp_path / "EXS Factory Samples"
-    for source in importer.GUITARS:
-        exs_file = instruments / source.exs
-        exs_file.parent.mkdir(parents=True, exist_ok=True)
-        exs_file.write_bytes(a_guitar(samples))
+    for family, sources in importer.FAMILIES.items():
+        for source in sources:
+            exs_file = instruments / source.exs
+            exs_file.parent.mkdir(parents=True, exist_ok=True)
+            built = {
+                "guitar": lambda: a_guitar(samples),
+                "bass": lambda: bass_exs(str(samples)),
+                "drums": lambda: kit_exs(str(samples)),
+            }[family]()
+            exs_file.write_bytes(built)
     samples.mkdir()
-    (samples / "guitar.caf").write_bytes(b"stand-in")
+    for stand_in in ("guitar.caf", "bass.aif", "kit.caf"):
+        (samples / stand_in).write_bytes(b"stand-in")
     monkeypatch.setattr(importer, "LOGIC_INSTRUMENTS", instruments)
     monkeypatch.setattr(importer, "SAMPLE_ROOTS", (samples,))
     monkeypatch.setattr(importer, "_decoded", lambda source, bits, scratch: ramp(1000))
@@ -84,16 +93,24 @@ def test_a_dry_run_shows_the_zones_and_writes_nothing(
     out = capsys.readouterr().out
     assert "GB Vintage Strat — from Test Guitar, palm mute below velocity 80" in out
     assert "E2 E mute" in out and "A2 A main" in out
+    assert "GB Picked Rock Bass — from Test Bass, an octave below GarageBand's keys" in out
+    assert "E1 96-115" in out
+    assert "GB SoCal Kit — from Test Kit, each piece on the note the band writes" in out
+    assert "low tom 1" in out
     assert not garageband.exists()
 
 
-def test_each_guitar_becomes_a_crunch_and_a_heavy_preset_over_one_set_of_samples(
+def test_each_guitar_becomes_a_crunch_and_a_heavy_preset_and_each_bass_and_kit_one(
     garageband: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     assert importer.main(["--user-library", str(garageband)]) == 0
 
     presets = garageband / "Presets/Instruments/Instrument Rack/GARAGEM"
     assert sorted(p.name for p in presets.iterdir()) == [
+        "GB Fingerstyle Bass.adg",
+        "GB Heavy Kit.adg",
+        "GB Picked Rock Bass.adg",
+        "GB SoCal Kit.adg",
         "GB Vintage Strat Heavy.adg",
         "GB Vintage Strat.adg",
         "GB Warm Electric Heavy.adg",
@@ -103,7 +120,30 @@ def test_each_guitar_becomes_a_crunch_and_a_heavy_preset_over_one_set_of_samples
     assert strat == ["001 40.wav", "002 40.wav", "003 40.wav", "004 45.wav", "005 45.wav"]
     out = capsys.readouterr().out
     assert "Drag GB Vintage Strat onto the GTR track" in out
+    assert "Drag GB Picked Rock Bass onto the BASS track's name." in out
+    assert "Drag GB SoCal Kit onto the DRUMS track's name." in out
     assert "palm_mute_below = 80" in out
+    assert out.rstrip().endswith("uv run python scripts/soundcheck.py")
+
+
+def test_a_bass_sample_is_named_by_the_note_it_sounds(garageband: Path) -> None:
+    importer.main(["--only", "bass", "--user-library", str(garageband)])
+
+    bass = sorted(p.name for p in (garageband / "Samples/GARAGEM/GB Picked Rock Bass").iterdir())
+    assert bass[0] == "001 26.wav"
+    assert any(name.endswith(" 28.wav") for name in bass)
+
+
+def test_only_what_is_asked_for_is_imported_and_listened_to(
+    garageband: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert importer.main(["--only", "drums", "--user-library", str(garageband)]) == 0
+
+    presets = garageband / "Presets/Instruments/Instrument Rack/GARAGEM"
+    assert sorted(p.name for p in presets.iterdir()) == ["GB Heavy Kit.adg", "GB SoCal Kit.adg"]
+    out = capsys.readouterr().out
+    assert "GTR" not in out
+    assert "uv run python scripts/soundcheck.py --only drums" in out
 
 
 def test_the_cabinet_sets_every_band_so_none_of_the_templates_cuts_survive(
@@ -183,3 +223,24 @@ def test_without_a_declared_split_the_default_is_used(tmp_path: Path) -> None:
     session.write_text(text.replace("palm_mute_below", "# palm_mute_below"), encoding="utf-8")
 
     assert importer._split_from(session) == importer.DEFAULT_PALM_MUTE_BELOW
+
+
+def test_a_kit_rings_out_dry_and_takes_its_dynamics_from_velocity(garageband: Path) -> None:
+    """Drum Kit Designer's layers are normalised: a kit that ignored velocity, or cut a crash
+    when its note ends, would play every hit the same and short."""
+    importer.main(["--only", "drums", "--user-library", str(garageband)])
+    preset = garageband / "Presets/Instruments/Instrument Rack/GARAGEM/GB SoCal Kit.adg"
+    rack = ET.fromstring(gzip.decompress(preset.read_bytes()))
+    assert rack.find(".//Saturator") is None
+
+    def manual(simpler: ET.Element, path: str) -> float:
+        found = simpler.find(f"VolumeAndPan/{path}/Manual")
+        assert found is not None
+        return float(found.get("Value", "nan"))
+
+    simplers = list(rack.iter("OriginalSimpler"))
+    assert simplers
+    for simpler in simplers:
+        assert manual(simpler, "VolumeVelScale") == 1.0
+        assert manual(simpler, "Envelope/SustainLevel") == 1.0
+        assert manual(simpler, "Envelope/ReleaseTime") == 60000.0
