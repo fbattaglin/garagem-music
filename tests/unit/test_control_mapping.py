@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from garagem.control import ControllerSpecError, load_controller
-from garagem.domain import Cue, CueKind, Macro, MacroKind
+from garagem.domain import TYPED_ONLY, Cue, CueKind, Macro, MacroKind
 
 ROOT = Path(__file__).resolve().parents[2]
 SHIPPED = ROOT / "controller.toml"
@@ -70,13 +70,13 @@ def test_every_shipped_knob_is_a_knob_the_minilab_actually_has() -> None:
 
 def test_the_shipped_mapping_offers_every_cue_and_every_macro() -> None:
     spec = load_controller(SHIPPED)
-    assert {pad.cue for pad in spec.pads} == set(CueKind)
+    assert {pad.cue for pad in spec.pads} == set(CueKind) - TYPED_ONLY
     assert {knob.macro for knob in spec.knobs} == set(MacroKind)
 
 
 def test_the_legend_names_every_control_for_the_person_pressing_it() -> None:
     legend = load_controller(SHIPPED).legend()
-    assert all(str(kind) in legend for kind in CueKind)
+    assert all(str(kind) in legend for kind in set(CueKind) - TYPED_ONLY)
     assert "next bar" in legend
 
 

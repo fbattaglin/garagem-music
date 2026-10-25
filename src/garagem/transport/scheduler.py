@@ -97,7 +97,7 @@ from garagem.engines import (
     tail_bars,
     tension_offset,
 )
-from garagem.engines.arranger import BRIDGE, CHORUS, OUTRO
+from garagem.engines.arranger import BRIDGE, CHORUS, OUTRO, SOLO
 from garagem.obs import EventLog
 from garagem.theory import validate
 from garagem.transport.bar_cues import FILL, STOP, BarCues
@@ -139,6 +139,9 @@ JUMPS: Final[dict[CueKind, str]] = {CueKind.CHORUS_NOW: CHORUS}
 # Which cue fires which variant (Stage 4). Drums-and-bass is handled apart: it is a stop of
 # two tracks, not a variant.
 BAR_VARIANTS: Final[dict[CueKind, str]] = {CueKind.STOP: STOP, CueKind.FILL: FILL}
+
+# Which boundary cue asks for which section next (Stage 5; the solo is ADR-028's, typed only).
+NEXT_KINDS: Final[dict[CueKind, str]] = {CueKind.NEXT_BRIDGE: BRIDGE, CueKind.NEXT_SOLO: SOLO}
 
 # How many bars a re-planned next section needs before its fire: one tick to be rewritten
 # (a section write is about a bar) and one of slack. Fewer, and the change waits a section.
@@ -545,7 +548,7 @@ class Scheduler:
                 self._bar_cue(received, control.kind, BAR_VARIANTS[control.kind])
             elif control.kind is CueKind.DRUMS_AND_BASS:
                 self._drop(received)
-            elif control.kind in (CueKind.NEXT_BRIDGE, CueKind.END):
+            elif control.kind in NEXT_KINDS or control.kind is CueKind.END:
                 self._boundary(received, control.kind)
             elif control.kind.family is CueFamily.MARK:
                 self._mark(received, control.kind)
@@ -582,7 +585,8 @@ class Scheduler:
     # ------------------------------------------------------------ boundary cues and knobs
 
     def _boundary(self, received: Received, cue: CueKind) -> None:
-        """Re-plan from the first section that can still change: a bridge next, or the end."""
+        """Re-plan from the first section that can still change: a bridge or a solo next, or
+        the end."""
         bar = self._clock.bar
         at = self._first_changeable(bar)
         declined = self._why_not_boundary(bar, at, cue)
@@ -595,8 +599,8 @@ class Scheduler:
             outro = candidate_for(self._base, OUTRO, seed)
             base = (*self._base[:at], outro)
         else:
-            bridge = candidate_for(self._base, BRIDGE, seed)
-            base = jump_plan(self._base, at - 1, bridge, seed)
+            candidate = candidate_for(self._base, NEXT_KINDS[cue], seed)
+            base = jump_plan(self._base, at - 1, candidate, seed)
         self._replan(at, base)
         self._log.record(
             "cue_applied",
@@ -625,7 +629,7 @@ class Scheduler:
         target = self._sections[at]
         if cue is CueKind.END and target.name == OUTRO and at == len(self._sections) - 1:
             return "already_ending"
-        if cue is CueKind.NEXT_BRIDGE and target.name == BRIDGE:
+        if cue in NEXT_KINDS and target.name == NEXT_KINDS[cue]:
             return "already_next"
         return None
 

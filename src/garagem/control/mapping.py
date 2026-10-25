@@ -83,6 +83,10 @@ class ControllerSpec:
                     return Macro(kind=knob.macro, value=min(max(value, 0), DATA_MAX) / DATA_MAX)
         return None
 
+    def pad_numbers(self) -> dict[CueKind, int]:
+        """Each cue's pad, counted from 1 in the file's order, as the MiniLab labels them."""
+        return {pad.cue: number for number, pad in enumerate(self.pads, start=1)}
+
     def legend(self) -> str:
         """What each control does, for the person about to press them."""
         lines = [f"{self.port}, cues land {self._quantum()}:"]

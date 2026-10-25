@@ -17,6 +17,8 @@ written to a file is in English.
 - `uv run garagem check` — whether the show can start, in one look (ADR-028): Live, the Set
   against `session.toml`, the MiniLab and Live's control surfaces, the show's setlist. Every
   failure at once, each with its fix. `--fix` sets what the bootstrap would; nothing otherwise.
+- `uv run garagem commands` — the words that can be typed during the show, from `commands.toml`,
+  with the pad that does the same.
 - `uv run pytest` — tests (unit + property + golden). **Never touches the network.**
 - `uv run pytest -m live` — integration tests; requires Ableton Live open with AbletonOSC active
 - `uv run ruff check --fix . && uv run ruff format .` — lint and formatting
@@ -97,6 +99,8 @@ Run `ruff` and `mypy` before any commit.
 - `session.toml` — "Set as Code": the Live Set the bootstrap validates against (ADR-013)
 - `controller.toml` — "Controller as Code": which pad and knob asks the band for what.
   Every MIDI number in it was heard by `scripts/probe_minilab.py`, none guessed.
+- `commands.toml` — the words typed during the show (ADR-028): every pad's cue, and `solo`.
+  Matched whole and exactly; nothing typed becomes a cue it did not name.
 - `config/models.toml` — the model catalogue: IDs, effort and prices. The only place
   a model ID or a price is written down.
 - `config/budget.toml` — what one performance may spend and what it is expected to cost.

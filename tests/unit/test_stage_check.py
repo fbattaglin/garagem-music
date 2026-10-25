@@ -15,6 +15,7 @@ from garagem.stage.check import Finding, Level, Probes, ready, ready_check, rend
 ROOT = Path(__file__).resolve().parents[2]
 SESSION = ROOT / "session.toml"
 CONTROLLER = ROOT / "controller.toml"
+COMMANDS = ROOT / "commands.toml"
 # Baked at the Set's tempo, and never changed by a test: they write their own copies.
 BAKED = ROOT / "setlists" / "arrangement.json"
 PORT = "Minilab3 MIDI"
@@ -57,10 +58,11 @@ def check(
     *,
     session: Path = SESSION,
     controller: Path = CONTROLLER,
+    commands: Path = COMMANDS,
     setlist: Path = BAKED,
     fix: bool = False,
 ) -> tuple[Finding, ...]:
-    return ready_check(session, controller, setlist, probe or probes(), fix=fix)
+    return ready_check(session, controller, commands, setlist, probe or probes(), fix=fix)
 
 
 def kinds(findings: tuple[Finding, ...]) -> set[str]:
@@ -84,6 +86,7 @@ def test_a_ready_set_passes_and_says_what_it_checked() -> None:
         "Live",
         "the Set",
         "MiniLab",
+        "keyboard",
         "the show",
     }
     assert render_check(findings).endswith("Ready for the show.\n")
@@ -205,6 +208,24 @@ def test_an_unreadable_live_log_is_a_warning() -> None:
     assert ready(findings)
 
 
+def test_a_commands_file_that_is_missing_or_cannot_be_used(tmp_path: Path) -> None:
+    assert kinds(check(commands=tmp_path / "nowhere.toml")) == {"commands_missing"}
+    broken = tmp_path / "commands.toml"
+    broken.write_text("schema = 1\n", encoding="utf-8")
+    assert kinds(check(commands=broken)) == {"commands_unreadable"}
+
+
+def test_a_cue_with_no_word_is_a_warning(tmp_path: Path) -> None:
+    text = COMMANDS.read_text(encoding="utf-8")
+    solo = '[[command]]\nword = "solo"\ncue = "next_solo"\nhelp = "the next section is a solo"\n'
+    assert solo in text
+    edited = tmp_path / "commands.toml"
+    edited.write_text(text.replace(solo, ""), encoding="utf-8")
+    findings = check(commands=edited)
+    assert kinds(findings) == {"commands_incomplete"}
+    assert ready(findings)
+
+
 def test_a_show_that_is_not_baked_says_how_to_bake_it(tmp_path: Path) -> None:
     findings = check(setlist=tmp_path / "show.json")
     assert kinds(findings) == {"setlist_missing"}
@@ -257,6 +278,8 @@ def paths(setlist: Path = BAKED) -> list[str]:
         str(SESSION),
         "--controller",
         str(CONTROLLER),
+        "--commands",
+        str(COMMANDS),
         "--setlist",
         str(setlist),
     ]
@@ -280,3 +303,9 @@ def test_garagem_check_fix_sets_the_tempo(wired: FakeDawAdapter) -> None:
     wired.set_tempo(120.0)
     assert cli.main(["check", "--fix", *paths()]) == 0
     assert wired.tempo() == 132.0
+
+
+def test_garagem_commands_prints_the_cheat_sheet(capsys: pytest.CaptureFixture[str]) -> None:
+    assert cli.main(["commands", "--commands", str(COMMANDS), "--controller", str(CONTROLLER)]) == 0
+    sheet = capsys.readouterr().out
+    assert "solo" in sheet and "(pad 5)" in sheet

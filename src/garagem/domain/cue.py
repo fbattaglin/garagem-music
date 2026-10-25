@@ -48,6 +48,8 @@ class CueKind(StrEnum):
     DRUMS_AND_BASS = "drums_and_bass"
     # The next section to be written is a bridge.
     NEXT_BRIDGE = "next_bridge"
+    # The next section to be written is a solo. Typed only: all eight pads are taken (ADR-028).
+    NEXT_SOLO = "next_solo"
     # This section finishes, then the outro and the final chord.
     END = "end"
     # Keep what is playing: a setlist pins its take. Nothing sounds different.
@@ -66,10 +68,14 @@ FAMILIES: dict[CueKind, CueFamily] = {
     CueKind.FILL: CueFamily.BAR,
     CueKind.DRUMS_AND_BASS: CueFamily.BAR,
     CueKind.NEXT_BRIDGE: CueFamily.BOUNDARY,
+    CueKind.NEXT_SOLO: CueFamily.BOUNDARY,
     CueKind.END: CueFamily.BOUNDARY,
     CueKind.KEEP: CueFamily.MARK,
     CueKind.VETO: CueFamily.MARK,
 }
+
+# The cues no pad asks for, reached by typing them (ADR-028).
+TYPED_ONLY: frozenset[CueKind] = frozenset({CueKind.NEXT_SOLO})
 
 
 class MacroKind(StrEnum):

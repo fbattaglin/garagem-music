@@ -22,7 +22,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Final
 
-from garagem.control import ControllerSpecError, load_controller
+from garagem.control import ControllerSpecError, load_commands, load_controller
 from garagem.daw import (
     DawError,
     DawPort,
@@ -38,6 +38,7 @@ from garagem.daw import (
 )
 from garagem.daw.errors import SessionSpecError
 from garagem.daw.live_log import control_surfaces, listening_to
+from garagem.domain import CueKind
 from garagem.setlist import SetlistError, load_setlist
 from garagem.stage.roles import missing_roles
 
@@ -72,6 +73,7 @@ SESSION: Final = "session.toml"
 LIVE: Final = "Live"
 SET: Final = "the Set"
 MINILAB: Final = "MiniLab"
+KEYBOARD: Final = "keyboard"
 SHOW: Final = "the show"
 
 OPEN_LIVE: Final = (
@@ -85,6 +87,7 @@ FIX_IT: Final = "run garagem check --fix, which sets it in Live"
 def ready_check(
     session: Path,
     controller: Path,
+    commands: Path,
     setlist: Path,
     probes: Probes,
     *,
@@ -94,6 +97,7 @@ def ready_check(
     spec = _session(session, findings)
     _live(spec, probes, findings, fix=fix)
     _controller(controller, probes, findings)
+    _keyboard(commands, findings)
     _setlist(setlist, spec, findings)
     return tuple(findings)
 
@@ -301,6 +305,43 @@ def _controller(path: Path, probes: Probes, findings: list[Finding]) -> None:
                 "and Output to None",
                 "surface_clash",
             )
+        )
+
+
+def _keyboard(path: Path, findings: list[Finding]) -> None:
+    try:
+        spec = load_commands(path)
+    except OSError:
+        findings.append(
+            Finding(Level.FAIL, KEYBOARD, f"{path} not found", FROM_THE_PROJECT, "commands_missing")
+        )
+        return
+    except (tomllib.TOMLDecodeError, ControllerSpecError) as exc:
+        findings.append(
+            Finding(
+                Level.FAIL,
+                KEYBOARD,
+                f"commands.toml cannot be used: {exc}",
+                "correct the entry the message names",
+                "commands_unreadable",
+            )
+        )
+        return
+    typed = {command.cue for command in spec.commands if command.cue is not None}
+    missing = [str(kind) for kind in CueKind if kind not in typed]
+    if missing:
+        findings.append(
+            Finding(
+                Level.WARN,
+                KEYBOARD,
+                f"no word for {', '.join(missing)}",
+                "add a [[command]] for it to commands.toml",
+                "commands_incomplete",
+            )
+        )
+    else:
+        findings.append(
+            Finding(Level.OK, KEYBOARD, f"a word for every cue, {len(spec.commands)} in all")
         )
 
 

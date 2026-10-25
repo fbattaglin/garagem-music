@@ -1,0 +1,74 @@
+# "Commands as Code" — what each word typed during the show asks for (ADR-028).
+#
+# Every pad's cue has a word, and the solo has one no pad has. A word is matched whole and
+# exactly, ignoring case and the spaces around it: a typo is said back as an unknown word,
+# and nothing typed becomes a cue it did not name. A cue typed lands on the same bar the pad
+# would land it on: both go into the same queue.
+#
+# The cheat sheet on the show screen and `garagem commands` are printed from this file, in
+# this order. `cue` is what the band does (`controller.toml`'s names); `stage` is for the show.
+
+schema = 1
+
+# ------------------------------------------------------------------------- on the next bar
+
+[[command]]
+word = "chorus"
+cue = "chorus_now"
+help = "cut to the chorus on the next downbeat"
+
+[[command]]
+word = "fill"
+cue = "fill"
+help = "the drummer fills the next bar"
+
+[[command]]
+word = "stop"
+cue = "stop"
+help = "hit the next downbeat and cut; the drummer picks the song back up"
+
+[[command]]
+word = "drums"
+cue = "drums_and_bass"
+help = "guitars and organ drop out until the next section"
+
+# --------------------------------------------------------------- from the next section on
+
+[[command]]
+word = "bridge"
+cue = "next_bridge"
+help = "the next section is a bridge"
+
+[[command]]
+word = "solo"
+cue = "next_solo"
+help = "the next section is a solo"
+
+[[command]]
+word = "end"
+cue = "end"
+help = "this section finishes, then the outro and the final chord"
+
+# ------------------------------------------------------------- marks: nothing sounds different
+
+[[command]]
+word = "keep"
+cue = "keep"
+help = "keep the section playing: the setlist pins it"
+
+[[command]]
+word = "veto"
+cue = "veto"
+help = "not this again: the setlist retires it from the next time"
+
+# ---------------------------------------------------------------------------- the show
+
+[[command]]
+word = "help"
+stage = "help"
+help = "show these words again"
+
+[[command]]
+word = "quit"
+stage = "quit"
+help = "stop the show now"

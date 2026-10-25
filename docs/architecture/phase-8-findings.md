@@ -296,3 +296,23 @@ refuses the same thing; the recent jams ran without the MiniLab and never asked.
 
 23 tests, every failure kind alone and all of them in one run. Suite at **3333 passed**, plus
 the known floor failure.
+
+### Typed commands
+
+`commands.toml` gives every cue a word, and the show two of its own: `help` and `quit`.
+`garagem commands` prints them, each with the pad that does the same.
+
+- **A word is matched whole and exactly**, ignoring case and the spaces around it. `fil`,
+  `fills` and `fill now` are unknown words, said back as such. A property test types arbitrary
+  text and finds a cue delivered only when the text was that cue's word.
+- **A typed cue is the cue its pad sends.** `ConsoleController` is a `ControllerPort` like the
+  MiniLab's, and hands the same `Cue` to the same `CueQueue`. A test strikes the fill pad and
+  types `fill` at one beat, and the queue cannot tell them apart.
+- **`solo` is the cue no pad has** (`CueKind.NEXT_SOLO`, `TYPED_ONLY`): the next section that
+  can still change becomes a solo. It is `next_bridge`'s path with a solo for a bridge, and is
+  declined the same way when a solo is already next.
+- `garagem check` now checks `commands.toml` too: missing or unusable fails, a cue with no word
+  warns.
+
+Built and tested, not yet reachable while a song plays: `garagem show` wires it. Suite at
+**3369 passed**, plus the known floor failure.

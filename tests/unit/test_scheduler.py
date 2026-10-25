@@ -1216,6 +1216,25 @@ def test_next_bridge_when_a_bridge_is_already_next_is_declined() -> None:
     assert [e.detail["reason"] for e in rig.of_kind("cue_declined")] == ["already_next"]
 
 
+def test_next_solo_puts_a_solo_where_the_next_section_can_still_change() -> None:
+    rig = KnobRig().play_with({21: CueKind.NEXT_SOLO})
+    (applied,) = rig.of_kind("cue_applied")
+    assert (applied.detail["cue"], applied.detail["section"]) == ("next_solo", 2)
+    assert rig.fired_names()[:3] == ["intro", "verse", "solo"]
+    assert rig.scheduler.finished
+
+
+def test_next_solo_when_a_solo_is_already_next_is_declined() -> None:
+    rig = KnobRig().play_with({21: CueKind.NEXT_SOLO, 25: CueKind.NEXT_SOLO})
+    assert [e.detail["reason"] for e in rig.of_kind("cue_declined")] == ["already_next"]
+
+
+def test_next_solo_after_next_bridge_replaces_the_bridge() -> None:
+    rig = KnobRig().play_with({21: CueKind.NEXT_BRIDGE, 25: CueKind.NEXT_SOLO})
+    assert not rig.of_kind("cue_declined")
+    assert rig.fired_names()[:3] == ["intro", "verse", "solo"]
+
+
 def test_the_density_knob_turned_right_makes_the_unwritten_song_busier() -> None:
     rig = KnobRig().play_with(turns={21: Macro(kind=MacroKind.DENSITY, value=1.0)})
     (changed,) = rig.of_kind("macro_changed")

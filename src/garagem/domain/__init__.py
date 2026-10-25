@@ -1,6 +1,7 @@
 """Pure musical model: Note, Bar, Chart, Section. No I/O."""
 
 from garagem.domain.cue import (
+    TYPED_ONLY,
     Control,
     Cue,
     CueFamily,
@@ -55,6 +56,7 @@ __all__ = [
     "SIXTEENTHS_PER_BAR",
     "SIXTEENTHS_PER_BEAT",
     "SWING_POINT",
+    "TYPED_ONLY",
     "Chart",
     "Chord",
     "Control",
