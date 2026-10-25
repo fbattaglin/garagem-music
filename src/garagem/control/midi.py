@@ -49,6 +49,11 @@ class _Mido:
         return port
 
 
+def input_names() -> list[str]:
+    """The MIDI inputs CoreMIDI lists right now. Opens none of them."""
+    return _Mido().get_input_names()
+
+
 class MidoController:
     """Pads and knobs from a real controller, as cues and macros."""
 

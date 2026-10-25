@@ -3,7 +3,7 @@
 from garagem.control.errors import ControlError, ControllerSpecError, ControllerUnavailableError
 from garagem.control.fake import FakeController
 from garagem.control.mapping import ControllerSpec, KnobSpec, PadSpec, load_controller
-from garagem.control.midi import MidoController
+from garagem.control.midi import MidoController, input_names
 from garagem.control.port import ControlHandler, ControllerPort
 
 __all__ = [
@@ -17,5 +17,6 @@ __all__ = [
     "KnobSpec",
     "MidoController",
     "PadSpec",
+    "input_names",
     "load_controller",
 ]

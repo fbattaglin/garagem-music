@@ -568,39 +568,40 @@ def render_divergences(divergences: Sequence[Divergence]) -> str:
     if not divergences:
         return ""
     lines = [
-        f"{'fix:' if d.fixable else 'HUMAN:'} [{d.kind}] {d.detail}{_instruction(d)}"
+        f"{'fix:' if d.fixable else 'HUMAN:'} [{d.kind}] {d.detail}"
+        + (f" — {step}" if (step := fix_step(d)) else "")
         for d in divergences
     ]
     return "\n".join(lines) + "\n"
 
 
-def _instruction(divergence: Divergence) -> str:
-    """What to do in Live. Only for the ones no script can fix."""
+def fix_step(divergence: Divergence) -> str:
+    """What to do in Live. Only for the ones no script can fix; empty for the rest."""
     match divergence.kind:
         case "missing_track":
             return (
-                " — open the Set, add a MIDI track at that position, name it as above,"
+                "open the Set, add a MIDI track at that position, name it as above,"
                 " and load the preset named above onto it"
             )
         case "no_instrument":
             return (
-                " — open the Set and load the instrument named above onto that track:"
+                "open the Set and load the instrument named above onto that track:"
                 " search Live's browser by its name (Plug-Ins for Analog Lab)"
             )
         case "wrong_instrument":
             return (
-                " — in Live, click that track, find the instrument named above in the"
+                "in Live, click that track, find the instrument named above in the"
                 " browser and drag it onto the track's device area, replacing the one there;"
                 " or, if the one there is the one you chose, write its name in session.toml"
             )
         case "extra_track":
-            return " — remove them in Live, or add them to session.toml if they belong"
+            return "remove them in Live, or add them to session.toml if they belong"
         case "not_a_midi_track":
             return (
-                " — delete it in Live and insert a MIDI track at that position"
+                "delete it in Live and insert a MIDI track at that position"
                 " (an audio track cannot be converted)"
             )
         case "missing_scene":
-            return " — add scenes in Live until there are enough (Create -> Insert Scene)"
+            return "add scenes in Live until there are enough (Create -> Insert Scene)"
         case _:
             return ""

@@ -14,6 +14,9 @@ written to a file is in English.
 ## Commands
 
 - `uv sync` — install dependencies
+- `uv run garagem check` — whether the show can start, in one look (ADR-028): Live, the Set
+  against `session.toml`, the MiniLab and Live's control surfaces, the show's setlist. Every
+  failure at once, each with its fix. `--fix` sets what the bootstrap would; nothing otherwise.
 - `uv run pytest` — tests (unit + property + golden). **Never touches the network.**
 - `uv run pytest -m live` — integration tests; requires Ableton Live open with AbletonOSC active
 - `uv run ruff check --fix . && uv run ruff format .` — lint and formatting

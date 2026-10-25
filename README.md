@@ -172,7 +172,13 @@ uv run python scripts/bootstrap_set.py --mix   # print the Set's mix, to paste i
 
 ### Play
 
+Before playing, one command says whether the show can start: Live, the Set against
+`session.toml`, the MiniLab and Live's control surfaces, and the show's setlist. It lists every
+problem at once, each with the step that fixes it, and changes nothing unless `--fix` is given.
+
 ```bash
+uv run garagem check                                         # ready for the show? (ADR-028)
+uv run garagem check --fix                                   # and set tempo, names, arm and mix
 uv run python scripts/jam.py --dry-run                       # print the song's form; touch nothing
 uv run python scripts/jam.py --seconds 180 --seed 7          # the deterministic band, no network
 uv run python scripts/jam.py --setlist setlists/first.json --song 1 --controller minilab

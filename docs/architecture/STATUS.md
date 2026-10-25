@@ -23,8 +23,11 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
       guitar's register.
 - [ ] **The melody plays without a network** — a floor melody in every verse of the sweep,
       0 violations; the bake's lead fill rate set after the probe.
-- [ ] **Ready in one look** — `garagem check` reports every failure at once, each with a fix
-      step, tested against the fake adapter per failure kind.
+- [x] **Ready in one look** — `garagem check` reports every failure at once, each with a fix
+      step, tested against the fake adapter per failure kind. **Met 2026-10-25**
+      (`phase-8-findings.md` §5): 14 kinds of its own and every divergence the bootstrap finds,
+      each tested alone and all in one run. Its first run
+      against the real Set found Live's MiniLab_3 surface on the cue port.
 - [ ] **The screen keeps him informed** — every cue acknowledged with where it lands, every
       decline explained, never authorship, a headless mode for tests.
 - [ ] **Typed commands** — every pad cue and `solo` typeable, landing on the bar a pad would;
@@ -90,7 +93,10 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
   `test_the_floor_is_never_messy` — a two-bar Locrian halftime verse at 55 BPM, `dyn` 1,
   `register_spread` 0.786 against 0.8. It reproduces with the engines untouched by this work,
   so it waits for its own decision: the parts or the threshold.
-- **Then: Stage D, the stage** — one command, a ready check, the show screen and typed commands.
+- **Stage D is in progress: the stage** (`phase-8-findings.md` §5). Built: `garagem`, one
+  command, and `garagem check`, the ready check. Next: typed commands, the show screen, and
+  `garagem show` for one song. Then Stage E: a tempo per song, the show's bake and the whole
+  setlist in one run.
 
 Phase 7 was the arrangement: the band had its material, and the phase decided where things
 go in time — a solo section, relief in the form, and a fill that is announced

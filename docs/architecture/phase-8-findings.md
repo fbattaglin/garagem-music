@@ -268,3 +268,31 @@ alguns"*. The bootstrap finds the Set matching `session.toml`.
   arena"*.
 - The song played to its end with 0 beats lost, from disk, for $0.000. Eight of its sixteen
   takes play differently from their bake, because Stage A's parts now realise them.
+
+## 5. The stage (Stage D)
+
+### One command, and the ready check
+
+`uv run garagem check` says whether the show can start. It is a `[project.scripts]` entry over
+`garagem.stage`, run from the project's folder. Every check runs whatever failed before it, and
+every problem carries the step that fixes it. **ok** lines say what was checked, **warn** is
+something the show plays without, and **fail** stops the show.
+
+| Area | What fails, and its fix |
+|---|---|
+| `session.toml` | not found, cannot be used, or no track for a role the band needs |
+| Live | silent (open it, enable AbletonOSC), held by another command, playing (the space bar), or quiet mid-check |
+| The Set | every divergence the bootstrap finds; `--fix` sets the ones Live's API can, never while Live plays |
+| MiniLab | `controller.toml` missing or unusable; not plugged in (a warning: typed commands remain); Live's own control surface on the cue port; Live's log unreadable (a warning) |
+| The show | `setlists/show.json` not baked (with the bake's command), unreadable, or baked at another tempo |
+
+The fixes are written in Live's menus, and the divergences reuse the bootstrap's own steps
+(`daw.fix_step`), so the two never give different advice.
+
+**Its first run against the real Set** found two failures. The show is not baked yet, which
+waits on Stage E. And **Live's `MiniLab_3` control surface listens to the MiniLab's port**, so
+every pad would reach Live's own surface as well as the band. `jam.py --controller minilab`
+refuses the same thing; the recent jams ran without the MiniLab and never asked.
+
+23 tests, every failure kind alone and all of them in one run. Suite at **3333 passed**, plus
+the known floor failure.

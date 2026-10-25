@@ -12,6 +12,10 @@ dependencies = [
     "python-rtmidi>=1.5.8",
 ]
 
+[project.scripts]
+# ADR-028: the band from one command. The orchestration lives in `garagem.stage`.
+garagem = "garagem.stage.cli:main"
+
 [dependency-groups]
 dev = [
     "hypothesis>=6.167.1",
