@@ -12,8 +12,12 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
 
 [ADR-028](ADR-028-the-mvp-stage.md). Each rate states its `n`; each verdict is quoted verbatim.
 
-- [ ] **It sounds like modern rock** — sounds chosen in `soundcheck`, pinned in `session.toml`
+- [x] **It sounds like modern rock** — sounds chosen in `soundcheck`, pinned in `session.toml`
       and checked by the bootstrap; one jam's verdict against the arena/indie reference.
+      **Met 2026-10-25** (`phase-8-findings.md` §4): GarageBand's Strats, Picked Rock bass and
+      SoCal kit, Analog Lab's Jazz B-3, the guitars panned 0.6 each way. In `arrangement.json`'s
+      "Seven": *"foi agradável e tinha um swag"*, then, panned, *"Sim. Está mais arena"*.
+      Closed by Fabiano with the fine tuning left to the ear in later sessions.
 - [ ] **It plays rock parts** — property sweeps, 0 violations: guitar roots in 40–52 and never a
       triad, bass roots in 28–40, the double silent below `dyn` 4, the organ outside the
       guitar's register.
