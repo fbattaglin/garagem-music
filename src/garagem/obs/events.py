@@ -22,7 +22,7 @@ here rather than at the call site so the scheduler cannot get it wrong.
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
 from typing import Final
 
@@ -85,6 +85,9 @@ KINDS: Final[tuple[str, ...]] = (
     # Phase 5, Stage 3. A keep or a veto struck on the section playing: who wrote it and its
     # seed. Curation reads the take from the log (ADR-024); nothing sounded different.
     "take_marked",
+    # Phase 8 (ADR-028). The show was ended by a person (`quit`), not by a lost beat: nothing
+    # failed, and the performance criteria must not read it as a glitch.
+    "stopped_by_hand",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so
@@ -128,10 +131,17 @@ class EventLog:
     Not thread-safe by design and not needed to be: everything that logs runs on the
     scheduler's thread. The beat listener runs on the receive thread and does no musical
     work at all (ADR-014), which includes not logging.
+
+    **A tap sees every event as it is recorded** (ADR-028): the show screen's way in, so what
+    it shows is what the log records. It is called on the recording thread, inside the bar
+    loop, so it must only hand the event over — a `deque.append`, and nothing that waits.
     """
 
-    def __init__(self, path: Path | None = None) -> None:
+    def __init__(
+        self, path: Path | None = None, *, tap: Callable[[Event], object] | None = None
+    ) -> None:
         self._path = path
+        self._tap = tap
         self._buffered: list[Event] = []
         self._written = 0
 
@@ -139,6 +149,8 @@ class EventLog:
         """Buffer one event. No I/O: this is called from inside the bar loop."""
         event = Event(at_beats=at_beats, kind=kind, detail=dict(detail))
         self._buffered.append(event)
+        if self._tap is not None:
+            self._tap(event)
         return event
 
     def flush(self) -> int:

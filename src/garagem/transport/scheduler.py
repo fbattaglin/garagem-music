@@ -225,6 +225,8 @@ class Scheduler:
         self._repeats = 0
         self.finished = False
         self.stopped_because: str | None = None
+        # Set from another thread by `stop`; read once per wake of the run loop.
+        self._stop_asked = False
 
         # Written before the downbeat, by kind. A jump can only land on one of these.
         self._candidates: dict[str, SectionScore] = {}
@@ -307,6 +309,13 @@ class Scheduler:
         waiting_for = self._clock.bar + 1
         deadline = time.monotonic() + self._bar_timeout_s
         while not self.finished:
+            if self._stop_asked:
+                # Not a lost beat: nothing failed, a person asked for the end.
+                self.stopped_because = "stopped_by_hand"
+                self._log.record(
+                    "stopped_by_hand", self._beats(), bar=self._clock.bar, section=self._index
+                )
+                break
             if self._clock.wait_for_bar(waiting_for, self._wake_s):
                 self.tick()
                 waiting_for = self._clock.bar + 1
@@ -335,6 +344,14 @@ class Scheduler:
             break
         # A cue struck in the last bar would otherwise be heard and never written down.
         self._conduct()
+
+    def stop(self) -> None:
+        """Ask `run` to return at its next wake, as a person asks to end the show (ADR-028).
+
+        Safe from any thread: one flag, read by the run loop. The transport is the caller's
+        to stop, as it is when a song ends.
+        """
+        self._stop_asked = True
 
     def begin(
         self,
@@ -617,6 +634,7 @@ class Scheduler:
             seed=seed,
             sections=len(self._sections),
             names=",".join(section.name for section in self._sections[at:]),
+            bars=",".join(str(section.bars) for section in self._sections[at:]),
         )
 
     def _why_not_boundary(self, bar: int, at: int, cue: CueKind) -> str | None:
@@ -820,6 +838,7 @@ class Scheduler:
             seed=seed,
             sections=len(sections),
             names=",".join(section.name for section in sections[target:]),
+            bars=",".join(str(section.bars) for section in sections[target:]),
         )
         self._measure(candidate, target)
 

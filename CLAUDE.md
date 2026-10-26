@@ -19,6 +19,9 @@ written to a file is in English.
   failure at once, each with its fix. `--fix` sets what the bootstrap would; nothing otherwise.
 - `uv run garagem commands` — the words that can be typed during the show, from `commands.toml`,
   with the pad that does the same.
+- `uv run garagem show --song N` — a song of the show from disk (`--setlist`, default
+  `setlists/show.json`), with the screen, typed words and the MiniLab (ADR-028). Starts only
+  from a clean check; `quit` ends it. Needs a terminal; the whole setlist is Stage E's.
 - `uv run pytest` — tests (unit + property + golden). **Never touches the network.**
 - `uv run pytest -m live` — integration tests; requires Ableton Live open with AbletonOSC active
 - `uv run ruff check --fix . && uv run ruff format .` — lint and formatting

@@ -316,3 +316,36 @@ the known floor failure.
 
 Built and tested, not yet reachable while a song plays: `garagem show` wires it. Suite at
 **3369 passed**, plus the known floor failure.
+
+### The show screen, and `garagem show`
+
+`uv run garagem show --song N` plays a song of a baked setlist from disk, as `jam.py --setlist`
+does and by the same pieces, now in `stage.band`. It starts only from a clean check, and prints
+the check either way.
+
+- **The screen draws from a tap on the event log.** `EventLog` takes a `tap`, called on the
+  recording thread, which only appends to a `deque`. The screen drains it on the main thread,
+  and reads nothing else but the beat Live last reported. It shows the song, the section and
+  its bar, what comes next and in how many bars, the knobs, the last six things said, and the
+  cheat sheet. `form_replanned` now records each section's bars, so a re-planned song still
+  counts "bar 3 of 8".
+- **Every cue is answered in the words that were typed**: `fill -> bar 7, the next one`,
+  `bridge -> bridge, after this section`, and `bridge: not now, that is already what comes
+  next`. Each decline reason the scheduler can give has a plain sentence.
+- **No line names an author.** The events that do (`fallback`, `section_generated`, a mark's
+  `author`) are never read, and a test drives a real scheduler with keeps and vetoes and reads
+  every screen for the words that would.
+- **The band plays on its own thread and the screen has the main one**, because `curses` wants
+  it. `quit` calls `Scheduler.stop()`, a flag the run loop reads at its next wake, and is logged
+  as `stopped_by_hand`, not `beat_lost`: a person ending the show is not a glitch.
+- **No MiniLab is not a refusal**: the check warns, and the words still reach the band.
+- **Headless for the tests, curses for a person.** Both draw the same `ShowView.lines`. The
+  curses screen was run in a pseudo-terminal: a typed word arrived on Enter, the bar counter
+  moved, and the end waited for Enter.
+
+The whole setlist in one run, a tempo per song and the count-in are Stage E's. Suite at
+**3387 passed**, plus the known floor failure.
+
+**Waiting on Fabiano.** Before the first `garagem show` with the MiniLab plugged in, Live's
+`MiniLab_3` control surface has to come off the cue port, which the check reports with the
+steps.

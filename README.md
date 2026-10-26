@@ -179,6 +179,9 @@ problem at once, each with the step that fixes it, and changes nothing unless `-
 ```bash
 uv run garagem check                                         # ready for the show? (ADR-028)
 uv run garagem check --fix                                   # and set tempo, names, arm and mix
+uv run garagem show --setlist setlists/arrangement.json --song 1
+                                                             # a song, with the screen and typed words
+uv run garagem commands                                      # the words that can be typed
 uv run python scripts/jam.py --dry-run                       # print the song's form; touch nothing
 uv run python scripts/jam.py --seconds 180 --seed 7          # the deterministic band, no network
 uv run python scripts/jam.py --setlist setlists/first.json --song 1 --controller minilab

@@ -1216,6 +1216,15 @@ def test_next_bridge_when_a_bridge_is_already_next_is_declined() -> None:
     assert [e.detail["reason"] for e in rig.of_kind("cue_declined")] == ["already_next"]
 
 
+def test_stop_ends_the_run_at_its_next_wake_and_says_a_person_asked() -> None:
+    rig = KnobRig()
+    rig.scheduler.stop()
+    rig.scheduler.run(LONG)
+    assert not rig.scheduler.finished
+    assert rig.scheduler.stopped_because == "stopped_by_hand"
+    assert rig.of_kind("stopped_by_hand") and not rig.of_kind("beat_lost")
+
+
 def test_next_solo_puts_a_solo_where_the_next_section_can_still_change() -> None:
     rig = KnobRig().play_with({21: CueKind.NEXT_SOLO})
     (applied,) = rig.of_kind("cue_applied")

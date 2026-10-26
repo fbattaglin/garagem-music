@@ -19,6 +19,7 @@ import pytest
 from garagem.agents import deadline_for, worth_asking
 from garagem.control import FakeController, load_controller
 from garagem.daw import DawPort, DawTimeoutError, FakeDawAdapter
+from garagem.daw.errors import SessionSpecError
 from garagem.daw.fake import DEFAULT_VOLUME
 from garagem.domain import Feel, Instrument, MacroKind, Section
 from garagem.engines import SongBrief
@@ -671,7 +672,7 @@ def test_a_session_with_no_chorus_scene_is_refused_with_the_reason() -> None:
         scenes=spec.scenes[:2],
         loop=spec.loop,
     )
-    with pytest.raises(jam.SessionSpecError, match="CHORUS"):
+    with pytest.raises(SessionSpecError, match="CHORUS"):
         jam.candidate_scenes(unnamed)
 
 
@@ -769,7 +770,7 @@ def test_a_session_without_variant_scenes_is_refused_with_their_names() -> None:
         scenes=spec.scenes[:3],
         loop=spec.loop,
     )
-    with pytest.raises(jam.SessionSpecError, match="STOP A"):
+    with pytest.raises(SessionSpecError, match="STOP A"):
         jam.variant_scenes(short)
 
 

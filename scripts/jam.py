@@ -72,7 +72,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-import time
 from collections import Counter
 from pathlib import Path
 
@@ -105,15 +104,12 @@ from garagem.daw import (
     observe,
     render_divergences,
 )
-from garagem.daw.errors import SessionSpecError
 from garagem.daw.live_log import control_surfaces, latest_log, listening_to
 from garagem.daw.session import SessionSpec
 from garagem.domain import Feel, Section
 from garagem.engines import Ending, SongBrief, arrange, endings_for, with_climax
-from garagem.engines.arranger import CHORUS
 from garagem.llm import (
     AnthropicAdapter,
-    BakedProvider,
     BreakerPolicy,
     CassetteProvider,
     CircuitBreaker,
@@ -138,7 +134,6 @@ from garagem.setlist import (
     Setlist,
     SetlistError,
     Song,
-    answers,
     briefings,
     drifted,
     load_setlist,
@@ -150,6 +145,15 @@ from garagem.stage import (  # noqa: F401 — re-exported for the tests and the 
     palms_of,
     pitches_of,
     tracks_of,
+)
+from garagem.stage.band import (  # noqa: F401 — re-exported for the tests
+    CHORUS_SCENE,
+    MAIN_SCENES,
+    VARIANT_SCENES,
+    build_setlist_provider,
+    candidate_scenes,
+    prime,
+    variant_scenes,
 )
 from garagem.transport import (
     BAR_TIMEOUT_S,
@@ -166,27 +170,7 @@ DEFAULT_LOG = ROOT / "bench" / "jam.jsonl"
 DEFAULT_CATALOG = ROOT / "config" / "models.toml"
 DEFAULT_BUDGET = ROOT / "config" / "budget.toml"
 DEFAULT_CONTROLLER = ROOT / "controller.toml"
-CHORUS_SCENE = "CHORUS"
-# ADR-022's variant scenes, by the names session.toml gives them, paired with main scenes A, B.
-MAIN_SCENES = ("A", "B")
-VARIANT_SCENES: dict[str, tuple[str, str]] = {
-    "stop": ("STOP A", "STOP B"),
-    "fill": ("FILL A", "FILL B"),
-}
-
 CASSETTE_PREFIX = "cassette:"
-
-# How long to let the producer fill the buffer before the transport rolls. Without this
-# the first section is always a fallback — `Scheduler.begin` writes and fires before any
-# generation can finish, which is a race the music always wins. A band does not hit play
-# before it knows the first song.
-#
-# The wait is the section's own deadline plus a margin, not a number somebody picked: a
-# model that has not answered by its deadline is not going to (§4.2), and the margin
-# covers the parse, the realise and the repair. Bounded, and falling through is not a
-# failure — the deterministic engine plays section one, which is P2 working as designed.
-PRIME_MARGIN_S = 1.0
-PRIME_POLL_S = 0.05
 
 
 def build_adapter(host: str, timeout_s: float) -> DawPort:
@@ -209,17 +193,6 @@ def build_provider(
         inner = AnthropicAdapter.from_env()
     return GuardedProvider(
         inner,
-        governor=Governor(budget.fuse(prices_of(catalog))),
-        breaker=CircuitBreaker(BreakerPolicy()),
-    )
-
-
-def build_setlist_provider(
-    setlist: Setlist, song: Song, catalog: list[ModelSpec], budget: SessionBudget
-) -> LLMProvider:
-    """The song's takes behind the same guards as a model: nothing here reaches a network."""
-    return GuardedProvider(
-        BakedProvider(answers(song), name=setlist.name),
         governor=Governor(budget.fuse(prices_of(catalog))),
         breaker=CircuitBreaker(BreakerPolicy()),
     )
@@ -354,32 +327,6 @@ def render_cues(log: EventLog) -> str:
     return "\n".join(lines) + "\n"
 
 
-def candidate_scenes(spec: SessionSpec) -> dict[str, int]:
-    """Which scene each jump's candidate is written into, found by name in `session.toml`."""
-    named = {scene.name: scene.index for scene in spec.scenes}
-    if CHORUS_SCENE not in named:
-        raise SessionSpecError(
-            f"session.toml names no {CHORUS_SCENE!r} scene; ADR-022 writes the chorus candidate "
-            "there"
-        )
-    return {CHORUS: named[CHORUS_SCENE]}
-
-
-def variant_scenes(spec: SessionSpec) -> dict[str, dict[int, int]]:
-    """Variant kind -> main scene -> the scene its variants are written into, by name."""
-    named = {scene.name: scene.index for scene in spec.scenes}
-    wanted = [*MAIN_SCENES, *(name for pair in VARIANT_SCENES.values() for name in pair)]
-    missing = [name for name in wanted if name not in named]
-    if missing:
-        raise SessionSpecError(
-            f"session.toml names no scene {missing}; ADR-022 writes bar-cue variants there"
-        )
-    return {
-        kind: {named[main]: named[variant] for main, variant in zip(MAIN_SCENES, pair, strict=True)}
-        for kind, pair in VARIANT_SCENES.items()
-    }
-
-
 def brief_of(spec: SessionSpec, seconds: float, feel: Feel, key: int, scale: str) -> SongBrief:
     """The song, from the Set's tempo and the flags. Tempo is the Set's, not a flag's.
 
@@ -428,29 +375,6 @@ def render_form(form: tuple[Section, ...], endings: tuple[Ending, ...] | None = 
     total = sum(section.total_seconds() for section in form)
     lines.append(f"     {len(form)} sections, {total:.0f}s")
     return "\n".join(lines) + "\n"
-
-
-def prime(buffer: ScoreBuffer, first: Section, *, margin_s: float = PRIME_MARGIN_S) -> float:
-    """Wait for the first section, or give up. Returns how long it took, in seconds.
-
-    The one place in this script that sleeps, and it is before the music starts rather
-    than during it — nothing here runs on the bar loop.
-
-    **Returns immediately when the first section was never going to be asked for.** A
-    4-bar intro at 132 BPM has a 2.91 s deadline, under `MIN_DEADLINE_S`, so the producer
-    declines it and plays the floor — and waiting 3.9 s for an answer nobody requested
-    delayed the downbeat of every performance for nothing. Found in `bench/jam-phase3.jsonl`
-    on 2026-09-01, one run after the floor was raised from 1.5 s to a measured 5.0 s.
-    """
-    if not worth_asking(first):
-        return 0.0
-    timeout_s = deadline_for(first) + margin_s
-    started = time.monotonic()
-    while time.monotonic() - started < timeout_s:
-        if buffer.take(0) is not None:
-            break
-        time.sleep(PRIME_POLL_S)
-    return time.monotonic() - started
 
 
 def main() -> int:
