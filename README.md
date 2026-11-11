@@ -7,7 +7,8 @@ organist and a lead who sings the tune. The last one is a person, who chooses wh
 setlist and conducts the band from a MIDI controller or a keyboard. They play section by
 section, live in Ableton Live, and on stage no network is needed.
 
-**This is V1** (2026-11-11): the band, its sound, and a stage one command starts.
+**V1** (2026-11-11) is the band, its sound, and a stage one command starts. After it comes
+the studio: a second screen, where the show is prepared.
 
 [![CI](https://github.com/fbattaglin/garagem-music/actions/workflows/ci.yml/badge.svg)](https://github.com/fbattaglin/garagem-music/actions/workflows/ci.yml)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
@@ -23,6 +24,7 @@ section, live in Ableton Live, and on stage no network is needed.
 - [How it works](#how-it-works)
 - [Design invariants](#design-invariants)
 - [Getting started](#getting-started)
+- [Preparing the show](#preparing-the-show)
 - [Conducting from the MiniLab 3](#conducting-from-the-minilab-3)
 - [Development](#development)
 - [Project layout](#project-layout)
@@ -35,7 +37,7 @@ Nobody in it does another's job, and that is the design.
 
 | Who | What they are | What they do |
 |---|---|---|
-| The songwriter | a frontier model (Anthropic Claude), offline | writes each song's riff and its two melodies, then every section with them in hand |
+| The songwriter | a frontier model (Claude Opus 5.5), offline | writes each song's riff and its two melodies, then every section with them in hand, in the style it is told |
 | The arranger | a deterministic engine | decides the form: where the verse, the chorus, the bridge and the solo go, and how the song ends |
 | The drummer | a deterministic engine | grooves by feel, opens the hats in a chorus, fills into what comes next |
 | The bassist | a deterministic engine | holds the root on the low strings and walks when the tension rises |
@@ -83,7 +85,7 @@ never whether there is one.
 | A baked setlist | 3 songs written for $0.06, played from disk with no network or key |
 | The show's setlist | 4 songs at 4 tempos and 4 feels, 24 of 24 sections delivered, written for $0.40 |
 | Model output, recorded regression set | 29 of 29 sections conformant, none needing repair |
-| Test suite | 3,394 tests, network-free by construction, `mypy --strict` clean |
+| Test suite | 3,500 tests, network-free by construction, `mypy --strict` clean |
 
 **Heard, not assumed.** A musical change passes on a short listen, and the verdict is quoted
 as it was said ([ADR-019](docs/architecture/ADR-019-the-ear-is-the-instrument.md)). On the
@@ -232,6 +234,51 @@ A generated performance is bounded by the budget governor, set in
 After a generated run, `jam.py` prints a report of every exit criterion, read from the event
 log.
 
+## Preparing the show
+
+Two screens, one for each half of the job
+([ADR-030](docs/architecture/ADR-030-the-studio.md)). `garagem show` plays the concert.
+`garagem studio` prepares it: a table of the concert's songs and a line to type on.
+
+```bash
+uv run garagem studio          # the show's concert, setlists/show.toml
+uv run garagem studio --fake   # the same screen, free: the players write, into a file of its own
+```
+
+```
+GARAGEM · STUDIO   concert "show"   5 songs, 2 in the show (6:59)   spent $0.00 of $2.00
+ #  song                  style       key  feel        bpm  state     written  notes
+ 1  Low Ceiling           -           Em   straight8   138  composed  7/7
+ 2  Night Bus             -           D    straight16  122  rejected  -
+ 3  Paper Crowns          -           Am   shuffle     112  approved  5/5
+ 4  Last Light            -           G    halftime    128  aside     6/6
+ 5  Red Dirt              southern    Dm   straight8   126  approved  7/7      slow build, huge last chorus
+>
+```
+
+| To decide | Typed |
+|---|---|
+| What kind of song | `new southern "slow build"`, then `style`, `key 5 D minor`, `tempo 5 126`, `feel`, `note`, `title` |
+| When the songwriter writes | `compose 5` or `compose all`; `redo 5` for the whole song, `redo 5 chorus "heavier"` for one kind of section |
+| Which songs play | `listen 5`, then `approve 5` or `reject 5` |
+| The concert | `move 5 1`, `drop 4` to set a song aside, `add 4`, `delete`, `undo`, `concert new "friday"` |
+| Looking | `sheet 5` for a song in words, `styles`, `cost`, `check`, `show`, `help` |
+
+- **The songwriter never writes by itself.** `compose` and `redo` say what they will cost and
+  wait for `yes`. Anything else typed leaves them undone, and a sitting has its own cap in
+  [`config/budget.toml`](config/budget.toml).
+- **A song is what is paid for.** Writing one song, or its chorus again with a note, touches
+  nothing else. What is replaced is kept with the song.
+- **The show obeys the studio.** It plays the concert's order and only the approved songs.
+  A concert nobody has judged yet plays everything written.
+- **The files stay the truth.** The studio reads and writes the concert's `.toml` and `.json`
+  and keeps nothing of its own, so a concert can still be edited by hand.
+
+A style is a file in [`styles/`](styles/): what the band does in that kind of song, in words
+the songwriter is given, and the feels, scales and tempos a new song starts from. Six come
+with the band: `arena`, `desert`, `interlock`, `riff-stops`, `duo` and `southern`. Today a
+style changes what is written. The players do not read it yet.
+
 ## Conducting from the MiniLab 3
 
 The mapping lives in [`controller.toml`](controller.toml). Every MIDI number in it was read
@@ -294,16 +341,17 @@ src/garagem/
 ├── theory/      scales, voicings, coherence metrics, validator, repairer. No I/O
 ├── dsl/         the notation: incremental stream parser, serialiser, tool schemas
 ├── engines/     deterministic generators: arranger, grooves, bass, guitar, keys, endings
-├── agents/      the producer thread, section briefs, routing
+├── agents/      the songwriter, the producer thread, section briefs, routing
 ├── llm/         LLMProvider port, Anthropic and Google adapters, governor, circuit breaker, cassettes
 ├── daw/         DawPort, the AbletonOSC adapter, a fake Live, Set-as-Code validation
 ├── transport/   BarClock, ScoreBuffer, CueQueue, FormPlan, the clip-ahead scheduler
 ├── control/     ControllerPort, the MiniLab 3 adapter (mido), a fake controller
-├── setlist/     online pre-production, offline playback
+├── setlist/     the concert and its bake: specs, styles, takes, what the show plays
 ├── sounds/      GarageBand's EXS instruments read and rebuilt as Live presets. No I/O
-├── stage/       what a person runs: the ready check, the show screen, typed words, the show
+├── stage/       what a person runs: the studio, the ready check, the show screen, the show
 └── obs/         JSONL event log, metrics, performance report
-setlists/        setlist specs, written by hand, and their bakes
+setlists/        concerts: what was asked (.toml) and what was written (.json)
+styles/          one file per style: what kind of song, in words and a palette
 scripts/         performance, probes, benchmarks, recording and listening tests
 tests/           unit · property · golden · regression · integration (live)
 config/          model catalogue and prices; per-session budget
@@ -330,6 +378,7 @@ evidence, or when a criterion is explicitly waived in an ADR with its threshold 
 | 5 | Setlist Mode for offline shows, curated with keep and veto, on the band's own instruments | Closed · 2026-09-17 · no waiver |
 | 6 | The songwriter: whole songs composed offline, with riffs, bass lines and a lead voice | Closed · 2026-09-20 · one deviation, no waiver |
 | 7 | The arrangement: a solo section, relief in the form, an announced fill | Closed · 2026-10-10 · no deviation, no waiver |
+| 9 | The studio: a second screen, where the show is prepared | **Current** · built, used and heard: *"Um salto comparado com V1"* ([ADR-030](docs/architecture/ADR-030-the-studio.md)) |
 | 8 | The MVP: modern rock parts and sound, a melody, and a stage you can run | **V1 · 2026-11-11** · not gated: the whole setlist in one run is carried forward ([ADR-028](docs/architecture/ADR-028-the-mvp-stage.md), [ADR-029](docs/architecture/ADR-029-the-band-borrows-garagebands-library.md)) |
 
 **One finding shapes what comes next.** In the last three blind listening tests, 36 pairs in
@@ -370,7 +419,7 @@ The current phase and its evidence are tracked in
   principles and roadmap
 - [`docs/architecture/README.md`](docs/architecture/README.md): an index of every
   Architecture Decision Record
-- `phase-0-findings.md` … `phase-8-findings.md`: what the measurements and integrations
+- `phase-0-findings.md` … `phase-9-findings.md`: what the measurements and integrations
   actually showed, as opposed to what the baseline assumed
 - [`CLAUDE.md`](CLAUDE.md): working conventions for AI-assisted development in this
   repository

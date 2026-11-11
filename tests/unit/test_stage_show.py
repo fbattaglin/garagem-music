@@ -12,9 +12,16 @@ from garagem.daw import FakeDawAdapter, load_session
 from garagem.daw.fake import DEFAULT_VOLUME
 from garagem.llm import AnthropicAdapter
 from garagem.obs import load_events
-from garagem.setlist import load_setlist, save_setlist
+from garagem.setlist import (
+    SetlistSpec,
+    SongSpec,
+    Verdict,
+    load_setlist,
+    save_setlist,
+    save_spec,
+)
 from garagem.stage.check import Probes
-from garagem.stage.show import ShowFiles, Wiring, run_show
+from garagem.stage.show import ShowFiles, Wiring, pick, run_show
 from garagem.stage.terminal import HeadlessScreen
 from garagem.transport import Scheduler
 
@@ -176,4 +183,67 @@ def test_a_plugged_minilab_is_heard_beside_the_keyboard_and_let_go_after(
 def test_a_song_the_setlist_does_not_have_is_refused(tmp_path: Path) -> None:
     rig = Rig()
     assert run_show(files(tmp_path), 9, rig.wiring, HeadlessScreen(), rig.out) == 1
-    assert "has songs 1 to 3" in rig.out.getvalue()
+    assert "plays songs 1 to 3" in rig.out.getvalue()
+
+
+# ------------------------------------------------- what the show plays (ADR-030)
+
+
+def concert_beside(tmp_path: Path, *verdicts: str) -> Path:
+    """A copy of the baked setlist with a concert beside it: its songs reversed, judged."""
+    baked = load_setlist(BAKED)
+    bake = tmp_path / "c.json"
+    save_setlist(baked, bake)
+    songs = [
+        SongSpec(
+            title=song.title,
+            key=song.key,
+            scale=song.scale,
+            feel=song.feel,
+            seconds=song.seconds,
+            seed=song.seed,
+            verdict=Verdict(verdict),
+        )
+        for song, verdict in zip(reversed(baked.songs), verdicts, strict=True)
+    ]
+    save_spec(SetlistSpec(name="c", songs=tuple(songs)), tmp_path / "c.toml")
+    return bake
+
+
+def test_the_show_plays_the_concerts_order_not_the_files(tmp_path: Path) -> None:
+    bake = concert_beside(tmp_path, "", "", "")
+    baked = load_setlist(bake)
+    assert pick(baked, bake, 1, None) == (baked.songs[-1], 1, 3)
+
+
+def test_once_judged_the_show_counts_only_approved_songs(tmp_path: Path) -> None:
+    bake = concert_beside(tmp_path, "rejected", "approved", "")
+    baked = load_setlist(bake)
+    assert pick(baked, bake, 1, None) == (baked.songs[1], 1, 1)
+    assert pick(baked, bake, 2, None) == f"--song 2: {baked.name} plays songs 1 to 1\n"
+
+
+def test_a_concert_with_nothing_approved_sends_the_person_to_the_studio(tmp_path: Path) -> None:
+    bake = concert_beside(tmp_path, "rejected", "rejected", "rejected")
+    said = pick(load_setlist(bake), bake, 1, None)
+    assert isinstance(said, str) and "uv run garagem studio" in said
+
+
+def test_an_audition_plays_a_song_whatever_its_verdict(tmp_path: Path) -> None:
+    bake = concert_beside(tmp_path, "rejected", "rejected", "rejected")
+    baked = load_setlist(bake)
+    title = baked.songs[0].title
+    assert pick(baked, bake, 1, title) == (baked.songs[0], 1, 1)
+    assert "is not written" in str(pick(baked, bake, 1, "Nobody's Song"))
+
+
+def test_the_log_names_a_song_by_its_place_in_the_file_which_is_what_curation_joins_on(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(Scheduler, "run", finished)
+    bake = concert_beside(tmp_path, "", "", "")
+    rig = Rig()
+    assert rig.show(tmp_path, HeadlessScreen(), setlist=bake) == 0
+    (loaded,) = [e for e in load_events(tmp_path / "show.jsonl") if e.kind == "setlist_loaded"]
+    assert loaded.detail["song"] == 3
+    assert loaded.detail["title"] == load_setlist(bake).songs[2].title

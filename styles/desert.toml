@@ -1,0 +1,16 @@
+summary = "a low, hypnotic riff over dry, stubborn drums"
+reference = "Queens of the Stone Age"
+feels = ["straight8", "halftime"]
+scales = ["minor"]
+bpm = [96, 132]
+
+# What the songwriter is told, with every question about a song in this style.
+direction = """
+Desert rock: one low, heavy riff that repeats until it hypnotises. The bass riff is the
+song, and the guitar plays its rhythm with it, hit for hit, in straight even strokes with no
+swing and almost no decoration. The drums are dry and stubborn: the same kick pattern bar
+after bar, the snare square on the backbeat, few fills and short ones. Verses and choruses
+differ by weight, not by busyness. The melody is cool and narrow, a few notes close
+together, often landing on the fourth or the flat seventh rather than the root. Leave space:
+a bar that drops to drums alone is worth more than one more note.
+"""

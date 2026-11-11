@@ -37,7 +37,16 @@ from garagem.control import (
 from garagem.daw import DawError, load_session
 from garagem.llm import load_budget, load_catalog
 from garagem.obs import Event, EventLog, model_share, render_checks, setlist_checks
-from garagem.setlist import Song, briefings, load_setlist
+from garagem.setlist import (
+    Setlist,
+    SetlistError,
+    Song,
+    briefings,
+    lineup,
+    load_setlist,
+    load_spec,
+    spec_beside,
+)
 from garagem.stage.band import build_setlist_provider, candidate_scenes, prime, variant_scenes
 from garagem.stage.check import Probes, ready, ready_check, render_check
 from garagem.stage.roles import palms_of, pitches_of, tracks_of
@@ -68,7 +77,43 @@ class Wiring:
     build_minilab: Callable[[ControllerSpec], ControllerPort]
 
 
-def run_show(files: ShowFiles, number: int, wiring: Wiring, screen: Screen, out: TextIO) -> int:
+def pick(
+    setlist: Setlist, bake: Path, number: int, title: str | None
+) -> tuple[Song, int, int] | str:
+    """The song to play, its place in the show and how many the show has, or why there is none.
+
+    **The concert beside the bake decides what the show plays** (ADR-030): its order, and only
+    the songs approved in the studio once any has been judged (`setlist.lineup`). A bake with
+    no concert beside it plays as it was written.
+
+    `title` is an audition from the studio: that song, whatever its verdict, because a song
+    has to be heard before it can be approved.
+    """
+    if title is not None:
+        named = next((song for song in setlist.songs if song.title == title), None)
+        return (named, 1, 1) if named is not None else f"{title!r} is not written in {bake}\n"
+    beside = spec_beside(bake)
+    try:
+        concert = load_spec(beside) if beside.exists() else None
+    except SetlistError as exc:
+        return f"{exc}\n"
+    playing = lineup(setlist, concert)
+    if not playing:
+        return f"no song of {setlist.name} is approved and written yet: uv run garagem studio\n"
+    if not 1 <= number <= len(playing):
+        return f"--song {number}: {setlist.name} plays songs 1 to {len(playing)}\n"
+    return playing[number - 1], number, len(playing)
+
+
+def run_show(
+    files: ShowFiles,
+    number: int,
+    wiring: Wiring,
+    screen: Screen,
+    out: TextIO,
+    *,
+    title: str | None = None,
+) -> int:
     findings = ready_check(
         files.session, files.controller, files.commands, files.setlist, wiring.probes
     )
@@ -78,10 +123,14 @@ def run_show(files: ShowFiles, number: int, wiring: Wiring, screen: Screen, out:
         return 1
 
     setlist = load_setlist(files.setlist)
-    if not 1 <= number <= len(setlist.songs):
-        out.write(f"--song {number}: {setlist.name} has songs 1 to {len(setlist.songs)}\n")
+    picked = pick(setlist, files.setlist, number, title)
+    if isinstance(picked, str):
+        out.write(picked)
         return 1
-    song = setlist.songs[number - 1]
+    song, number, songs = picked
+    # Where the song is in the bake's file, which is what curation joins a mark on. The
+    # show's own order is the concert's and may differ.
+    in_file = setlist.songs.index(song) + 1
     spec = load_session(files.session)
     commands = load_commands(files.commands)
     pads = load_controller(files.controller)
@@ -99,7 +148,7 @@ def run_show(files: ShowFiles, number: int, wiring: Wiring, screen: Screen, out:
     view = ShowView(
         title=song.title,
         song=number,
-        songs=len(setlist.songs),
+        songs=songs,
         bpm=song.bpm,
         form=[Planned(section.name, section.bars) for section in song.form],
         words={command.cue: command.word for command in commands.commands if command.cue},
@@ -123,7 +172,7 @@ def run_show(files: ShowFiles, number: int, wiring: Wiring, screen: Screen, out:
             setlist=setlist.name,
             provider=setlist.provider,
             model=setlist.model,
-            song=number,
+            song=in_file,
             title=song.title,
             takes=len(song.playable()),
             serving="baked",

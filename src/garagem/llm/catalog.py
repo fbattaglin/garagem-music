@@ -30,6 +30,12 @@ class ModelSpec:
     effort: Effort | None
     max_tokens: int
     price: ModelPrice
+    # False for a model that rejects a forced `tool_choice` with a 400. The tool is then
+    # offered rather than forced, and the prompt is what names it.
+    forced_tool: bool = True
+    # A job the configuration gives this model, such as "composer". The live layers are
+    # routed by measured ID in `agents/routing.py` and carry none.
+    role: str | None = None
 
 
 def _effort(name: str) -> Effort | None:
@@ -50,6 +56,8 @@ def load_catalog(path: Path) -> list[ModelSpec]:
                 output_usd=Decimal(str(entry["output_usd"])),
                 cache_read_usd=Decimal(str(entry["cache_read_usd"])),
             ),
+            forced_tool=bool(entry.get("forced_tool", True)),
+            role=entry.get("role"),
         )
         for entry in raw.get("model", [])
     ]
@@ -96,3 +104,19 @@ def load_budget(path: Path) -> SessionBudget:
         max_in_flight=int(session.get("max_in_flight", 3)),
         target_usd=Decimal(str(session["target_usd"])),
     )
+
+
+def load_studio_cap(path: Path) -> Decimal:
+    """What one sitting in the studio may spend on the songwriter (ADR-030).
+
+    Its own figure, beside the performance's and never shared with it: preparing a concert
+    must not spend the evening's gig, which is the reason the bake had its own cap too.
+    """
+    raw: dict[str, Any] = tomllib.loads(path.read_text(encoding="utf-8"))
+    studio = raw.get("studio")
+    if not studio or "session_usd" not in studio:
+        raise ValueError(f"{path} declares no [studio] session_usd")
+    cap = Decimal(str(studio["session_usd"]))
+    if cap <= 0:
+        raise ValueError(f"{path}: [studio] session_usd must be more than nothing")
+    return cap

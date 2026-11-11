@@ -16,6 +16,7 @@ from garagem.agents import (
     STRUCTURAL,
     TACTICAL,
     UnknownModelError,
+    composer,
     structural,
     tactical,
 )
@@ -60,6 +61,34 @@ def test_every_routed_id_exists_in_the_catalogue() -> None:
     """A rename in `config/models.toml` is caught here, not at the first live call."""
     available = {spec.id for spec in CATALOG}
     assert {STRUCTURAL, TACTICAL} <= available
+
+
+def test_the_composer_is_the_model_the_catalogue_marks() -> None:
+    """Chosen by Fabiano on 2026-11-10, in the catalogue and nowhere in the source."""
+    assert composer(CATALOG).id == "claude-opus-5-5"
+    assert composer(CATALOG).role == "composer"
+
+
+def test_the_composer_thinks_hard_and_is_not_forced_onto_its_tool() -> None:
+    """Its own default effort is medium, and it answers a forced tool choice with a 400."""
+    assert composer(CATALOG).effort is Effort.HIGH
+    assert composer(CATALOG).forced_tool is False
+
+
+def test_choosing_a_composer_leaves_the_frozen_live_layer_where_it_was_measured() -> None:
+    assert composer(CATALOG) != structural(CATALOG)
+    assert structural(CATALOG).forced_tool is True
+
+
+def test_a_catalogue_with_no_composer_names_the_file_to_fix() -> None:
+    unmarked = [spec for spec in CATALOG if spec.role is None]
+    with pytest.raises(UnknownModelError, match=re.escape("config/models.toml")):
+        composer(unmarked)
+
+
+def test_two_composers_are_refused_rather_than_one_picked() -> None:
+    with pytest.raises(UnknownModelError, match="exactly one"):
+        composer([*CATALOG, composer(CATALOG)])
 
 
 def test_the_catalogue_still_carries_the_models_experiment_e2_compares() -> None:

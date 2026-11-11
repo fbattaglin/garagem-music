@@ -1,6 +1,56 @@
 # Roadmap status
 
-**Current phase: 8 — the MVP's last phase: a modern rock band, on a stage you can run**
+**Current phase: 9 — the studio: the screen that prepares the show**
+([ADR-030](ADR-030-the-studio.md)). Planned with Fabiano on 2026-11-10 and corrected by him the
+same day: two screens, one to prepare the show and one to play it.
+
+V1 has a stage and no studio. This phase builds the other room: what kind of song, when the
+songwriter writes it, which songs play and in what order, all from one screen. The songwriter
+becomes `claude-opus-5-5`, and is told what kind of band it is writing for.
+
+## Phase 9 exit criteria
+
+[ADR-030](ADR-030-the-studio.md). Proposed with the phase and not yet agreed line by line with
+Fabiano; each verdict will be quoted verbatim.
+
+- [x] **A concert is prepared without opening a file** — a song created, changed, written,
+      written again in part, ordered, approved and rejected from `garagem studio`. **Met in
+      tests 2026-11-11** (`phase-9-findings.md` §3): 37 tests drive the screen by typed lines.
+      **Used the same day** (§5): three songs sketched, titled, composed, heard and one approved.
+- [x] **The songwriter never writes by itself** — nothing is sent before `yes`, the estimate
+      comes first, and a sitting has its own cap. **Met in tests 2026-11-11.**
+- [x] **A song is what is paid for** — writing one song, or one kind of section of it again,
+      leaves every other take as it was. **Met in tests 2026-11-11.**
+- [x] **The show obeys the studio** — the concert's order, and only approved songs once any is
+      judged; an old setlist plays as it did. **Met in tests 2026-11-11.**
+- [x] **The new songwriter answers** — `claude-opus-5-5` delivers through a tool it is offered
+      and not forced onto, in a paid `compose`. **Met 2026-11-11** (`phase-9-findings.md` §5):
+      19 of 19 sections and 3 of 3 themes, none asked twice.
+- [ ] **Cost** inside the estimate the studio states before `yes`, for one song. **Not met
+      2026-11-11:** *about $0.17* stated, $0.40 spent; under the "at most" and the cap. The
+      estimate now rests on the 19 sections measured, and is owed one song inside it.
+- [ ] **A style can be heard** — one song written in two styles, told apart by Fabiano
+      without looking. Verdict quoted.
+- [x] **The studio is practical** — Fabiano prepares a concert in it. **Met 2026-11-11**, on
+      what he composed and heard in it: *"Tudo que compus e escutei até agora achei muito bom.
+      Um salto comparado com V1."*
+- [ ] **Nothing regresses** — suite, `ruff`, `mypy` clean; `pytest -m live` re-run at the gate.
+
+### Where the phase actually is
+
+- **Built, used and heard** (`phase-9-findings.md`). `garagem studio`
+  and `garagem studio --fake`; six styles in `styles/`; the songwriter moved into
+  `agents/songwriter.py`, composing a song at a time and a section again with a note; the show
+  following the concert. Suite at **3500 passed, 27 skipped**.
+- **Deliberately left out:** the two places where what the model writes is thrown away (its
+  organ chords realised as stabs, its last bar overwritten). Both move the notes of every baked
+  take and need a listen.
+- **Open:** a style heard blind (one song in two styles), and one song inside its estimate.
+- **Still open from Phase 8:** the whole setlist in one run.
+
+## Phase 8 — shipped as V1, not gated
+
+**The MVP's last phase: a modern rock band, on a stage you can run**
 ([ADR-028](ADR-028-the-mvp-stage.md)). Chosen with Fabiano from options on 2026-10-10 and
 2026-10-11, before anything was built.
 
@@ -28,8 +78,7 @@ and five do not, and nothing is waived:
   cues and knob moves and no keep or veto struck. There is no verdict on them yet.
 
 What comes after V1 was planned with Fabiano on 2026-11-10: a studio, the screen that prepares
-the show, and then the sound, the songs' identity and a critic. It gets its own ADR when it
-starts.
+the show (Phase 9, ADR-030, above), and then the sound, the songs' identity and a critic.
 
 ## Phase 8 exit criteria
 

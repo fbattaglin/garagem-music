@@ -98,8 +98,12 @@ def build_body(request: Request) -> dict[str, Any]:
 
     if request.tool is not None:
         body["tools"] = [_tool_payload(request.tool)]
-        # Forcing the tool is what makes the DSL the only possible output shape.
-        body["tool_choice"] = {"type": "tool", "name": request.tool.name}
+        # Forcing the tool is what makes the DSL the only possible output shape. A model
+        # that refuses to be forced is offered the tool instead: the schema stays strict,
+        # the prompt names the tool, and an answer in prose is a failed call like any other.
+        body["tool_choice"] = (
+            {"type": "tool", "name": request.tool.name} if request.force_tool else {"type": "auto"}
+        )
 
     return body
 

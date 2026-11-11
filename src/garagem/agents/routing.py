@@ -23,6 +23,11 @@ That is a billing state rather than a verdict, and experiment E2 re-runs the com
 when it changes. `config/models.toml` keeps every measured model so the re-run costs
 nothing but the calls.
 
+**The composer is not in this table.** The offline bake has no deadline to fit, so no
+measurement chooses its model: Fabiano does, and `config/models.toml` marks it with
+`role = "composer"`. The two live layers stay on the models measured above, because live
+generation is frozen (ADR-025) and its deadlines were measured against them.
+
 Model IDs are never written in the source outside this module, and even here they are
 looked up in `config/models.toml` rather than constructed — the project rule is that a
 model is referenced by an explicit ID coming from configuration.
@@ -43,6 +48,8 @@ from garagem.llm import ModelSpec
 
 STRUCTURAL: Final = "claude-sonnet-5"
 TACTICAL: Final = "claude-haiku-4-5-20251001"
+# A role, not an ID: which model holds it is the catalogue's to say.
+COMPOSER: Final = "composer"
 
 # Whether a section's briefing is one the producer may ask for.
 Route = Callable[[Section], bool]
@@ -70,6 +77,18 @@ class UnknownModelError(LookupError):
 def structural(catalog: list[ModelSpec]) -> ModelSpec:
     """The model that writes a whole section. Strong, and inside the deadline."""
     return _find(catalog, STRUCTURAL)
+
+
+def composer(catalog: list[ModelSpec]) -> ModelSpec:
+    """The model that writes songs offline: the one the catalogue marks as the composer."""
+    marked = [spec for spec in catalog if spec.role == COMPOSER]
+    if len(marked) != 1:
+        found = ", ".join(spec.id for spec in marked) or "none"
+        raise UnknownModelError(
+            f'exactly one model must carry role = "{COMPOSER}"; found {found}. '
+            "Roles live in config/models.toml."
+        )
+    return marked[0]
 
 
 def by_id(catalog: list[ModelSpec], model_id: str) -> ModelSpec:

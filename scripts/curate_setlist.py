@@ -28,52 +28,12 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from garagem.obs import Mark, load_events, marks
-from garagem.setlist import (
-    Setlist,
-    SetlistError,
-    TakeStatus,
-    body,
-    load_setlist,
-    save_setlist,
-)
+from garagem.obs import load_events, marks
+from garagem.setlist import Setlist, SetlistError, TakeStatus, load_setlist, save_setlist
+from garagem.stage.curate import curate
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOG = ROOT / "bench" / "jam.jsonl"
-
-STATUS = {"keep": TakeStatus.KEPT, "veto": TakeStatus.VETOED}
-
-
-def curate(setlist: Setlist, found: list[Mark]) -> tuple[Setlist, Counter[str]]:
-    """The setlist with every mark struck during its songs applied, and what happened to each."""
-    tally: Counter[str] = Counter()
-    decided: dict[tuple[int, str], TakeStatus] = {}
-    for mark in found:
-        if mark.setlist != setlist.name or mark.song is None:
-            continue
-        if not 1 <= mark.song <= len(setlist.songs):
-            tally["no_such_song"] += 1
-            continue
-        if mark.dsl is None:
-            tally[f"{mark.mark} on the floor"] += 1
-            continue
-        song = setlist.songs[mark.song - 1]
-        if not any(body(take.dsl) == body(mark.dsl) for take in song.takes):
-            tally[f"{mark.mark} on a take no longer here"] += 1
-            continue
-        decided[(mark.song, body(mark.dsl))] = STATUS[mark.mark]
-        tally[mark.mark] += 1
-
-    songs = []
-    for number, song in enumerate(setlist.songs, start=1):
-        takes = tuple(
-            take.model_copy(update={"status": decided[(number, body(take.dsl))]})
-            if (number, body(take.dsl)) in decided
-            else take
-            for take in song.takes
-        )
-        songs.append(song.model_copy(update={"takes": takes}))
-    return setlist.model_copy(update={"songs": tuple(songs)}), tally
 
 
 def render(before: Setlist, after: Setlist, tally: Counter[str]) -> str:

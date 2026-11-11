@@ -11,6 +11,25 @@
 # structural-layer figures. The tactical layer gets its own probe when its prompt
 # exists (phase 4).
 
+# The composer: the model the offline bake asks for a song's theme and its sections
+# (ADR-025, ADR-026). Chosen by Fabiano on 2026-11-10; prices from Anthropic's published
+# rates of 2026-11-03. No deadline measurement stands behind it and none is needed: the
+# bake waits 180 s, and the live path below does not use it.
+#
+# `effort` is written out because this model's own default is medium, not high.
+# `forced_tool = false` because it answers a forced tool_choice with a 400; the tool is
+# offered and the prompt names it instead.
+[[model]]
+provider = "anthropic"
+id = "claude-opus-5-5"
+role = "composer"
+effort = "high"
+forced_tool = false
+max_tokens = 2048
+input_usd = 4.00
+cache_read_usd = 0.20
+output_usd = 20.00
+
 [[model]]
 provider = "anthropic"
 id = "claude-opus-5"

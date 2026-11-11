@@ -191,6 +191,20 @@ def test_the_tool_is_strict_and_forced() -> None:
     assert body["tool_choice"] == {"type": "tool", "name": "write_section"}
 
 
+def test_a_model_that_refuses_to_be_forced_is_offered_the_same_strict_tool() -> None:
+    """Such a model answers a forced choice with a 400, which would cost a whole bake."""
+    body = build_body(a_request(tool=TOOL, force_tool=False))
+    assert body["tools"][0]["strict"] is True
+    assert body["tool_choice"] == {"type": "auto"}
+
+
+def test_how_the_tool_is_offered_does_not_move_a_recorded_fingerprint() -> None:
+    """Every cassette was recorded before the field existed and must still match."""
+    forced = a_request(tool=TOOL)
+    assert "force_tool" not in forced.model_dump_json()
+    assert a_request(tool=TOOL, force_tool=False).fingerprint() == forced.fingerprint()
+
+
 def test_a_schema_that_cannot_be_strict_is_refused() -> None:
     """An open schema silently downgrades to non-strict — catch it here, not in the music."""
     loose = ToolSchema(

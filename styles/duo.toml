@@ -1,0 +1,16 @@
+summary = "one dirty guitar and one drum kit, nothing else in the room"
+reference = "The White Stripes"
+feels = ["straight8", "shuffle", "halftime"]
+scales = ["minor"]
+bpm = [100, 140]
+
+# What the songwriter is told, with every question about a song in this style.
+direction = """
+A two-piece garage band: one guitar and one drum kit, raw and under-arranged. The riff is
+everything and it is simple enough to hum: a handful of notes on the low strings. The bass
+has no life of its own here; write it as the guitar's low string, striking the riff's own
+slots on the root. The organ rests in every bar. The drums are primitive and loud: kick and
+snare, a crash where a hi-hat would be in the chorus, no ghost notes, no clever fills.
+Verses can drop to the riff and a kick alone. The melody is blunt, on the blues notes, and
+repeats.
+"""

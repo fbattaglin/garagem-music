@@ -1,0 +1,15 @@
+summary = "a held-back verse and a wall of guitars in the chorus"
+reference = "Foo Fighters"
+feels = ["straight8", "halftime"]
+scales = ["minor", "major"]
+bpm = [124, 148]
+
+# What the songwriter is told, with every question about a song in this style.
+direction = """
+Arena rock, built on the jump between a quiet verse and a loud chorus. In a verse the guitar
+is palm-muted and sparse, the bass holds the root, the hats are closed and the organ rests.
+The chorus is as big as the band gets: guitar ringing on every strum with accents on 1 and
+9, the hats open, a crash on the first bar and again halfway, and a melody of long notes a
+crowd could sing back after hearing it once. The last bar of a verse should lean into the
+chorus, with the snare building. Simple chords, played hard.
+"""

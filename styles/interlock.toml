@@ -1,0 +1,16 @@
+summary = "two tight guitars that fit together like gears, and a singing bass"
+reference = "The Strokes"
+feels = ["straight8", "straight16"]
+scales = ["major", "minor"]
+bpm = [128, 164]
+
+# What the songwriter is told, with every question about a song in this style.
+direction = """
+Wiry indie rock where the parts interlock. The guitar plays short, clipped strokes, never a
+wash: steady eighths with gaps, so the holes in its rhythm are where the bass and the lead
+speak. The bass is melodic and busy, moving through the chord in eighths instead of sitting
+on the root, and it is as much a tune as the lead is. The lead answers the bass rather than
+doubling it: where one moves, the other holds. The drums are tight and plain, closed hats in
+steady eighths, kick and snare with no flourishes, the same in verse and chorus. The chorus
+lifts by the melody climbing, not by the band getting louder.
+"""

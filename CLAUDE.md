@@ -18,6 +18,12 @@ written to a file is in English.
   against `session.toml`, any track in Solo or switched off, the MiniLab and Live's control
   surfaces, the show's setlist. Every
   failure at once, each with its fix. `--fix` sets what the bootstrap would; nothing otherwise.
+- `uv run garagem studio` — the screen that prepares the show (ADR-030): what kind of song
+  (`new <style>`, `style`, `key`, `tempo`, `note`), when the songwriter writes (`compose`,
+  `redo N chorus "heavier"`, each waiting for `yes`), which songs play (`listen`, `approve`,
+  `reject`) and in what order (`move`, `drop`). Reads and writes the concert's `.toml` and
+  `.json`. `--fake` is the same screen for free: the players write, into `<name>.fake.json`.
+  `--concert setlists/<name>.toml` for another concert.
 - `uv run garagem commands` — the words that can be typed during the show, from `commands.toml`,
   with the pad that does the same.
 - `uv run garagem show --song N` — a song of the show from disk (`--setlist`, default
@@ -71,7 +77,7 @@ written to a file is in English.
   (ADR-024). `--table` shows the takes and the five chosen; the run needs Terminal and Live.
   No model call.
 - `uv run python scripts/probe_solo.py` — asks the model for **one** solo section and reads what
-  the notation did to it (ADR-027 Stage D). Estimates and stops unless `--yes`; about 1.4 cents.
+  the notation did to it (ADR-027 Stage D). Estimates and stops unless `--yes`; a few cents.
   `--fake` runs the floor's own solo through the same report, free, and prints what writing it as
   `deg:` and reading it back costs.
 - `uv run python scripts/record_regression.py` — records the musical regression set that
@@ -86,7 +92,8 @@ Run `ruff` and `mypy` before any commit.
 - `src/garagem/theory/` — scales, voicings, validator, repairer. No I/O.
 - `src/garagem/dsl/` — incremental parser, serializer, tool-use schemas
 - `src/garagem/engines/` — deterministic generators (the musical floor, no LLM)
-- `src/garagem/agents/` — personas, prompts, routing policies
+- `src/garagem/agents/` — personas, prompts, routing policies, and the songwriter
+  (`songwriter.py`): composing a song, or a section of it again, offline (ADR-030)
 - `src/garagem/llm/` — `LLMProvider` port + adapters + governor + circuit breaker
 - `src/garagem/daw/` — `DawPort` port + AbletonOSC adapter + fake
 - `src/garagem/transport/` — BarClock, ScoreBuffer, CueQueue, clip-ahead scheduler
@@ -96,18 +103,21 @@ Run `ruff` and `mypy` before any commit.
   imports `llm/`, `daw/` or `transport/` (ADR-024)
 - `src/garagem/sounds/` — EXS reader, zone mapping, the kit's pieces and the `.adg` writer
   (ADR-029). Pure: bytes and text in and out; the script does the file I/O and `afconvert`
-- `setlists/` — setlist specs (`.toml`, written by hand) and their bakes (`.json`)
+- `setlists/` — concerts: specs (`.toml`, written by hand or by the studio) and their bakes
+  (`.json`). The show plays the spec's order and its approved songs (ADR-030)
+- `styles/` — one file per style: the direction the songwriter is given, and a palette
 - `src/garagem/obs/` — JSONL event log, metrics, latency rig, TUI
-- `src/garagem/stage/` — the application layer a person runs: roles to tracks, and (ADR-028)
-  the ready check, the show screen and the show. The only package that wires the others
+- `src/garagem/stage/` — the application layer a person runs: roles to tracks, (ADR-028) the
+  ready check, the show screen and the show, and (ADR-030) the studio. The only package that wires the others
 - `session.toml` — "Set as Code": the Live Set the bootstrap validates against (ADR-013)
 - `controller.toml` — "Controller as Code": which pad and knob asks the band for what.
   Every MIDI number in it was heard by `scripts/probe_minilab.py`, none guessed.
 - `commands.toml` — the words typed during the show (ADR-028): every pad's cue, and `solo`.
   Matched whole and exactly; nothing typed becomes a cue it did not name.
 - `config/models.toml` — the model catalogue: IDs, effort and prices. The only place
-  a model ID or a price is written down.
-- `config/budget.toml` — what one performance may spend and what it is expected to cost.
+  a model ID or a price is written down. `role = "composer"` marks the songwriter's model.
+- `config/budget.toml` — what one performance may spend and what it is expected to cost, and
+  what one sitting in the studio may.
   The measurement rigs keep their own caps; a bench round is not a session.
 
 ## Invariants (non-negotiable)
@@ -130,6 +140,8 @@ Run `ruff` and `mypy` before any commit.
 - Every agent decision, fallback and human veto becomes an event in the JSONL event log
 - Network tests use cassettes in `cassettes/`. A test that makes a real call is a bug.
 - Ask before adding a new dependency; the project is deliberately lean
+- **Nothing is installed beyond what the band already uses** (Fabiano, 2026-11-11): no plugin,
+  no amp simulator, no sampler. The sound is made with Live Lite and GarageBand's library
 - **A musical change passes on a short listen** (ADR-025). Fabiano hears it in a session he plays
   anyway, and his verdict is quoted in the findings. Pre-registration and thresholds are for
   decisions that cost money or are hard to reverse. A findings section fits on a screen. No

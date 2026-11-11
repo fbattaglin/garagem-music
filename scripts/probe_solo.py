@@ -38,7 +38,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Final
 
-from garagem.agents import songwriter_request_for, structural
+from garagem.agents import composer, songwriter_request_for
 from garagem.daw import load_session
 from garagem.domain import (
     PITCH_CLASSES,
@@ -251,8 +251,8 @@ def main() -> int:
 
     catalog = load_catalog(CATALOG)
     # The model the bake would use, not the catalogue's first: a probe of a different
-    # model answers a different question, and Opus is four times the price of it.
-    model = structural(catalog)
+    # model answers a different question.
+    model = composer(catalog)
     bpm = load_session(SESSION).tempo_bpm
     setlist = json.loads(args.setlist.read_text(encoding="utf-8"))
     songs = setlist["songs"]

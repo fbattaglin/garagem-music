@@ -28,3 +28,10 @@ max_in_flight = 3
 # predicts $0.15 conducted with the pads and $0.25 with the knobs swept as at the Stage 5
 # gate (`phase-4-findings.md` §12, `scripts/rehearse_session.py`).
 target_usd = 0.30
+
+# What one sitting in `garagem studio` may spend on the songwriter (ADR-030). Preparing a
+# concert is not a performance and does not share its cap. A song measured at about $0.40 to
+# $0.60 with the composer in `models.toml` (2026-11-11), so this is three or four songs a
+# sitting. Every paid command still says its own estimate first and waits for `yes`.
+[studio]
+session_usd = 2.00

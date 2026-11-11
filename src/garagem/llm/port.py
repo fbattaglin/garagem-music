@@ -94,6 +94,11 @@ class Request(BaseModel):
     # Keep it in `system` and leave volatile content in the messages, or the prefix is
     # invalidated and the cache hit rate drops to zero.
     cache_system: bool = True
+    # False for a model that rejects a forced tool choice: the tool is offered and the
+    # prompt names it. Left out of the dump, and so of the fingerprint, because it says
+    # how a model is addressed and not what is asked; the model ID already tells two such
+    # requests apart, and every cassette recorded before it existed still matches.
+    force_tool: bool = Field(default=True, exclude=True)
 
     def fingerprint(self) -> str:
         """Request identity, used to match against a recorded cassette."""

@@ -37,7 +37,10 @@
     commands and the whole setlist in one run.
   - `ADR-029-the-band-borrows-garagebands-library.md` — Stage B re-planned: GarageBand's own
     instruments rebuilt as Lite presets by code, with nothing downloaded; guitar first.
-- `phase-0-findings.md` … `phase-8-findings.md` — what the measurements and the
+  - `ADR-030-the-studio.md` — Phase 9: a second screen, where the show is prepared. What kind
+    of song, when the songwriter writes, which songs play and in what order; styles as files;
+    the songwriter's model as configuration.
+- `phase-0-findings.md` … `phase-9-findings.md` — what the measurements and the
   integrations actually met, as opposed to what ADR-000 assumed.
 
 ADR format: context, decision, rejected alternatives, consequences.

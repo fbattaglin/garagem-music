@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
 
-from garagem.llm import Effort, load_catalog, prices_of
+from garagem.llm import Effort, load_catalog, load_studio_cap, prices_of
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / "config" / "models.toml"
@@ -60,3 +61,15 @@ def test_a_catalogue_with_no_models_is_refused(tmp_path: Path) -> None:
     empty.write_text("# nothing here\n", encoding="utf-8")
     with pytest.raises(ValueError, match=r"no \[\[model\]\]"):
         load_catalog(empty)
+
+
+def test_the_studio_has_a_cap_of_its_own() -> None:
+    """Preparing a concert must not spend the performance's budget, nor the other way round."""
+    assert load_studio_cap(ROOT / "config" / "budget.toml") == Decimal("2.00")
+
+
+def test_a_budget_with_no_studio_cap_names_what_is_missing(tmp_path: Path) -> None:
+    path = tmp_path / "budget.toml"
+    path.write_text("[session]\nsession_usd = 1.0\n", encoding="utf-8")
+    with pytest.raises(ValueError, match=r"\[studio\] session_usd"):
+        load_studio_cap(path)

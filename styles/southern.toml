@@ -1,0 +1,16 @@
+summary = "a ringing guitar figure, a driving bass, and a chorus that opens wide"
+reference = "Kings of Leon"
+feels = ["straight8", "straight16"]
+scales = ["major", "minor"]
+bpm = [110, 140]
+
+# What the songwriter is told, with every question about a song in this style.
+direction = """
+Anthemic southern-tinged rock that builds slowly and opens wide. The bass drives the verse
+in steady, unbroken eighths on the root, and that pulse does not let up. Over it the guitar
+leaves room: a few ringing strokes a bar rather than a wall, placed off the beat. The lead
+carries a high, repeating figure of three or four notes that returns in every section and is
+the song's signature. The drums start spare, kick and closed hats, and add a layer each
+section, so the last chorus is the fullest thing in the song. The chorus melody is high,
+held and yearning, sung on long notes over the same driving bass.
+"""

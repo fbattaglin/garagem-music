@@ -12,42 +12,69 @@
 
 name = "show"
 
-# Arena: straight eighths, minor, the doubled guitars' song.
 [[song]]
 title = "Low Ceiling"
 key = 4
 scale = "minor"
 feel = "straight8"
-bpm = 138
 seconds = 210
 seed = 31
+bpm = 138
 
-# Indie: sixteenths on the hat, the closed-hat groove that stays tight.
 [[song]]
 title = "Night Bus"
 key = 2
 scale = "major"
 feel = "straight16"
-bpm = 122
 seconds = 190
 seed = 37
+bpm = 122
 
-# Indie with a swing to it.
 [[song]]
 title = "Paper Crowns"
 key = 9
 scale = "minor"
 feel = "shuffle"
-bpm = 112
 seconds = 190
 seed = 41
+bpm = 112
 
-# Arena, heavy and slow: half time, the closer.
 [[song]]
 title = "Last Light"
 key = 7
 scale = "major"
 feel = "halftime"
-bpm = 128
 seconds = 220
 seed = 43
+bpm = 128
+
+[[song]]
+title = "Smoking and Driving"
+key = 6
+scale = "minor"
+feel = "straight8"
+seconds = 200
+seed = 44
+bpm = 110
+style = "desert"
+verdict = "approved"
+
+[[song]]
+title = "Our Love is a Rat Race"
+key = 4
+scale = "minor"
+feel = "straight8"
+seconds = 200
+seed = 45
+bpm = 146
+style = "riff-stops"
+
+[[song]]
+title = "Untitled 1"
+key = 1
+scale = "major"
+feel = "straight8"
+seconds = 200
+seed = 46
+bpm = 138
+style = "arena"

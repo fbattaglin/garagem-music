@@ -77,6 +77,18 @@ class SetlistError(ValueError):
 # ------------------------------------------------------------------------------ the spec
 
 
+class Verdict(StrEnum):
+    """What the person who runs the band said of a whole song (ADR-030).
+
+    A song's, where keep and veto are a section's. Nothing is `NONE` by being bad: it is what
+    every song is until somebody has listened to it.
+    """
+
+    NONE = ""
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class SongSpec(BaseModel):
     """One song as a person asks for it."""
 
@@ -91,13 +103,32 @@ class SongSpec(BaseModel):
     seed: int = Field(ge=0)
     # Its own tempo (ADR-028). Left out, the song is at the Set's.
     bpm: float | None = Field(default=None, gt=0.0)
+    # What kind of song (ADR-030): a style in `styles/`, or words of the person's own. It is
+    # the songwriter's to read; the players do not change with it yet.
+    style: str = ""
+    # Anything else the songwriter should know, in the person's words.
+    notes: str = ""
+    verdict: Verdict = Verdict.NONE
+    # Out of the concert and still in the file: a song set aside, not thrown away.
+    parked: bool = False
 
 
 class SetlistSpec(BaseModel):
+    """A concert as a person asks for it: the songs, in the order they are played."""
+
     model_config = FROZEN
 
     name: str = Field(min_length=1)
     songs: tuple[SongSpec, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _titles_are_names(self) -> Self:
+        """A title is how a song's spec finds its bake, so two songs cannot share one."""
+        titles = [song.title for song in self.songs]
+        twice = sorted({title for title in titles if titles.count(title) > 1})
+        if twice:
+            raise ValueError(f"two songs are called {twice[0]!r}; a title names one song")
+        return self
 
 
 def load_spec(path: Path) -> SetlistSpec:
@@ -109,6 +140,57 @@ def load_spec(path: Path) -> SetlistSpec:
         )
     except (OSError, tomllib.TOMLDecodeError, ValidationError) as exc:
         raise SetlistError(f"{path}: {exc}") from exc
+
+
+def _toml(value: object) -> str:
+    """One value as TOML. Only what a `SongSpec` holds: text, numbers and a switch."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        return f"{value:g}"
+    text = str(value)
+    escaped = text.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    return f'"{escaped}"'
+
+
+def render_spec(spec: SetlistSpec, header: str = "") -> str:
+    """The spec as the file `load_spec` reads back to the same spec.
+
+    Written by hand rather than by a library: the format is a name and flat tables, and the
+    project adds no dependency for that. A field at its default is left out, so a song reads
+    as what was asked of it. **Comments inside the file are not kept**; `header` is, because
+    a file's opening comment says what the concert is.
+    """
+    blank = SongSpec(title="-", key=0, seconds=1.0, seed=0)
+    lines = [header.rstrip(), ""] if header.strip() else []
+    lines.append(f"name = {_toml(spec.name)}")
+    for song in spec.songs:
+        lines += ["", "[[song]]"]
+        for field in SongSpec.model_fields:
+            value = getattr(song, field)
+            required = field in ("title", "key", "scale", "feel", "seconds", "seed")
+            if required or value != getattr(blank, field):
+                lines.append(f"{field} = {_toml(value)}")
+    return "\n".join(lines) + "\n"
+
+
+def header_of(text: str) -> str:
+    """A spec file's opening comment: every line before the first that is not one."""
+    kept: list[str] = []
+    for line in text.splitlines():
+        if line.strip() and not line.lstrip().startswith("#"):
+            break
+        kept.append(line)
+    return "\n".join(kept).strip()
+
+
+def save_spec(spec: SetlistSpec, path: Path) -> None:
+    """Write the concert back, keeping the file's opening comment and nothing else of it."""
+    header = header_of(path.read_text(encoding="utf-8")) if path.exists() else ""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(render_spec(spec, header), encoding="utf-8")
 
 
 def arranged(song: SongSpec, bpm: float) -> tuple[tuple[Section, ...], tuple[Ending, ...]]:
@@ -188,6 +270,10 @@ class Song(BaseModel):
     # written with in hand (ADR-026). Optional, so `FORMAT` stays 1 and every bake made
     # before the songwriter existed still loads. Empty means nobody asked for one.
     theme: str = ""
+    # What the songwriter was told when it wrote this (ADR-030). Stored so a spec that has
+    # since changed its mind can be told from one that has not (`composed_as`).
+    style: str = ""
+    notes: str = ""
     takes: tuple[Take, ...] = ()
     missed: tuple[Missed, ...] = ()
     # Vetoed takes that a new bake replaced. Kept, because a veto is a preference and the
@@ -252,6 +338,57 @@ def load_setlist(path: Path) -> Setlist:
 def save_setlist(setlist: Setlist, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(setlist.model_dump_json(indent=2) + "\n", encoding="utf-8")
+
+
+# ------------------------------------------------------------- the concert and its bake
+
+
+def composed_as(asked: SongSpec, song: Song, set_bpm: float) -> bool:
+    """Whether `song` is what `asked` would have the songwriter write today.
+
+    A verdict, an order or being parked change nothing about the music, so they are not
+    compared. Everything the arranger or the songwriter reads is.
+    """
+    return (
+        asked.title == song.title
+        and asked.key == song.key
+        and asked.scale == song.scale
+        and asked.feel == song.feel
+        and asked.seconds == song.seconds
+        and asked.seed == song.seed
+        and (set_bpm if asked.bpm is None else asked.bpm) == song.bpm
+        and asked.style == song.style
+        and asked.notes == song.notes
+    )
+
+
+def spec_beside(bake: Path) -> Path:
+    """The concert a bake belongs to: `show.json` and `show.fake.json` are both `show.toml`'s."""
+    name = bake.name
+    stem = name[: -len(".fake.json")] if name.endswith(".fake.json") else bake.stem
+    return bake.with_name(f"{stem}.toml")
+
+
+def lineup(setlist: Setlist, concert: SetlistSpec | None) -> tuple[Song, ...]:
+    """The songs a show plays, in the order it plays them (ADR-030).
+
+    **The concert decides, once somebody has judged it.** The songs are the concert's, in its
+    order, each one approved, not parked, and composed. A concert nobody has judged yet (no
+    verdict on any song, which is every spec written before the studio) plays every song it
+    has composed and not parked, so an old setlist plays as it always did. With no concert at
+    all the bake plays as it was written.
+    """
+    if concert is None:
+        return setlist.songs
+    baked = {song.title: song for song in setlist.songs}
+    judged = any(song.verdict is not Verdict.NONE for song in concert.songs)
+    return tuple(
+        baked[asked.title]
+        for asked in concert.songs
+        if asked.title in baked
+        and not asked.parked
+        and (asked.verdict is Verdict.APPROVED or not judged)
+    )
 
 
 # --------------------------------------------------------------------------- at playback

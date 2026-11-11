@@ -1,0 +1,16 @@
+summary = "a fast, nervous riff, sixteenth hats, and the whole band stopping dead"
+reference = "Arctic Monkeys"
+feels = ["straight16", "straight8"]
+scales = ["minor"]
+bpm = [136, 172]
+
+# What the songwriter is told, with every question about a song in this style.
+direction = """
+Fast, sharp indie rock driven by a riff and by silence. The bass riff is quick and
+syncopated, pushing ahead of the beat, and the guitar stabs with it in short accented hits
+rather than strumming through. The hats run in sixteenths and the kick is busy. What makes
+the style is the stop: at the end of a phrase the whole band cuts out together for a beat or
+two, every voice silent at once, and comes back in on the next downbeat. Write those gaps
+into every instrument in the same slots. Verses are wordy and rhythmic, the melody on few
+notes and many of them; the chorus opens up with longer notes.
+"""

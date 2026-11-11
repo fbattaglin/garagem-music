@@ -1,0 +1,14 @@
+{"at_beats":0.0,"kind":"song_listened","detail":{"concert":"show","title":"Paper Crowns"}}
+{"at_beats":0.0,"kind":"song_sketched","detail":{"concert":"show","title":"Untitled 1","style":"desert","seed":44}}
+{"at_beats":0.0,"kind":"song_composed","detail":{"concert":"show","title":"Untitled 1","model":"claude-opus-5-5","takes":7,"missed":0,"theme":true}}
+{"at_beats":0.0,"kind":"song_listened","detail":{"concert":"show","title":"Untitled 1"}}
+{"at_beats":0.0,"kind":"song_approved","detail":{"concert":"show","title":"Untitled 1"}}
+{"at_beats":0.0,"kind":"song_listened","detail":{"concert":"show","title":"Untitled 1"}}
+{"at_beats":0.0,"kind":"song_listened","detail":{"concert":"show","title":"Untitled 1"}}
+{"at_beats":0.0,"kind":"song_edited","detail":{"concert":"show","title":"Smoking and Driving","fields":"title"}}
+{"at_beats":0.0,"kind":"song_sketched","detail":{"concert":"show","title":"Untitled 1","style":"riff-stops","seed":45}}
+{"at_beats":0.0,"kind":"song_composed","detail":{"concert":"show","title":"Untitled 1","model":"claude-opus-5-5","takes":6,"missed":0,"theme":true}}
+{"at_beats":0.0,"kind":"song_listened","detail":{"concert":"show","title":"Untitled 1"}}
+{"at_beats":0.0,"kind":"song_edited","detail":{"concert":"show","title":"Our Love is a Rat Race","fields":"title"}}
+{"at_beats":0.0,"kind":"song_sketched","detail":{"concert":"show","title":"Untitled 1","style":"arena","seed":46}}
+{"at_beats":0.0,"kind":"song_composed","detail":{"concert":"show","title":"Untitled 1","model":"claude-opus-5-5","takes":6,"missed":0,"theme":true}}

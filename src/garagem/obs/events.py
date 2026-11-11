@@ -88,6 +88,21 @@ KINDS: Final[tuple[str, ...]] = (
     # Phase 8 (ADR-028). The show was ended by a person (`quit`), not by a lost beat: nothing
     # failed, and the performance criteria must not read it as a glitch.
     "stopped_by_hand",
+    # Phase 9 (ADR-030). What a person decided in the studio, before any of it sounded: a song
+    # asked for, changed, written, written again, heard, judged, moved or set aside. They carry
+    # no beat (`at_beats` is 0): nothing is playing while a concert is prepared.
+    "song_sketched",
+    "song_edited",
+    "song_composed",
+    "sections_redone",
+    "song_listened",
+    "song_approved",
+    "song_rejected",
+    "song_moved",
+    "song_set_aside",
+    "song_brought_back",
+    "song_deleted",
+    "change_undone",
 )
 
 # The kinds a rate can be computed over, and what each one divides by. Written down so

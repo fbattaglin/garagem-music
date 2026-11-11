@@ -26,6 +26,7 @@ re-record.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Final
 
 from garagem.domain import Chart, Section
@@ -450,26 +451,57 @@ repeats its lines. Play the riff where it belongs. A chorus should be where the 
 itself."""
 
 
-def theme_brief(title: str, key: str, feel: str, bpm: float, form: str) -> str:
-    """The one volatile message of the theme call: which song, in one short block."""
+def theme_brief(title: str, key: str, feel: str, bpm: float, form: str, direction: str = "") -> str:
+    """The one volatile message of the theme call: which song, in one short block.
+
+    `direction` is what kind of song it is, in words (ADR-030): its style and the
+    bandleader's notes. Empty, the message is the one every earlier bake was asked with.
+    """
     return (
         f"Song: {title}\n"
         f"key={key} feel={feel} bpm={bpm:g}\n"
-        f"form: {form}\n"
-        "Write this song's material."
+        f"form: {form}\n" + (f"{direction}\n" if direction else "") + "Write this song's material."
     )
 
 
-def songwriter_brief(section: Section, theme: str) -> str:
+# Said with every section since ADR-030. The first show's bake wrote the system block's
+# example kick in 99 of 192 drum bars and its guitar rhythm in 134 of 192, in all four feels
+# (`phase-8-findings.md` §6): a complete, valid example is the cheapest correct answer. The
+# theme block was cured of the same thing by saying so out loud, and this says it here.
+NOT_THE_EXAMPLE: Final = (
+    "The example in your instructions shows the notation and belongs to another song: do not "
+    "reuse its drum pattern or its guitar rhythm. Write what this song's style, feel and "
+    "material ask for."
+)
+
+
+def songwriter_brief(
+    section: Section,
+    theme: str,
+    *,
+    direction: str = "",
+    place: str = "",
+    note: str = "",
+) -> str:
     """One section's briefing with the song's own material above it.
 
     The material goes in the *message* rather than the system block, and that is not a
     detail: the block is the cache prefix (`Request.cache_system`), and a theme moved into
     it would change per song and zero the hit rate for every section of every song.
+
+    Three things a studio adds (ADR-030), all of them in the message for the same reason, and
+    each left out when it is empty:
+
+    - `direction`: what kind of song this is, in words;
+    - `place`: where this section sits in the song, which nothing told the writer before;
+    - `note`: what the bandleader said when asking for this section again.
     """
     material = _labelled(theme.strip())
+    asked = direction or place or note
     return (
-        (f"The song's material:\n{material}\n\n" if material else "")
+        (f"{direction}\n\n" if direction else "")
+        + (f"The song's material:\n{material}\n\n" if material else "")
+        + (f"{place}\n" if place else "")
         + _which_melody(section.name, material)
         + f"SEC {section.name} bars={section.bars} "
         f"key={render_key(section.key, section.scale)} "
@@ -478,6 +510,34 @@ def songwriter_brief(section: Section, theme: str) -> str:
         f"CHD {render_chart(_per_bar(section))}\n"
         f"Echo those two lines back unchanged, then write {section.bars} bars each of "
         "DRM, BAS, GTR, KEY and LED, arranged, using the material above where it fits."
+        + (f"\n{NOT_THE_EXAMPLE}" if asked else "")
+        + (
+            f"\nThis section was written once and is being asked for again. "
+            f"The bandleader's note: {note}"
+            if note
+            else ""
+        )
+    )
+
+
+def place_in(form: Sequence[str], indices: Sequence[int]) -> str:
+    """Where a section sits in its song, as one line the writer can read.
+
+    One take answers every section briefed alike (`setlist.askable`), so the line names
+    every place the take will play, not only the first.
+    """
+    if not indices:
+        return ""
+    kind = form[indices[0]]
+    spots = ", ".join(str(index + 1) for index in indices)
+    times = "once" if len(indices) == 1 else f"{len(indices)} times"
+    before = form[indices[0] - 1] if indices[0] > 0 else "nothing: it opens the song"
+    last = indices[-1]
+    after = form[last + 1] if last + 1 < len(form) else "nothing: it ends the song"
+    return (
+        f"The song's form: {' '.join(form)}. This {kind} plays {times}, as section {spots} of "
+        f"{len(form)}. Before it the first time comes {before}; after it the last time comes "
+        f"{after}."
     )
 
 

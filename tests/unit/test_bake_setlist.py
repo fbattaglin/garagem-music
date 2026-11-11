@@ -17,10 +17,12 @@ from types import ModuleType
 
 import pytest
 
-from garagem.agents import structural
+from garagem.agents import request_for, structural, worth_asking
 from garagem.domain import Feel
+from garagem.dsl import theme_brief
 from garagem.llm import (
     BakedProvider,
+    Budget,
     CircuitBreaker,
     Governor,
     GuardedProvider,
@@ -151,9 +153,9 @@ def test_a_call_past_its_deadline_is_missed_and_not_asked_again(
 ) -> None:
     song = PLANNED[0]
     index = song.asked[0]
-    real = bake.request_for
     monkeypatch.setattr(
-        bake, "request_for", lambda section, model: real(section, model, deadline_s=0.01)
+        "garagem.agents.songwriter.request_for",
+        lambda section, model: request_for(section, model, deadline_s=0.01),
     )
     outcome = asyncio.run(bake.shoot(guarded(Slow()), MODEL, song.form[index], index, 7))
     assert isinstance(outcome, Missed)
@@ -238,7 +240,7 @@ def test_a_baked_song_rehearsed_plays_its_takes_and_the_floor_the_rest() -> None
     served, played_sections = model_share(log.events)
     assert played_sections == len(song.form)
     # Every section worth asking is served from the bake, repeats included.
-    assert served == sum(1 for s in song.form if bake.worth_asking(s))
+    assert served == sum(1 for s in song.form if worth_asking(s))
     assert calls == served
     reasons = {event.detail.get("reason") for event in log.of_kind("fallback")}
     assert reasons <= {"no_time", "not_in_buffer"}
@@ -288,7 +290,7 @@ def test_the_estimate_counts_the_theme_calls_and_says_it_is_an_estimate() -> Non
 
 def test_a_theme_the_notation_cannot_read_is_dropped_rather_than_pasted_into_every_call() -> None:
     song = PLANNED[0]
-    nonsense = {bake.theme_brief(**bake.theme_fields(song)): "LED oct=4 deg:99=5\nBAS wat"}
+    nonsense = {theme_brief(**bake.theme_fields(song)): "LED oct=4 deg:99=5\nBAS wat"}
     provider = guarded(BakedProvider(nonsense, name="fake"))
     theme, why = asyncio.run(bake.theme_shot(provider, MODEL, song))
     assert theme == ""
@@ -300,7 +302,7 @@ def test_a_song_with_no_theme_still_bakes_its_sections() -> None:
     """P2 one level up: the material degrades, the song does not stop."""
     song = PLANNED[0]
     answers = bake.floor_answers(PLANNED, songwriter=True)
-    del answers[bake.theme_brief(**bake.theme_fields(song))]
+    del answers[theme_brief(**bake.theme_fields(song))]
     provider = guarded(BakedProvider(answers, name="fake"))
     songs = asyncio.run(bake.bake(provider, MODEL, [song], emit=lambda text: None, songwriter=True))
     assert songs[0].theme == ""
@@ -345,7 +347,7 @@ def test_a_budget_refusal_is_not_retried() -> None:
     provider = GuardedProvider(
         BakedProvider(bake.floor_answers(PLANNED, songwriter=False)),
         governor=Governor(
-            bake.Budget(
+            Budget(
                 # A cap a single call cannot fit under: the governor refuses before sending.
                 session_usd=Decimal("0.0000001"),
                 per_minute_usd=Decimal("0.0000001"),

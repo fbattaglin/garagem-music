@@ -130,6 +130,7 @@ def request_for(
         if deadline_s is not None
         else deadline_for(section, fraction=fraction),
         effort=model.effort,
+        force_tool=model.forced_tool,
         # The stable block is the cache prefix. `dsl/schema.py` says what breaks it.
         cache_system=True,
     )
@@ -143,6 +144,7 @@ def theme_request_for(
     feel: str,
     bpm: float,
     form: str,
+    direction: str = "",
     deadline_s: float = BAKE_DEADLINE_S,
 ) -> Request:
     """One call for one song's material, before any of its sections (ADR-026).
@@ -155,7 +157,9 @@ def theme_request_for(
         messages=(
             Message(
                 role=Role.USER,
-                content=theme_brief(title=title, key=key, feel=feel, bpm=bpm, form=form),
+                content=theme_brief(
+                    title=title, key=key, feel=feel, bpm=bpm, form=form, direction=direction
+                ),
             ),
         ),
         system=SYSTEM_THEME,
@@ -163,6 +167,7 @@ def theme_request_for(
         max_tokens=BAKE_MAX_TOKENS,
         deadline_s=deadline_s,
         effort=model.effort,
+        force_tool=model.forced_tool,
         cache_system=True,
     )
 
@@ -172,20 +177,31 @@ def songwriter_request_for(
     model: ModelSpec,
     *,
     theme: str = "",
+    message: str | None = None,
     deadline_s: float = BAKE_DEADLINE_S,
 ) -> Request:
     """One section, written with the song's material in hand. Bake only.
 
     The theme travels in the message and never in the system block: the block is the cache
     prefix, and a theme inside it would change per song and zero the hit rate.
+
+    `message` is the whole question already worded, when the caller has more to say than the
+    theme: the song's direction, the section's place in the form, a note (ADR-030). It is
+    taken as it is, so the floor's answer to it can be found by the same text.
     """
     return Request(
         model=model.id,
-        messages=(Message(role=Role.USER, content=songwriter_brief(section, theme)),),
+        messages=(
+            Message(
+                role=Role.USER,
+                content=songwriter_brief(section, theme) if message is None else message,
+            ),
+        ),
         system=SYSTEM_SONGWRITER,
         tool=TOOL,
         max_tokens=BAKE_MAX_TOKENS,
         deadline_s=deadline_s,
         effort=model.effort,
+        force_tool=model.forced_tool,
         cache_system=True,
     )

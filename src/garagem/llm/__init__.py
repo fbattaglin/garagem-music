@@ -9,7 +9,14 @@ from garagem.llm.breaker import (
     CircuitBreaker,
 )
 from garagem.llm.cassette import CassetteHeader, CassetteProvider, record
-from garagem.llm.catalog import ModelSpec, SessionBudget, load_budget, load_catalog, prices_of
+from garagem.llm.catalog import (
+    ModelSpec,
+    SessionBudget,
+    load_budget,
+    load_catalog,
+    load_studio_cap,
+    prices_of,
+)
 from garagem.llm.errors import (
     BudgetError,
     CassetteError,
@@ -110,6 +117,7 @@ __all__ = [
     "input_tokens_of",
     "load_budget",
     "load_catalog",
+    "load_studio_cap",
     "prices_of",
     "record",
     "usage_after_cancellation",
