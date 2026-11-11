@@ -7,8 +7,22 @@ organist and a lead who sings the tune. The last one is a person, who chooses wh
 setlist and conducts the band from a MIDI controller or a keyboard. They play section by
 section, live in Ableton Live, and on stage no network is needed.
 
-**V1** (2026-11-11) is the band, its sound, and a stage one command starts. After it comes
-the studio: a second screen, where the show is prepared.
+**This is V2: the band got a studio.** V1 could play. V2 can be asked for a song: say what
+kind, and the songwriter writes it; listen, and send the chorus back with a note; approve it,
+and it is in the show. Two rooms, one for preparing the concert and one for playing it, and a
+person at the door of each.
+
+```
+> new desert "slow, and mean"
+5. Untitled 1: desert, F#m, straight8, 110 BPM. Change anything, then compose 5.
+> title 5 "Smoking and Driving"
+> compose 5
+to write Smoking and Driving: 8 call(s) to claude-opus-5-5, about $0.52 ... Type yes to go ahead.
+> yes
+> listen 5
+> approve 5
+5. Smoking and Driving: approved. The show plays: Smoking and Driving.
+```
 
 [![CI](https://github.com/fbattaglin/garagem-music/actions/workflows/ci.yml/badge.svg)](https://github.com/fbattaglin/garagem-music/actions/workflows/ci.yml)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
@@ -76,7 +90,7 @@ never whether there is one.
   with its beat and its seed. Any performance can be audited and replayed.
 
 **Measured, not assumed** (`docs/architecture/phase-4-findings.md`,
-`phase-5-findings.md`, `phase-8-findings.md`):
+`phase-5-findings.md`, `phase-8-findings.md`, `phase-9-findings.md`):
 
 | | |
 |---|---|
@@ -84,6 +98,8 @@ never whether there is one.
 | Chaos test: Wi-Fi lost twice mid-song | 0 beats lost, and nothing audible to the listener |
 | A baked setlist | 3 songs written for $0.06, played from disk with no network or key |
 | The show's setlist | 4 songs at 4 tempos and 4 feels, 24 of 24 sections delivered, written for $0.40 |
+| The first songs asked for in the studio | 3 songs in 3 styles, 19 of 19 sections and 3 of 3 themes delivered, $1.55 |
+| The songwriter copying its prompt's example | the example's kick in 3 of 152 drum bars, down from 99 of 192 |
 | Model output, recorded regression set | 29 of 29 sections conformant, none needing repair |
 | Test suite | 3,500 tests, network-free by construction, `mypy --strict` clean |
 
@@ -91,6 +107,8 @@ never whether there is one.
 as it was said ([ADR-019](docs/architecture/ADR-019-the-ear-is-the-instrument.md)). On the
 band's sound: *"foi agradável e tinha um swag"*, and, once the guitars were panned, *"Sim. Está
 mais arena"*. On the stage: *"Gostei muito das informacoes da tela. Foi pratico digitar sim"*.
+On the first songs written in the studio: *"Tudo que compus e escutei até agora achei muito
+bom. Um salto comparado com V1."*
 
 ## How it works
 
@@ -378,7 +396,8 @@ evidence, or when a criterion is explicitly waived in an ADR with its threshold 
 | 5 | Setlist Mode for offline shows, curated with keep and veto, on the band's own instruments | Closed · 2026-09-17 · no waiver |
 | 6 | The songwriter: whole songs composed offline, with riffs, bass lines and a lead voice | Closed · 2026-09-20 · one deviation, no waiver |
 | 7 | The arrangement: a solo section, relief in the form, an announced fill | Closed · 2026-10-10 · no deviation, no waiver |
-| 9 | The studio: a second screen, where the show is prepared | **Current** · built, used and heard: *"Um salto comparado com V1"* ([ADR-030](docs/architecture/ADR-030-the-studio.md)) |
+| 10 | The sound: a mix, guitars that hit harder, a kit that is played | **Next** |
+| 9 | The studio: a second screen, where the show is prepared | **V2 · 2026-11-11** · used and heard: *"Um salto comparado com V1"* · two criteria open ([ADR-030](docs/architecture/ADR-030-the-studio.md)) |
 | 8 | The MVP: modern rock parts and sound, a melody, and a stage you can run | **V1 · 2026-11-11** · not gated: the whole setlist in one run is carried forward ([ADR-028](docs/architecture/ADR-028-the-mvp-stage.md), [ADR-029](docs/architecture/ADR-029-the-band-borrows-garagebands-library.md)) |
 
 **One finding shapes what comes next.** In the last three blind listening tests, 36 pairs in
@@ -404,11 +423,19 @@ another plays a song of it. V1 is a name for where the band is, not a gate passe
 still starts with its own command, and the whole setlist in one run, with a count-in between
 songs, is not built. `STATUS.md` lists the criteria still open.
 
-**What V1 taught, and what comes next.** The stage is in good shape and the studio does not
-exist: a song is still a hand-written file of a title, a key, a feel and a seed, and nothing
-tells the songwriter what kind of band it is writing for. So the next phase builds the other
-room. One screen prepares the show (what kind of song, when it is written, which songs are
-approved and in what order) and the other plays it.
+**V2 is the band with a studio, at the end of Phase 9.** V1 taught that the stage was in good
+shape and the studio did not exist: a song was a hand-written file of a title, a key, a feel
+and a seed, and nothing told the songwriter what kind of band it was writing for. V2 is the
+other room. The songwriter is a stronger model, it is told the style and where each section
+sits in the song, and a person decides from one screen what is written, what is written again
+and what plays. Like V1 it is a name and not a gate: one song has yet to cost what the studio
+said it would, and no style has been told from another blind.
+
+**What V2 taught, and what comes next.** The songs got better faster than the band did. The
+songwriter now writes for six kinds of band, and the players still play every one of them
+with the same hands through the same sound: a guitar with no amplifier, a dry kit, every
+fader where Live left it. So the next phase is the sound, made with what is already on the
+machine.
 
 The current phase and its evidence are tracked in
 [`docs/architecture/STATUS.md`](docs/architecture/STATUS.md).

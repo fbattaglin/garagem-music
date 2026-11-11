@@ -12,3 +12,4 @@
 {"at_beats":0.0,"kind":"song_edited","detail":{"concert":"show","title":"Our Love is a Rat Race","fields":"title"}}
 {"at_beats":0.0,"kind":"song_sketched","detail":{"concert":"show","title":"Untitled 1","style":"arena","seed":46}}
 {"at_beats":0.0,"kind":"song_composed","detail":{"concert":"show","title":"Untitled 1","model":"claude-opus-5-5","takes":6,"missed":0,"theme":true}}
+{"at_beats":0.0,"kind":"song_listened","detail":{"concert":"show","title":"Untitled 1"}}

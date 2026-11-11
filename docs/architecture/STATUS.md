@@ -8,6 +8,18 @@ V1 has a stage and no studio. This phase builds the other room: what kind of son
 songwriter writes it, which songs play and in what order, all from one screen. The songwriter
 becomes `claude-opus-5-5`, and is told what kind of band it is writing for.
 
+## V2 — 2026-11-11
+
+Fabiano named Phase 9's band **V2**, on the day he first used the studio: *"Tudo que compus e
+escutei até agora achei muito bom. Um salto comparado com V1."* It is the first version on
+`main` since Phase 8 began.
+
+**V2 is a name, not a gate**, as V1 was. In it: `garagem studio` and its free twin, six
+styles, a songwriter that is `claude-opus-5-5` and is told what kind of song it is writing,
+songs composed one at a time and sections asked for again with a note, and a show that plays
+what the studio approved. Open: the two criteria below, and from Phase 8 the whole setlist in
+one run.
+
 ## Phase 9 exit criteria
 
 [ADR-030](ADR-030-the-studio.md). Proposed with the phase and not yet agreed line by line with
