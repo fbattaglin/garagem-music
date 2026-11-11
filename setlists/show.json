@@ -1,0 +1,3030 @@
+{
+  "format": 1,
+  "name": "show",
+  "provider": "anthropic",
+  "model": "claude-sonnet-5",
+  "baked_on": "2026-11-11",
+  "bpm": 132.0,
+  "songs": [
+    {
+      "title": "Low Ceiling",
+      "key": 4,
+      "scale": "minor",
+      "feel": "straight8",
+      "seconds": 210.0,
+      "seed": 31,
+      "form": [
+        {
+          "name": "intro",
+          "bars": 4,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 1,
+          "tension": 0.2,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 5,
+          "tension": 0.8,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 31
+        },
+        {
+          "name": "outro",
+          "bars": 4,
+          "key": 4,
+          "scale": "minor",
+          "feel": "straight8",
+          "bpm": 138.0,
+          "dyn": 2,
+          "tension": 0.15,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 31
+        }
+      ],
+      "endings": [
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "stop",
+        "fill",
+        "fill",
+        "final"
+      ],
+      "theme": "",
+      "takes": [
+        {
+          "section": 1,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 138.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 31
+          },
+          "seed": 32,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=Em feel=straight8 bpm=138 dyn=2 tension=0.35\nCHD | Em | C | G | D | Em | C | G | D |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,3,5,7\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 316,
+          "output_tokens": 1281,
+          "cost_usd": "0.02342925",
+          "digest": "10fc2912ec35c5ca",
+          "status": "unmarked"
+        },
+        {
+          "section": 2,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 138.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                }
+              ]
+            },
+            "tune": 31
+          },
+          "seed": 33,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Em feel=straight8 bpm=138 dyn=4 tension=0.7\nCHD | C | D | Em | Em | C | D | Em | Em |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,9,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7 S:5,8,9,10,11,12,13,15\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9,13\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,9\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=high\nLED oct=5 deg:1=5,5=8,9=5,13=3 hold=13\nLED oct=5 deg:1=5,5=8,9=5,13=3 hold=13\nLED oct=5 deg:1=1,5=3,9=5,13=8 hold=13\nLED oct=5 deg:1=1,5=3,9=5,13=3\nLED oct=5 deg:1=5,5=8,9=5,13=3 hold=13\nLED oct=5 deg:1=5,5=8,9=5,13=3 hold=13\nLED oct=5 deg:1=1,5=3,9=5,13=8 hold=13\nLED oct=5 deg:1=1,9=1,10=3,11=5,12=3,13=1,14=5,15=3,16=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 319,
+          "output_tokens": 1449,
+          "cost_usd": "0.0159628",
+          "digest": "3d588f18db57e7b6",
+          "status": "unmarked"
+        },
+        {
+          "section": 3,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 138.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 31
+          },
+          "seed": 34,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=Em feel=straight8 bpm=138 dyn=2 tension=0.35\nCHD | Em | Em | C | D | Em | Em | C | D |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15,16\nDRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,3,5,7\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=3,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=3\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=3,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=3\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 318,
+          "output_tokens": 1297,
+          "cost_usd": "0.0144398",
+          "digest": "b642c9333b97448d",
+          "status": "unmarked"
+        },
+        {
+          "section": 4,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 138.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                }
+              ]
+            },
+            "tune": 31
+          },
+          "seed": 35,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Em feel=straight8 bpm=138 dyn=4 tension=0.7\nCHD | Am | C | D | Em | Am | C | D | Em |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 C:1\nDRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,3,5,7\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=3\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=3\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nLED oct=4 deg:1=1,4=3,7=5,9=8,11=5,13=3\nLED oct=4 deg:1=5,4=3,7=1,9=1,13=1 hold=13\nLED oct=4 deg:1=1,4=3,7=5,9=8,11=5,13=3\nLED oct=4 deg:1=5,4=3,7=1,9=1,13=1 hold=13\nLED oct=4 deg:1=1,4=3,7=5,9=8,11=5,13=3\nLED oct=4 deg:1=5,4=3,7=1,9=1,13=1 hold=13\nLED oct=4 deg:1=1,4=3,7=5,9=8,11=10,13=8\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 319,
+          "output_tokens": 1456,
+          "cost_usd": "0.0160328",
+          "digest": "1b7dacf1fcadb7af",
+          "status": "unmarked"
+        },
+        {
+          "section": 7,
+          "briefing": {
+            "name": "bridge",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 138.0,
+            "dyn": 3,
+            "tension": 0.55,
+            "chart": {
+              "chords": [
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 31
+          },
+          "seed": 38,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC bridge bars=8 key=Em feel=straight8 bpm=138 dyn=3 tension=0.55\nCHD | C | G | Am | D | C | G | Am | D |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,9,10,11,12,13,14,15,16\nDRM K:1,4,7,9,11,13 S:3,5,8,10,12,13,14,15,16\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=3\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=3\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,5,7,9,10,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,5,7,9,10,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,9,13\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,9,13\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1,9 reg=high\nKEY voi=triad rhy:1,9 reg=high\nKEY voi=triad rhy:1,9 reg=high\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:1=5,5=1,7=2,9=3,13=5\nLED oct=4 deg:1=3,3=3,5=2,9=1,13=3 hold=13\nLED oct=4 deg:1=5,3=4,5=3,9=5,11=3,13=2\nLED oct=4 deg:1=1 hold=1\n",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 317,
+          "output_tokens": 1438,
+          "cost_usd": "0.0158468",
+          "digest": "3c8ee432fe155828",
+          "status": "unmarked"
+        },
+        {
+          "section": 11,
+          "briefing": {
+            "name": "bridge",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 138.0,
+            "dyn": 3,
+            "tension": 0.55,
+            "chart": {
+              "chords": [
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 31
+          },
+          "seed": 42,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC bridge bars=8 key=Em feel=straight8 bpm=138 dyn=3 tension=0.55\nCHD | Am | D | G | C | Am | D | G | C |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15\nDRM K:1,4,7,11 S:5,13 H:1,2,3,4,5,6,7,9,10,11,12,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,9,10,11,12,13,14,15\nDRM K:1,4,7 S:5,8,9,11,12,13,14,15,16\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,2,3,5,6,7,9,10,11,13,14,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,5,6,7,9,10,11,13,14,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1,9 reg=high\nKEY voi=triad rhy:1,9 reg=high\nKEY voi=drop2 rhy:1,5,9,13 reg=high\nKEY voi=triad rhy:1 reg=high\nLED oct=4 deg:\nLED oct=4 deg:\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:5=1,7=2,9=3,13=5\nLED oct=4 deg:3=3,5=2,9=1 hold=9\nLED oct=4 deg:1=5,5=1,9=2,13=3\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 317,
+          "output_tokens": 1367,
+          "cost_usd": "0.0151368",
+          "digest": "d772437371d20871",
+          "status": "unmarked"
+        },
+        {
+          "section": 14,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 4,
+            "scale": "minor",
+            "feel": "straight8",
+            "bpm": 138.0,
+            "dyn": 5,
+            "tension": 0.8,
+            "chart": {
+              "chords": [
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                }
+              ]
+            },
+            "tune": 31
+          },
+          "seed": 45,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Em feel=straight8 bpm=138 dyn=5 tension=0.8\nCHD | C | D | Em | Em | C | D | Em | Em |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,9,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,9,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7 S:5,8,9,10,11,12,13,14,15,16\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=2,14=3\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=3,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=5,11=2,14=3\nBAS oct=1 deg:1=1,4=1,7=5,11=1,14=5\nBAS oct=1 deg:1=1,4=1,7=3,11=1,14=5\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,5,9,13\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,5,9,13\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,5,9,13\nGTR voi=pow rhy:1,3,5,7,9,11,13 palm=off acc=1,9\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1 reg=mid\nLED oct=5 deg:1=5,5=8,9=5,13=3\nLED oct=5 deg:1=3,5=5,9=2,13=1\nLED oct=5 deg:1=1,5=3,9=5,13=8\nLED oct=5 deg:1=8,9=5,13=3\nLED oct=5 deg:1=5,5=8,9=5,13=3\nLED oct=5 deg:1=3,5=5,9=2,13=1\nLED oct=5 deg:1=1,5=3,9=5,13=8\nLED oct=5 deg:1=1 hold=1\n",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 319,
+          "output_tokens": 1446,
+          "cost_usd": "0.0159328",
+          "digest": "b1a309b1b72a0ce6",
+          "status": "unmarked"
+        }
+      ],
+      "missed": [],
+      "retired": []
+    },
+    {
+      "title": "Night Bus",
+      "key": 2,
+      "scale": "major",
+      "feel": "straight16",
+      "seconds": 190.0,
+      "seed": 37,
+      "form": [
+        {
+          "name": "intro",
+          "bars": 4,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 1,
+          "tension": 0.2,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 11,
+                "quality": "min"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 11,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "solo",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 3,
+          "tension": 0.65,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 11,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 11,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 11,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 5,
+          "tension": 0.8,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        },
+        {
+          "name": "outro",
+          "bars": 4,
+          "key": 2,
+          "scale": "major",
+          "feel": "straight16",
+          "bpm": 122.0,
+          "dyn": 2,
+          "tension": 0.15,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 37
+        }
+      ],
+      "endings": [
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "stop",
+        "fill",
+        "stop",
+        "fill",
+        "final"
+      ],
+      "theme": "BAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nLED oct=4 deg:6=1,8=2,10=3,13=2,14=1\nLED oct=4 deg:6=3,8=4,10=5,13=4 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13",
+      "takes": [
+        {
+          "section": 1,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 2,
+            "scale": "major",
+            "feel": "straight16",
+            "bpm": 122.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 11,
+                  "quality": "min"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 37
+          },
+          "seed": 38,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=D feel=straight16 bpm=122 dyn=2 tension=0.35\nCHD | D | Bm | G | A | D | Bm | G | A |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,3,5,7\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,3,5,7\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,9,10,11,12,13,14,15,16 H:1,3,5\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nLED oct=4 deg:6=1,8=2,10=3,13=2,14=1\nLED oct=4 deg:6=3,8=4,10=5,13=4 hold=13\nLED oct=4 deg:6=1,8=2,10=3,13=2,14=1\nLED oct=4 deg:6=3,8=4,10=5,13=4 hold=13\nLED oct=4 deg:6=1,8=2,10=3,13=2,14=1\nLED oct=4 deg:6=3,8=4,10=5,13=4 hold=13\nLED oct=4 deg:6=1,8=2,10=3,13=2,14=1\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 588,
+          "output_tokens": 1432,
+          "cost_usd": "0.0165998",
+          "digest": "841772c4fcccace6",
+          "status": "unmarked"
+        },
+        {
+          "section": 2,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 2,
+            "scale": "major",
+            "feel": "straight16",
+            "bpm": 122.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 37
+          },
+          "seed": 39,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=D feel=straight16 bpm=122 dyn=4 tension=0.7\nCHD | D | G | A | A | D | G | A | A |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7 S:4,5,7,8,9,10,11,12,13,14,15,16\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,9,13\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=high\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 585,
+          "output_tokens": 1594,
+          "cost_usd": "0.0182108",
+          "digest": "855889cb70ec3372",
+          "status": "unmarked"
+        },
+        {
+          "section": 3,
+          "briefing": {
+            "name": "bridge",
+            "bars": 8,
+            "key": 2,
+            "scale": "major",
+            "feel": "straight16",
+            "bpm": 122.0,
+            "dyn": 3,
+            "tension": 0.55,
+            "chart": {
+              "chords": [
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 9,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 11,
+                  "quality": "min"
+                }
+              ]
+            },
+            "tune": 37
+          },
+          "seed": 40,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC bridge bars=8 key=D feel=straight16 bpm=122 dyn=3 tension=0.55\nCHD | Em | A | D | Bm | Em | A | D | Bm |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,10,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,10,11,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,7,9,10,11,13,15\nDRM K:1,4,7 S:5,9,10,11,12,13,15,16\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,2,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,5,7,9,10,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nKEY voi=sus2 rhy:. reg=mid\nKEY voi=sus2 rhy:. reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1 reg=mid\nLED oct=4 deg:6=1,8=2,10=3,13=2,14=1\nLED oct=4 deg:6=3,8=4,10=5,13=4 hold=13\nLED oct=4 deg:6=1,8=2,10=3,13=2,14=1\nLED oct=4 deg:6=3,8=4,10=5,13=4 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 544,
+          "output_tokens": 1429,
+          "cost_usd": "0.0164378",
+          "digest": "972eb2709375d57f",
+          "status": "unmarked"
+        },
+        {
+          "section": 4,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 2,
+            "scale": "major",
+            "feel": "straight16",
+            "bpm": 122.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 37
+          },
+          "seed": 41,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=D feel=straight16 bpm=122 dyn=4 tension=0.7\nCHD | G | A | D | D | G | A | D | D |\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,9,11,13 S:3,5,7,9,11,13,15,16\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1 reg=mid\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 585,
+          "output_tokens": 1531,
+          "cost_usd": "0.0175808",
+          "digest": "5c2524b567ccfda5",
+          "status": "unmarked"
+        },
+        {
+          "section": 5,
+          "briefing": {
+            "name": "solo",
+            "bars": 8,
+            "key": 2,
+            "scale": "major",
+            "feel": "straight16",
+            "bpm": 122.0,
+            "dyn": 3,
+            "tension": 0.65,
+            "chart": {
+              "chords": [
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 37
+          },
+          "seed": 42,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC solo bars=8 key=D feel=straight16 bpm=122 dyn=3 tension=0.65\nCHD | D | G | A | G | D | G | A | G |\nDRM K:1,5,9,13 S:9 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,5,9,13 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,5,9,13 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,5,9,13 S:9 H:1,2,3,5,7,9,11,13,15\nDRM K:1,5,9,13 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,5,9,13 S:9 H:1,2,3,5,7,9,11,13,15\nDRM K:1,5,9,13 S:9 H:1,2,3,5,7,9,10,11,13,15\nDRM K:1,5,9 S:3,5,8,9,11,12,13,14,15,16 H:1,3,5,7\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nGTR voi=pow rhy:1,9 palm=on\nGTR voi=pow rhy:1,9 palm=on\nGTR voi=pow rhy:1,9 palm=on\nGTR voi=pow rhy:1,9 palm=on\nGTR voi=pow rhy:1,9 palm=on\nGTR voi=pow rhy:1,9 palm=on\nGTR voi=pow rhy:1,9 palm=on\nGTR voi=pow rhy:1,9 palm=on\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:. reg=mid\nKEY voi=sus2 rhy:. reg=mid\nKEY voi=sus2 rhy:. reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:. reg=mid\nKEY voi=sus2 rhy:. reg=mid\nKEY voi=sus2 rhy:. reg=mid\nLED oct=4 rel=key deg:1=1,3=3,5=5,7=6,9=8,11=6,13=5,15=3\nLED oct=4 rel=key deg:1=5,3=6,5=8,8=9,10=8,13=6 hold=13\nLED oct=4 rel=key deg:1=6,3=5,5=6,8=8,10=9,13=10\nLED oct=4 rel=key deg:1=9,3=8,5=6,8=5,11=6,13=8 hold=13\nLED oct=4 rel=key deg:1=10,3=8,5=6,7=5,9=3,11=5,13=6\nLED oct=4 rel=key deg:1=6,3=5,5=3,8=5,10=6,13=8 hold=13\nLED oct=4 rel=key deg:1=9,3=10,5=9,8=8,10=6,13=5\nLED oct=4 rel=key deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 537,
+          "output_tokens": 1198,
+          "cost_usd": "0.0141068",
+          "digest": "86ec02818eeb267f",
+          "status": "unmarked"
+        },
+        {
+          "section": 12,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 2,
+            "scale": "major",
+            "feel": "straight16",
+            "bpm": 122.0,
+            "dyn": 5,
+            "tension": 0.8,
+            "chart": {
+              "chords": [
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 37
+          },
+          "seed": 49,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=D feel=straight16 bpm=122 dyn=5 tension=0.8\nCHD | D | G | A | A | D | G | A | A |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15\nDRM K:1,4,7,9,11,13,14 S:3,5,9,11,13,15,16\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=5,15=6\nBAS oct=1 deg:1=1,3=1,5=1,7=5,9=1,11=1,13=3,15=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,5,7,8,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,15 palm=off acc=1,9\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=8,5=6,9=5,13=3 hold=13\nLED oct=4 deg:1=5,9=8 hold=9\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 585,
+          "output_tokens": 1485,
+          "cost_usd": "0.0171208",
+          "digest": "10c2f31c0ca6cf28",
+          "status": "unmarked"
+        }
+      ],
+      "missed": [],
+      "retired": []
+    },
+    {
+      "title": "Paper Crowns",
+      "key": 9,
+      "scale": "minor",
+      "feel": "shuffle",
+      "seconds": 190.0,
+      "seed": 41,
+      "form": [
+        {
+          "name": "intro",
+          "bars": 4,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 1,
+          "tension": 0.2,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "min"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "min"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "min"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 5,
+          "tension": 0.8,
+          "chart": {
+            "chords": [
+              {
+                "root": 2,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 41
+        },
+        {
+          "name": "outro",
+          "bars": 4,
+          "key": 9,
+          "scale": "minor",
+          "feel": "shuffle",
+          "bpm": 112.0,
+          "dyn": 2,
+          "tension": 0.15,
+          "chart": {
+            "chords": [
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 5,
+                "quality": "maj"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              },
+              {
+                "root": 9,
+                "quality": "min"
+              }
+            ]
+          },
+          "tune": 41
+        }
+      ],
+      "endings": [
+        "fill",
+        "build",
+        "fill",
+        "fill",
+        "stop",
+        "fill",
+        "stop",
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "final"
+      ],
+      "theme": "BAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:7=5,10=4,13=3 hold=13\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=5,5=8,9=5 hold=9",
+      "takes": [
+        {
+          "section": 1,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 112.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 41
+          },
+          "seed": 42,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=Am feel=shuffle bpm=112 dyn=2 tension=0.35\nCHD | Am | Am | F | G | Am | Am | F | G |\nDRM K:1,7,9 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,7,9 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,7,9 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,7,9 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,7,9 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,7,9 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,7,9 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,9,11 S:5,9,11,13,14,15,16 H:1,3,5,7\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy: reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:7=5,10=4,13=3 hold=13\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:7=5,10=4,13=3 hold=13\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:7=5,10=4,13=3 hold=13\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 541,
+          "output_tokens": 1223,
+          "cost_usd": "0.0143688",
+          "digest": "4de3f1e82d7eb27f",
+          "status": "unmarked"
+        },
+        {
+          "section": 2,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 112.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                }
+              ]
+            },
+            "tune": 41
+          },
+          "seed": 43,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Am feel=shuffle bpm=112 dyn=4 tension=0.7\nCHD | F | G | Am | Am | F | G | Am | Am |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:9\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,6,7,9,10,11,13,14,15 C:9\nDRM K:1,4,7,11,14 S:1,3,5,7,9,11,13,15 H:1,3,5,7,9,11\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9,13\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9,13\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 acc=1,9,13\nGTR voi=pow rhy:1,3,5,7,8,9,11,13,15 acc=1,9\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nKEY voi=triad rhy:1,9 reg=mid\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=5,5=8,9=5 hold=9\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=5,5=8,9=5 hold=9\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=5,5=8,9=5 hold=9\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=1 hold=1\n",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 542,
+          "output_tokens": 1323,
+          "cost_usd": "0.0153718",
+          "digest": "6f8af13a228f75ba",
+          "status": "unmarked"
+        },
+        {
+          "section": 3,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 112.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 9,
+                  "quality": "min"
+                },
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 41
+          },
+          "seed": 44,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=Am feel=shuffle bpm=112 dyn=2 tension=0.35\nCHD | Am | F | C | G | Am | F | C | G |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,9,11,12,13,15,16\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:7=5,10=4,13=3 hold=13\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:7=5,10=4,13=3 hold=13\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:7=5,10=4,13=3 hold=13\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,LED",
+          "input_tokens": 539,
+          "output_tokens": 1303,
+          "cost_usd": "0.0151628",
+          "digest": "2ec6d2750500e2c5",
+          "status": "unmarked"
+        },
+        {
+          "section": 4,
+          "briefing": {
+            "name": "bridge",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 112.0,
+            "dyn": 3,
+            "tension": 0.55,
+            "chart": {
+              "chords": [
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "min"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 41
+          },
+          "seed": 45,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC bridge bars=8 key=Am feel=shuffle bpm=112 dyn=3 tension=0.55\nCHD | F | C | Dm | G | F | C | Dm | G |\nDRM K:1,4,7,11 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11 S:5,13 H:1,3,4,5,7,9,10,11,13,15\nDRM K:1,4,7,11 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11 S:5,13 H:1,3,4,5,7,9,10,11,13,15\nDRM K:1,4,7 S:5,9,11,12,13,15,16 H:1,3,5,7\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nLED oct=4 deg:\nLED oct=4 deg:\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:7=5,10=4,13=3 hold=13\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=5,5=8,9=5 hold=9\nLED oct=4 deg:7=1,10=2,13=3\nLED oct=4 deg:1=1 hold=1\n",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 495,
+          "output_tokens": 1247,
+          "cost_usd": "0.0144708",
+          "digest": "710a04a241c88c18",
+          "status": "unmarked"
+        },
+        {
+          "section": 11,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 9,
+            "scale": "minor",
+            "feel": "shuffle",
+            "bpm": 112.0,
+            "dyn": 5,
+            "tension": 0.8,
+            "chart": {
+              "chords": [
+                {
+                  "root": 2,
+                  "quality": "min"
+                },
+                {
+                  "root": 5,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 9,
+                  "quality": "min"
+                }
+              ]
+            },
+            "tune": 41
+          },
+          "seed": 52,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=Am feel=shuffle bpm=112 dyn=5 tension=0.8\nCHD | Dm | F | G | Am | Dm | F | G | Am |\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,7,9,11,13,15 C:9\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:5,13 H:1,2,3,4,5,7,9,11,13,15 C:9\nDRM K:1,4,7,11,14 S:5,9,11,12,13,14,15,16 C:1\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nBAS oct=1 deg:1=1,7=1,10=5,13=1\nBAS oct=1 deg:1=1,7=1,10=3,13=5\nGTR voi=pow rhy:1,3,4,6,7,9,10,12,13,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,3,4,6,7,9,10,12,13,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,3,4,6,7,9,10,12,13,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,3,4,6,7,9,10,12,13,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,3,4,6,7,9,10,12,13,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,3,4,6,7,9,10,12,13,15,16 palm=off acc=1,9\nGTR voi=pow rhy:1,3,4,6,7,9,10,12,13,15,16 palm=off acc=1,9\nGTR voi=drop2 rhy:1,3,4,6,7,9,10,12 palm=off acc=1,9\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=5,5=8,9=5 hold=9\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=5,5=8,9=5 hold=9\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=5,5=8,9=5 hold=9\nLED oct=4 deg:1=1,9=3 hold=9\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 544,
+          "output_tokens": 1366,
+          "cost_usd": "0.0158078",
+          "digest": "a265db76ec07ccba",
+          "status": "unmarked"
+        }
+      ],
+      "missed": [],
+      "retired": []
+    },
+    {
+      "title": "Last Light",
+      "key": 7,
+      "scale": "major",
+      "feel": "halftime",
+      "seconds": 220.0,
+      "seed": 43,
+      "form": [
+        {
+          "name": "intro",
+          "bars": 4,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 1,
+          "tension": 0.2,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "verse",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 2,
+          "tension": 0.35,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 4,
+          "tension": 0.7,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "bridge",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 3,
+          "tension": 0.55,
+          "chart": {
+            "chords": [
+              {
+                "root": 4,
+                "quality": "min"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "chorus",
+          "bars": 8,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 5,
+          "tension": 0.8,
+          "chart": {
+            "chords": [
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 2,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        },
+        {
+          "name": "outro",
+          "bars": 4,
+          "key": 7,
+          "scale": "major",
+          "feel": "halftime",
+          "bpm": 128.0,
+          "dyn": 2,
+          "tension": 0.15,
+          "chart": {
+            "chords": [
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 0,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              },
+              {
+                "root": 7,
+                "quality": "maj"
+              }
+            ]
+          },
+          "tune": 43
+        }
+      ],
+      "endings": [
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "stop",
+        "fill",
+        "build",
+        "fill",
+        "build",
+        "fill",
+        "fill",
+        "stop",
+        "fill",
+        "stop",
+        "fill",
+        "final"
+      ],
+      "theme": "BAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:5=3,8=4,11=3 hold=11\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13",
+      "takes": [
+        {
+          "section": 1,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 128.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 43
+          },
+          "seed": 44,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=G feel=halftime bpm=128 dyn=2 tension=0.35\nCHD | G | D | Em | C | G | D | Em | C |\nDRM K:1,4,7,11,14 S:9 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,14 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\nDRM K:1,4,7,14 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\nDRM K:1,4,7,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\nDRM K:1,4,7 S:5,9,11,12,13,15,16\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,4=1,7=5,11=3,14=1\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:5=3,8=4,11=3 hold=11\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:5=3,8=4,11=3 hold=11\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:5=3,8=4,11=3 hold=11\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 529,
+          "output_tokens": 1289,
+          "cost_usd": "0.0149928",
+          "digest": "f29fb849f1ebfe50",
+          "status": "unmarked"
+        },
+        {
+          "section": 2,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 128.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 43
+          },
+          "seed": 45,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=G feel=halftime bpm=128 dyn=4 tension=0.7\nCHD | C | D | G | G | C | D | G | G |\nDRM K:1,4,7,11,14 S:9 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:9 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11 S:9 H:1,2,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:9 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:9 H:1,2,3,5,7,9,11,13,15\nDRM K:1,4,7 S:5,8,9,11,13,14,15,16 H:1,3,5,7\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=5\nBAS oct=1 deg:1=1,9=1,12=5\nGTR voi=pow rhy:1,9 palm=off acc=1,9\nGTR voi=pow rhy:1,9 palm=off acc=1,9\nGTR voi=pow rhy:1,9 palm=off acc=1,9\nGTR voi=pow rhy:1,9 palm=off acc=1,9\nGTR voi=pow rhy:1,9 palm=off acc=1,9\nGTR voi=pow rhy:1,9 palm=off acc=1,9\nGTR voi=pow rhy:1,9 palm=off acc=1,9\nGTR voi=pow rhy:1,9,11,13 palm=off acc=1,9,11,13\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 528,
+          "output_tokens": 1116,
+          "cost_usd": "0.0132598",
+          "digest": "cef91549dbc9a0cc",
+          "status": "unmarked"
+        },
+        {
+          "section": 4,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 128.0,
+            "dyn": 4,
+            "tension": 0.7,
+            "chart": {
+              "chords": [
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 43
+          },
+          "seed": 47,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=G feel=halftime bpm=128 dyn=4 tension=0.7\nCHD | G | C | D | D | G | C | D | D |\nDRM K:1,4,7,11,14 S:9 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11,14 S:9 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,4,7,11 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,4,7,11,14 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,11 S:9,11,12,13,14,15,16\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,4=1,7=5,9=5,12=6\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,2,3,5,7,9,11,13,14,15,16 palm=off acc=1,9\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=1 hold=1\n",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 528,
+          "output_tokens": 1277,
+          "cost_usd": "0.0148698",
+          "digest": "83412b289d31ebe1",
+          "status": "unmarked"
+        },
+        {
+          "section": 5,
+          "briefing": {
+            "name": "bridge",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 128.0,
+            "dyn": 3,
+            "tension": 0.55,
+            "chart": {
+              "chords": [
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 43
+          },
+          "seed": 48,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC bridge bars=8 key=G feel=halftime bpm=128 dyn=3 tension=0.55\nCHD | Em | C | G | D | Em | C | G | D |\nDRM K:1,9 S:9 H:1,5,9,13 C:1\nDRM K:1,9 S:9 H:1,5,9,13\nDRM K:1,9 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,9 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,9 S:9 H:1,2,3,5,7,9,10,11,13,15\nDRM K:1,9 S:9 H:1,2,3,5,7,9,10,11,13,15\nDRM K:1,9 S:9 H:1,2,3,4,5,7,9,10,11,13,15\nDRM K:1,9 S:9,11,13,14 H:1,3,5\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nGTR voi=pow rhy:1,9 palm=on\nGTR voi=pow rhy:1,9 palm=on\nGTR voi=pow rhy:1,5,9,13 palm=off\nGTR voi=pow rhy:1,5,9,13 palm=off\nGTR voi=pow rhy:1,3,5,9,11,13 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,9,11,13 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy: . . . . . . . . . . . . . . . .\nKEY voi=sus2 rhy:1\nKEY voi=triad rhy:1\nKEY voi=sus2 rhy:1\nKEY voi=triad rhy:1\nKEY voi=sus2 rhy:1,9\nKEY voi=triad rhy:1,9\nLED oct=4 deg:\nLED oct=4 deg:\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:5=3,8=4,11=3 hold=11\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 483,
+          "output_tokens": 1079,
+          "cost_usd": "0.0127548",
+          "digest": "46c25176cfa05e6d",
+          "status": "unmarked"
+        },
+        {
+          "section": 11,
+          "briefing": {
+            "name": "verse",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 128.0,
+            "dyn": 2,
+            "tension": 0.35,
+            "chart": {
+              "chords": [
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 4,
+                  "quality": "min"
+                },
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 43
+          },
+          "seed": 54,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC verse bars=8 key=G feel=halftime bpm=128 dyn=2 tension=0.35\nCHD | G | Em | C | D | G | Em | C | D |\nDRM K:1,7,9,13 S:9 H:1,3,5,7,9,11,13,15 C:1\nDRM K:1,7,9,13 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,7,9,13 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,7,9,13 S:9 H:1,3,5,7,9,11,13,15\nDRM K:1,7,9,13 S:9 H:1,3,5,7,9,11,13,15,16\nDRM K:1,7,9,13 S:9 H:1,3,5,7,9,11,13,15,16\nDRM K:1,7,9,13 S:9 H:1,2,3,5,6,7,9,11,13,15,16\nDRM K:1,7 S:9,11,12,13,14,15,16 H:1,3,5,7\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=3\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11,13,15 palm=on acc=1,9\nGTR voi=pow rhy:1,3,5,7,9,11 palm=off acc=1\nKEY voi=sus2 rhy:. reg=mid\nKEY voi=sus2 rhy:. reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nKEY voi=sus2 rhy:1 reg=mid\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:5=3,8=4,11=3 hold=11\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:5=3,8=4,11=3 hold=11\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:5=3,8=4,11=3 hold=11\nLED oct=4 deg:6=1,8=2,11=3,14=2\nLED oct=4 deg:1=1 hold=1\n",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 529,
+          "output_tokens": 1232,
+          "cost_usd": "0.0144228",
+          "digest": "ee24dbb91477785a",
+          "status": "unmarked"
+        },
+        {
+          "section": 15,
+          "briefing": {
+            "name": "chorus",
+            "bars": 8,
+            "key": 7,
+            "scale": "major",
+            "feel": "halftime",
+            "bpm": 128.0,
+            "dyn": 5,
+            "tension": 0.8,
+            "chart": {
+              "chords": [
+                {
+                  "root": 0,
+                  "quality": "maj"
+                },
+                {
+                  "root": 2,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                },
+                {
+                  "root": 7,
+                  "quality": "maj"
+                }
+              ]
+            },
+            "tune": 43
+          },
+          "seed": 58,
+          "model": "claude-sonnet-5",
+          "dsl": "SEC chorus bars=8 key=G feel=halftime bpm=128 dyn=5 tension=0.8\nCHD | C | D | G | G | C | D | G | G |\nDRM K:1,9,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 C:1\nDRM K:1,9,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,9,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,9,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,9,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 C:1\nDRM K:1,9,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,9,11 S:9 H:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16\nDRM K:1,4,7,9,10,11,12 S:2,4,6,8,9,10,12,13,14,15,16\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nBAS oct=1 deg:1=1,9=1,12=5\nBAS oct=1 deg:1=1,9=5,12=6\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=triad rhy:1,3,5,7,9,11,13,15 palm=off acc=1,9\nGTR voi=triad rhy:1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 palm=off acc=1,9\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=mid\nKEY voi=triad rhy:1 reg=high\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=8,9=5,13=3 hold=13\nLED oct=4 deg:1=5 hold=1\nLED oct=4 deg:1=1 hold=1",
+          "parts": "BAS,DRM,GTR,KEY,LED",
+          "input_tokens": 528,
+          "output_tokens": 1339,
+          "cost_usd": "0.0154898",
+          "digest": "b826b7022d0d989c",
+          "status": "unmarked"
+        }
+      ],
+      "missed": [],
+      "retired": []
+    }
+  ]
+}

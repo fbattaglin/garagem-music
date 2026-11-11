@@ -381,3 +381,19 @@ and `garagem show` sets it and confirms it before the song and puts the Set's te
 
 **The bake's estimate, declared before it runs:** 28 calls to `claude-sonnet-5` (4 themes, 24
 sections), expected about $0.36, capped at $1.00.
+
+**The bake:** $0.3964 against about $0.36 expected, inside the $1.00 cap; 24 of 24 sections
+delivered into `setlists/show.json`. Three of the four themes came back. "Low Ceiling"'s was
+refused by the parser (`hold is written twice`, in a lead line), so its seven sections were
+written with no riff or melody in hand. Whether to ask for it again waits on the listen.
+
+**Played once each, not judged.** The four songs ran to their endings through `garagem show`
+on 2026-11-10, conducted with cues and about thirty knob moves (`bench/jam.jsonl`). No keep and
+no veto was struck in any of them, and no verdict was given, so nothing here says how the show
+sounds.
+
+**V1, 2026-11-11.** Fabiano named the band as it stands V1 of GARAGEM MUSIC. The stage ends
+here with a song per command: the whole setlist in one run, the count-in, the "Up next" card,
+the end card that saves the keeps and the typed `next` and `last` are not built, and the
+show's criterion stays open in `STATUS.md`. What the missing theme showed is carried forward
+with it: a bake has no way to ask again for one song's material without paying for every song.

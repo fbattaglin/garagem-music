@@ -1,10 +1,13 @@
 # GARAGEM
 
-**A rock band with a songwriter and a conductor.** GARAGEM performs a four-piece arrangement
-(drums, bass, guitar and keys) section by section, live in Ableton Live. Deterministic engines
-play the song and compose its form. A language model writes songs ahead of the show, and a
-musician curates them and conducts the band from a MIDI controller. On stage no network is
-needed.
+**A rock band made of agents.** One of them is a language model, and it is the songwriter: it
+writes the songs before the show and is not in the room when they are played. Five are
+deterministic engines, and they are the players: a drummer, a bassist, two guitarists, an
+organist and a lead who sings the tune. The last one is a person, who chooses what stays in the
+setlist and conducts the band from a MIDI controller or a keyboard. They play section by
+section, live in Ableton Live, and on stage no network is needed.
+
+**This is V1** (2026-11-11): the band, its sound, and a stage one command starts.
 
 [![CI](https://github.com/fbattaglin/garagem-music/actions/workflows/ci.yml/badge.svg)](https://github.com/fbattaglin/garagem-music/actions/workflows/ci.yml)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
@@ -15,6 +18,7 @@ needed.
 
 ## Contents
 
+- [The band](#the-band)
 - [What it does](#what-it-does)
 - [How it works](#how-it-works)
 - [Design invariants](#design-invariants)
@@ -24,6 +28,26 @@ needed.
 - [Project layout](#project-layout)
 - [Status and roadmap](#status-and-roadmap)
 - [Documentation](#documentation)
+
+## The band
+
+Nobody in it does another's job, and that is the design.
+
+| Who | What they are | What they do |
+|---|---|---|
+| The songwriter | a frontier model (Anthropic Claude), offline | writes each song's riff and its two melodies, then every section with them in hand |
+| The arranger | a deterministic engine | decides the form: where the verse, the chorus, the bridge and the solo go, and how the song ends |
+| The drummer | a deterministic engine | grooves by feel, opens the hats in a chorus, fills into what comes next |
+| The bassist | a deterministic engine | holds the root on the low strings and walks when the tension rises |
+| The guitarists | two deterministic engines | power chords, palm-muted in a verse and ringing in a chorus, where the second guitar doubles the first, panned apart |
+| The organist | a deterministic engine | rests in a verse and holds the chord under a chorus |
+| The lead | a deterministic engine | sings a verse tune and a higher chorus tune, and takes the solo |
+| The producer | a thread | asks the songwriter ahead of time, and never makes the band wait for an answer |
+| The conductor | a person | cues the band on the next bar, shapes its energy, and keeps or vetoes what it hears |
+
+The players are called the *floor*: whatever the songwriter did not write, or wrote badly, they
+play anyway. A language model that misses its entrance changes who wrote the next section,
+never whether there is one.
 
 ## What it does
 
@@ -40,20 +64,31 @@ needed.
   still write live (`--generate`), and then a late answer or a dropped connection changes who
   wrote the next section, never whether it plays.
 - **Takes direction from a human.** Pads on an Arturia MiniLab 3 cue the band on the next bar,
-  and knobs shape the energy and tension of the sections still to come.
+  and knobs shape the energy and tension of the sections still to come. Every cue has a word
+  that can be typed instead, and a screen says where it will land.
+- **Sounds like a band it borrowed.** The guitars, the bass and the kit are GarageBand's own
+  samples, rebuilt as Live presets by code. Nothing is downloaded and nothing is installed.
+- **Says whether it is ready.** One command checks Live, the Set, the controller and the
+  setlist, and lists every problem at once, each with the step that fixes it.
 - **Measures itself.** Every decision, fallback, cue and write goes into a JSONL event log
   with its beat and its seed. Any performance can be audited and replayed.
 
 **Measured, not assumed** (`docs/architecture/phase-4-findings.md`,
-`phase-5-findings.md`):
+`phase-5-findings.md`, `phase-8-findings.md`):
 
 | | |
 |---|---|
 | An 8-minute conducted performance | 489 s continuous, 0 beats lost, 34 of 34 cues on the next bar, $0.24 |
 | Chaos test: Wi-Fi lost twice mid-song | 0 beats lost, and nothing audible to the listener |
 | A baked setlist | 3 songs written for $0.06, played from disk with no network or key |
+| The show's setlist | 4 songs at 4 tempos and 4 feels, 24 of 24 sections delivered, written for $0.40 |
 | Model output, recorded regression set | 29 of 29 sections conformant, none needing repair |
-| Test suite | 2,221 tests, network-free by construction, `mypy --strict` clean |
+| Test suite | 3,394 tests, network-free by construction, `mypy --strict` clean |
+
+**Heard, not assumed.** A musical change passes on a short listen, and the verdict is quoted
+as it was said ([ADR-019](docs/architecture/ADR-019-the-ear-is-the-instrument.md)). On the
+band's sound: *"foi agradável e tinha um swag"*, and, once the guitars were panned, *"Sim. Está
+mais arena"*. On the stage: *"Gostei muito das informacoes da tela. Foi pratico digitar sim"*.
 
 ## How it works
 
@@ -179,8 +214,7 @@ problem at once, each with the step that fixes it, and changes nothing unless `-
 ```bash
 uv run garagem check                                         # ready for the show? (ADR-028)
 uv run garagem check --fix                                   # and set tempo, names, arm and mix
-uv run garagem show --setlist setlists/arrangement.json --song 1
-                                                             # a song, with the screen and typed words
+uv run garagem show --song 1                                 # a song of the show, with the screen and typed words
 uv run garagem commands                                      # the words that can be typed
 uv run python scripts/jam.py --dry-run                       # print the song's form; touch nothing
 uv run python scripts/jam.py --seconds 180 --seed 7          # the deterministic band, no network
@@ -215,6 +249,11 @@ from the hardware by `scripts/probe_minilab.py`, not taken from a manual.
 | Pad 8: end | the song finishes through an outro and a final chord | next section that can still change |
 | Knob 1: density | sparser grooves to the left, busier to the right | sections not yet written |
 | Knob 2: tension | harder fills, walking bass and more lift to the right | sections not yet written |
+
+Without the controller, the same cues are words. [`commands.toml`](commands.toml) holds them,
+`uv run garagem commands` prints them next to the pad that does the same, and `solo` is the one
+cue no pad has. A word is matched whole and exactly: nothing typed becomes a cue it did not
+name.
 
 ## Development
 
@@ -262,7 +301,9 @@ src/garagem/
 ├── control/     ControllerPort, the MiniLab 3 adapter (mido), a fake controller
 ├── setlist/     online pre-production, offline playback
 ├── sounds/      GarageBand's EXS instruments read and rebuilt as Live presets. No I/O
+├── stage/       what a person runs: the ready check, the show screen, typed words, the show
 └── obs/         JSONL event log, metrics, performance report
+setlists/        setlist specs, written by hand, and their bakes
 scripts/         performance, probes, benchmarks, recording and listening tests
 tests/           unit · property · golden · regression · integration (live)
 config/          model catalogue and prices; per-session budget
@@ -271,6 +312,7 @@ bench/           event logs and measurements the findings cite
 cassettes/       recorded model streams, replayed by the tests
 session.toml     "Set as Code": the Live Set the bootstrap validates against
 controller.toml  "Controller as Code": which pad and knob asks the band for what
+commands.toml    the words typed during the show, one per cue
 ```
 
 ## Status and roadmap
@@ -288,7 +330,7 @@ evidence, or when a criterion is explicitly waived in an ADR with its threshold 
 | 5 | Setlist Mode for offline shows, curated with keep and veto, on the band's own instruments | Closed · 2026-09-17 · no waiver |
 | 6 | The songwriter: whole songs composed offline, with riffs, bass lines and a lead voice | Closed · 2026-09-20 · one deviation, no waiver |
 | 7 | The arrangement: a solo section, relief in the form, an announced fill | Closed · 2026-10-10 · no deviation, no waiver |
-| 8 | The MVP: modern rock parts and sound, a melody, and a stage you can run | **Current** ([ADR-028](docs/architecture/ADR-028-the-mvp-stage.md), [ADR-029](docs/architecture/ADR-029-the-band-borrows-garagebands-library.md)) |
+| 8 | The MVP: modern rock parts and sound, a melody, and a stage you can run | **V1 · 2026-11-11** · not gated: the whole setlist in one run is carried forward ([ADR-028](docs/architecture/ADR-028-the-mvp-stage.md), [ADR-029](docs/architecture/ADR-029-the-band-borrows-garagebands-library.md)) |
 
 **One finding shapes what comes next.** In the last three blind listening tests, 36 pairs in
 all, sections written by the model and by the deterministic floor were preferred equally, 18 to
@@ -307,6 +349,18 @@ vocabulary.
 - **Phase 6 gives the model room:** whole songs composed offline, with riffs, bass lines and a
   lead voice.
 
+**V1 is the band as it stands at the end of Phase 8.** It plays rock parts, on a sound chosen
+by ear, with a melody through each song, and one command says whether the show can start and
+another plays a song of it. V1 is a name for where the band is, not a gate passed: a song
+still starts with its own command, and the whole setlist in one run, with a count-in between
+songs, is not built. `STATUS.md` lists the criteria still open.
+
+**What V1 taught, and what comes next.** The stage is in good shape and the studio does not
+exist: a song is still a hand-written file of a title, a key, a feel and a seed, and nothing
+tells the songwriter what kind of band it is writing for. So the next phase builds the other
+room. One screen prepares the show (what kind of song, when it is written, which songs are
+approved and in what order) and the other plays it.
+
 The current phase and its evidence are tracked in
 [`docs/architecture/STATUS.md`](docs/architecture/STATUS.md).
 
@@ -316,7 +370,7 @@ The current phase and its evidence are tracked in
   principles and roadmap
 - [`docs/architecture/README.md`](docs/architecture/README.md): an index of every
   Architecture Decision Record
-- `phase-0-findings.md` … `phase-5-findings.md`: what the measurements and integrations
+- `phase-0-findings.md` … `phase-8-findings.md`: what the measurements and integrations
   actually showed, as opposed to what the baseline assumed
 - [`CLAUDE.md`](CLAUDE.md): working conventions for AI-assisted development in this
   repository

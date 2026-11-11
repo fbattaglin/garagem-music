@@ -8,6 +8,29 @@ The band learns to play rock parts and gets a sound chosen by ear, with arena ro
 rock as the references. A melody runs through each song. And running the band becomes one
 command, with a ready check, a screen, typed commands and the whole setlist in one run.
 
+## V1 — 2026-11-11
+
+Fabiano named the band as it stands **V1 of GARAGEM MUSIC**: a band of agents, with a model
+for a songwriter, engines for players and a person conducting.
+
+**V1 is a name, not a gate.** Phase 8 is not closed by it. Four criteria below have evidence
+and five do not, and nothing is waived:
+
+- **In V1:** the rock parts, the sound from GarageBand's library, a melody through the song,
+  `garagem check`, typed commands, the show screen, `garagem show --song N`, a tempo per song,
+  and `setlists/show.json`, the show's four songs.
+- **Not in V1:** the whole setlist in one run, the count-in and the "Up next" card between
+  songs, an end card that saves the keeps, and the typed `next` and `last`. A song starts with
+  its own command.
+- **Known and not fixed:** "Low Ceiling" was baked with no theme, because the parser refused
+  the one the model wrote. Its sections play; they were written with no riff or melody in hand.
+- **Not heard:** the four show songs have been played once each (`bench/jam.jsonl`), with
+  cues and knob moves and no keep or veto struck. There is no verdict on them yet.
+
+What comes after V1 was planned with Fabiano on 2026-11-10: a studio, the screen that prepares
+the show, and then the sound, the songs' identity and a critic. It gets its own ADR when it
+starts.
+
 ## Phase 8 exit criteria
 
 [ADR-028](ADR-028-the-mvp-stage.md). Each rate states its `n`; each verdict is quoted verbatim.
