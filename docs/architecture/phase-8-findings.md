@@ -346,6 +346,19 @@ the check either way.
 The whole setlist in one run, a tempo per song and the count-in are Stage E's. Suite at
 **3387 passed**, plus the known floor failure.
 
-**Waiting on Fabiano.** Before the first `garagem show` with the MiniLab plugged in, Live's
-`MiniLab_3` control surface has to come off the cue port, which the check reports with the
-steps.
+### Heard: the screen and the words
+
+On 2026-11-10 Fabiano played "Swing low" from `arrangement.json` through `garagem show`, with
+the MiniLab plugged in: *"Gostei muito das informacoes da tela. Foi pratico digitar sim"*.
+Stage D closes on that verdict.
+
+- **The run:** 227 s, to its end, 0 beats lost. Seven cues applied and none declined; the three
+  bar and jump cues landed one bar after they were asked for.
+- **7 of the 17 sections came from the setlist.** The knobs moved 13 times and the form was
+  re-planned five times, and a section moved off its take is the floor's to play. Stage E's
+  share has to be read with that in mind.
+- **Live's `MiniLab_3` surface came back on the cue port between sessions.** It was off on
+  2026-10-27 and on again on 2026-11-10; `garagem check` refused the show and gave the fix.
+- **A transport stopped or sent back in Live ends the song.** It happened twice on 2026-10-27,
+  cause not established: the band waited 30 s and gave up, as designed, and the closing screen
+  waited for Enter.

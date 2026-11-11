@@ -31,10 +31,11 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
 - [x] **The screen keeps him informed** — every cue acknowledged with where it lands, every
       decline explained, never authorship, a headless mode for tests. **Met 2026-10-25 in
       tests** (`phase-8-findings.md` §5): a real scheduler's log drives the view, and no line
-      ever names an author. His first look is the show's.
+      ever names an author. **Heard 2026-11-10:** *"Gostei muito das informacoes da tela"*.
 - [x] **Typed commands** — every pad cue and `solo` typeable, landing on the bar a pad would;
       no input becomes a cue it did not name. **Met 2026-10-25 in tests**: a typed `fill` and the
-      fill pad queue alike, and a property test types arbitrary text.
+      fill pad queue alike, and a property test types arbitrary text. **Played 2026-11-10:**
+      *"Foi pratico digitar sim"*.
 - [ ] **The show** — the whole `show.json` in one `garagem show`, network off, ≥ 2 tempos,
       every count-in at its song's tempo, conducted from keyboard and MiniLab,
       `setlist_report.py` passing, keeps saved from the end card. Verdict quoted.
@@ -96,12 +97,12 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
   `test_the_floor_is_never_messy` — a two-bar Locrian halftime verse at 55 BPM, `dyn` 1,
   `register_spread` 0.786 against 0.8. It reproduces with the engines untouched by this work,
   so it waits for its own decision: the parts or the threshold.
-- **Stage D is in progress: the stage** (`phase-8-findings.md` §5). Built: `garagem`, one
+- **Stage D is done: the stage** (`phase-8-findings.md` §5). Built: `garagem`, one
   command; `garagem check`, the ready check; typed commands (`commands.toml`, a keyboard
   controller, and the `solo` cue no pad has); the show screen; and `garagem show`, one song
-  with all of them. **Waiting on Fabiano:** a first song through `garagem show`, after taking
-  Live's MiniLab_3 surface off the cue port. Then Stage E: a tempo per song, the show's bake and the whole
-  setlist in one run.
+  with all of them. **Heard 2026-11-10** in "Swing low": *"Gostei muito das informacoes da
+  tela. Foi pratico digitar sim"*. Next is Stage E: a tempo per song, the show's bake and the
+  whole setlist in one run.
 
 Phase 7 was the arrangement: the band had its material, and the phase decided where things
 go in time — a solo section, relief in the form, and a fill that is announced
