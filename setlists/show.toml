@@ -7,7 +7,8 @@
 # Four songs between the two references Fabiano gave: arena rock (Foo Fighters, QOTSA) and
 # indie rock (Arctic Monkeys, The Strokes, Kings of Leon). Keys a guitar likes — E, A, D, G —
 # so the power chords sit on the open low strings. A separate name, so no earlier setlist's
-# curation is ever at risk (`phase-7-findings.md` §6).
+# curation is ever at risk (`phase-7-findings.md` §6). The tempos were agreed with Fabiano on
+# 2026-11-10; `garagem show` sets each one before its song.
 
 name = "show"
 
@@ -17,6 +18,7 @@ title = "Low Ceiling"
 key = 4
 scale = "minor"
 feel = "straight8"
+bpm = 138
 seconds = 210
 seed = 31
 
@@ -26,6 +28,7 @@ title = "Night Bus"
 key = 2
 scale = "major"
 feel = "straight16"
+bpm = 122
 seconds = 190
 seed = 37
 
@@ -35,6 +38,7 @@ title = "Paper Crowns"
 key = 9
 scale = "minor"
 feel = "shuffle"
+bpm = 112
 seconds = 190
 seed = 41
 
@@ -44,5 +48,6 @@ title = "Last Light"
 key = 7
 scale = "major"
 feel = "halftime"
+bpm = 128
 seconds = 220
 seed = 43

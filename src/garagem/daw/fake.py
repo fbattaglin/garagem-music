@@ -54,6 +54,8 @@ class FakeDawAdapter:
         device_names: Sequence[Sequence[str]] | None = None,
         midi_tracks: Sequence[bool] | None = None,
         armed: Sequence[bool] | None = None,
+        muted: Sequence[bool] | None = None,
+        soloed: Sequence[bool] | None = None,
         volumes: Sequence[float] | None = None,
         pans: Sequence[float] | None = None,
         scenes: int = 2,
@@ -73,6 +75,8 @@ class FakeDawAdapter:
             list(midi_tracks) if midi_tracks is not None else [True] * len(self._track_names)
         )
         self._armed = list(armed) if armed is not None else [False] * len(self._track_names)
+        self._muted = list(muted) if muted is not None else [False] * len(self._track_names)
+        self._soloed = list(soloed) if soloed is not None else [False] * len(self._track_names)
         self._volumes = (
             list(volumes) if volumes is not None else [DEFAULT_VOLUME] * len(self._track_names)
         )
@@ -201,6 +205,16 @@ class FakeDawAdapter:
         self._record("set_track_armed")
         self._track(track)
         self._armed[track] = armed
+
+    def track_muted(self, track: int) -> bool:
+        self._record("track_muted")
+        self._track(track)
+        return self._muted[track]
+
+    def track_soloed(self, track: int) -> bool:
+        self._record("track_soloed")
+        self._track(track)
+        return self._soloed[track]
 
     def scene_count(self) -> int:
         self._record("scene_count")

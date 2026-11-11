@@ -15,7 +15,8 @@ written to a file is in English.
 
 - `uv sync` — install dependencies
 - `uv run garagem check` — whether the show can start, in one look (ADR-028): Live, the Set
-  against `session.toml`, the MiniLab and Live's control surfaces, the show's setlist. Every
+  against `session.toml`, any track in Solo or switched off, the MiniLab and Live's control
+  surfaces, the show's setlist. Every
   failure at once, each with its fix. `--fix` sets what the bootstrap would; nothing otherwise.
 - `uv run garagem commands` — the words that can be typed during the show, from `commands.toml`,
   with the pad that does the same.

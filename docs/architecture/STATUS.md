@@ -93,16 +93,20 @@ command, with a ready check, a screen, typed commands and the whole setlist in o
   Lab's *Jazz B-3 Organ* is on KEYS. **Heard in a song** (2026-10-25): *"foi agradável e tinha
   um swag"*, but *"não me pareceu exatamente um rock arena estilo foo fighters"*. The guitars
   turned out never to have been panned. Panned 0.6 left and right: *"Sim. Está mais arena"*.
-- **Open, found on the way and not caused by it:** Hypothesis found a floor section that fails
-  `test_the_floor_is_never_messy` — a two-bar Locrian halftime verse at 55 BPM, `dyn` 1,
-  `register_spread` 0.786 against 0.8. It reproduces with the engines untouched by this work,
-  so it waits for its own decision: the parts or the threshold.
+- **Decided 2026-11-10, the threshold and not the parts:** Hypothesis had found a floor section
+  failing `test_the_floor_is_never_messy` at `register_spread` 0.786 against 0.8. Over 6000
+  generated briefings the worst is 0.758, and all 18 under 0.8 are verses at `dyn` 1 or 2. The
+  metric is telemetry (ADR-019) and nobody has heard one as piled up, so the bound is now 0.7.
 - **Stage D is done: the stage** (`phase-8-findings.md` §5). Built: `garagem`, one
   command; `garagem check`, the ready check; typed commands (`commands.toml`, a keyboard
   controller, and the `solo` cue no pad has); the show screen; and `garagem show`, one song
   with all of them. **Heard 2026-11-10** in "Swing low": *"Gostei muito das informacoes da
-  tela. Foi pratico digitar sim"*. Next is Stage E: a tempo per song, the show's bake and the
-  whole setlist in one run.
+  tela. Foi pratico digitar sim"*.
+- **Stage E has begun: the show** (`phase-8-findings.md` §6). Built: a tempo per song, in the
+  spec and the bake, set by `garagem show` before the song and put back after; `garagem check`
+  names a track in Solo or switched off. Suite at **3394 passed, 27 skipped**. Next: the show's
+  bake, **estimated before it runs at about $0.36, capped at $1.00**, and the whole setlist in
+  one run.
 
 Phase 7 was the arrangement: the band had its material, and the phase decided where things
 go in time — a solo section, relief in the form, and a fill that is announced

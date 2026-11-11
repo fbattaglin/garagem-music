@@ -12,6 +12,7 @@ from garagem.daw import FakeDawAdapter, load_session
 from garagem.daw.fake import DEFAULT_VOLUME
 from garagem.llm import AnthropicAdapter
 from garagem.obs import load_events
+from garagem.setlist import load_setlist, save_setlist
 from garagem.stage.check import Probes
 from garagem.stage.show import ShowFiles, Wiring, run_show
 from garagem.stage.terminal import HeadlessScreen
@@ -106,6 +107,38 @@ def test_a_ready_show_plays_the_song_from_disk_and_ends_on_its_card(
     kinds = [event.kind for event in load_events(tmp_path / "show.jsonl")]
     assert kinds[0] == "setlist_loaded" and kinds[-1] == "session_ended"
     assert rig.daw.calls.index("start_playing") < rig.daw.calls.index("stop_playing")
+
+
+def test_a_song_plays_at_its_own_tempo_and_the_set_gets_its_own_back(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    rig = Rig()
+    heard: list[float] = []
+
+    def played(self: Scheduler, *args: object, **kwargs: object) -> None:
+        heard.append(rig.daw.tempo())
+        self.finished = True
+
+    monkeypatch.setattr(Scheduler, "run", played)
+    baked = load_setlist(BAKED)
+    faster = [
+        song.model_copy(
+            update={
+                "form": tuple(s.model_copy(update={"bpm": 140.0}) for s in song.form),
+                "takes": tuple(
+                    t.model_copy(update={"briefing": t.briefing.model_copy(update={"bpm": 140.0})})
+                    for t in song.takes
+                ),
+            }
+        )
+        for song in baked.songs
+    ]
+    other = tmp_path / "show.json"
+    save_setlist(baked.model_copy(update={"songs": tuple(faster)}), other)
+
+    assert rig.show(tmp_path, HeadlessScreen(), setlist=other) == 0
+    assert heard == [140.0]
+    assert rig.daw.tempo() == 132.0
 
 
 def test_typed_words_reach_the_band_and_quit_ends_the_show(tmp_path: Path) -> None:

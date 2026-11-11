@@ -460,6 +460,12 @@ def main() -> int:
                 f"{spec.tempo_bpm:g}. Bake it again, or set session.toml's tempo back.\n"
             )
             return 1
+        if song.bpm != spec.tempo_bpm:
+            sys.stderr.write(
+                f"{song.title} is at {song.bpm:g} BPM and the Set is at {spec.tempo_bpm:g}. "
+                "`garagem show` sets each song's tempo; this script does not.\n"
+            )
+            return 1
         form, endings = song.form, song.endings
         seed, seconds = song.seed, song.total_seconds()
     else:

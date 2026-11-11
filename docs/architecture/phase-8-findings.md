@@ -354,11 +354,30 @@ Stage D closes on that verdict.
 
 - **The run:** 227 s, to its end, 0 beats lost. Seven cues applied and none declined; the three
   bar and jump cues landed one bar after they were asked for.
-- **7 of the 17 sections came from the setlist.** The knobs moved 13 times and the form was
-  re-planned five times, and a section moved off its take is the floor's to play. Stage E's
-  share has to be read with that in mind.
+- **7 of the 17 sections came from the setlist**, against 12 in the run before. A knob keeps a
+  take playing (`setlist.reachable`), but a section is written the moment a knob or a re-plan
+  changes it, before its take can come back through the producer: 8 of the 13 `not_in_buffer`
+  fallbacks fell on the very beat a knob moved, and 3 on a re-plan. The other 2 are the intro
+  and the outro, too short to ask about. And a re-planned bridge asked for a briefing no take
+  could reach (`not_routed`). Conducting costs takes; Stage E's share is read with that in mind.
 - **Live's `MiniLab_3` surface came back on the cue port between sessions.** It was off on
   2026-10-27 and on again on 2026-11-10; `garagem check` refused the show and gave the fix.
 - **A transport stopped or sent back in Live ends the song.** It happened twice on 2026-10-27,
   cause not established: the band waited 30 s and gave up, as designed, and the closing screen
   waited for Enter.
+
+## 6. The show (Stage E)
+
+**A tempo per song**, agreed with Fabiano on 2026-11-10 and written in `setlists/show.toml`:
+Low Ceiling 138, Night Bus 122, Paper Crowns 112, Last Light 128. A song without one is at the
+Set's, so every earlier bake still loads and plays as it did. `Song.bpm` reads it off the form,
+and `garagem show` sets it and confirms it before the song and puts the Set's tempo back after.
+`garagem check` no longer compares a setlist's tempo with the Set's, because the show sets it.
+`jam.py` does not set a tempo, so it refuses a song that is not at the Set's.
+
+**The check names a track in Solo or switched off.** Fabiano's Set lost all but one channel on
+2026-10-27 and `garagem check` would have called it ready. `--fix` leaves both alone:
+`session.toml` does not declare them.
+
+**The bake's estimate, declared before it runs:** 28 calls to `claude-sonnet-5` (4 themes, 24
+sections), expected about $0.36, capped at $1.00.

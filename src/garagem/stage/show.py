@@ -34,7 +34,7 @@ from garagem.control import (
     load_commands,
     load_controller,
 )
-from garagem.daw import DawError, DawUnavailableError, load_session
+from garagem.daw import DawError, load_session
 from garagem.llm import load_budget, load_catalog
 from garagem.obs import Event, EventLog, model_share, render_checks, setlist_checks
 from garagem.setlist import Song, briefings, load_setlist
@@ -100,7 +100,7 @@ def run_show(files: ShowFiles, number: int, wiring: Wiring, screen: Screen, out:
         title=song.title,
         song=number,
         songs=len(setlist.songs),
-        bpm=setlist.bpm,
+        bpm=song.bpm,
         form=[Planned(section.name, section.bars) for section in song.form],
         words={command.cue: command.word for command in commands.commands if command.cue},
         cheat_sheet=commands.cheat_sheet(pads.pad_numbers()),
@@ -113,7 +113,8 @@ def run_show(files: ShowFiles, number: int, wiring: Wiring, screen: Screen, out:
     try:
         try:
             daw.warm()
-        except DawUnavailableError as exc:
+            daw.set_tempo(song.bpm)
+        except DawError as exc:
             out.write(f"{exc}\n")
             return 1
         log.record(
@@ -184,9 +185,13 @@ def run_show(files: ShowFiles, number: int, wiring: Wiring, screen: Screen, out:
                 "session_ended",
                 float(max(clock.beat, 0)),
                 finished=scheduler.finished,
-                bpm=setlist.bpm,
+                bpm=song.bpm,
             )
-        teardown = (("stop listening", clock.stop), ("stop the transport", daw.stop_playing))
+        teardown = (
+            ("stop listening", clock.stop),
+            ("stop the transport", daw.stop_playing),
+            ("put the Set's tempo back", lambda: daw.set_tempo(spec.tempo_bpm)),
+        )
         for step, action in teardown:
             try:
                 action()

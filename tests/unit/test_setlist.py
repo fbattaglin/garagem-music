@@ -276,3 +276,16 @@ def test_a_take_realised_under_a_moved_briefing_plays_the_moved_dynamics() -> No
     loud = max(n.velocity for part in moved.parts for n in part.notes)
     soft = max(n.velocity for part in as_baked.parts for n in part.notes)
     assert loud > soft
+
+
+def test_a_song_can_have_its_own_tempo() -> None:
+    faster = SPEC.model_copy(update={"bpm": BPM + 20.0})
+    form, _ = arranged(faster, BPM)
+    assert {section.bpm for section in form} == {BPM + 20.0}
+    assert {section.bpm for section in arranged(SPEC, BPM)[0]} == {BPM}
+
+
+def test_the_show_has_more_than_one_tempo() -> None:
+    spec = load_spec(Path(__file__).resolve().parents[2] / "setlists" / "show.toml")
+    assert len({song.bpm for song in spec.songs}) >= 2
+    assert None not in {song.bpm for song in spec.songs}

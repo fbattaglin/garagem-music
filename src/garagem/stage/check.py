@@ -98,7 +98,7 @@ def ready_check(
     _live(spec, probes, findings, fix=fix)
     _controller(controller, probes, findings)
     _keyboard(commands, findings)
-    _setlist(setlist, spec, findings)
+    _setlist(setlist, findings)
     return tuple(findings)
 
 
@@ -190,6 +190,7 @@ def _live(spec: SessionSpec | None, probes: Probes, findings: list[Finding], *, 
         findings.append(Finding(Level.OK, LIVE, "answers"))
         try:
             divergences = _the_set(daw, spec, findings, fix=fix)
+            findings.extend(_silenced(daw))
         except DawError as exc:
             findings.append(
                 Finding(
@@ -237,6 +238,39 @@ def _the_set(
     if fix:
         return apply_session(daw, spec)
     return diff_session(spec, observe(daw, spec))
+
+
+def _silenced(daw: DawPort) -> list[Finding]:
+    """A Solo or a track switched off: one click in Live, and a band that loses its players.
+
+    Never touched by `--fix`: `session.toml` does not declare them, and a person who pressed
+    one should be the one to undo it.
+    """
+    names = daw.track_names()
+    soloed = [name for index, name in enumerate(names) if daw.track_soloed(index)]
+    off = [name for index, name in enumerate(names) if daw.track_muted(index)]
+    found: list[Finding] = []
+    if soloed:
+        found.append(
+            Finding(
+                Level.FAIL,
+                SET,
+                f"in Solo: {', '.join(soloed)}, so every other track is silent",
+                "in Live, click the lit S at the bottom of that track to turn it off",
+                "track_soloed",
+            )
+        )
+    if off:
+        found.append(
+            Finding(
+                Level.FAIL,
+                SET,
+                f"switched off: {', '.join(off)}, so it plays in silence",
+                "in Live, click the grey number at the bottom of that track to switch it on",
+                "track_off",
+            )
+        )
+    return found
 
 
 def _divergence(divergence: Divergence) -> Finding:
@@ -345,7 +379,7 @@ def _keyboard(path: Path, findings: list[Finding]) -> None:
         )
 
 
-def _setlist(path: Path, spec: SessionSpec | None, findings: list[Finding]) -> None:
+def _setlist(path: Path, findings: list[Finding]) -> None:
     if not path.exists():
         findings.append(
             Finding(
@@ -371,19 +405,13 @@ def _setlist(path: Path, spec: SessionSpec | None, findings: list[Finding]) -> N
             )
         )
         return
-    if spec is not None and setlist.bpm != spec.tempo_bpm:
-        findings.append(
-            Finding(
-                Level.FAIL,
-                SHOW,
-                f"{path.name} was baked at {setlist.bpm:g} BPM and the Set is at "
-                f"{spec.tempo_bpm:g}",
-                f"bake it again, or set {SESSION}'s tempo back",
-                "setlist_tempo",
-            )
-        )
-        return
     songs = len(setlist.songs)
+    tempos = sorted({song.bpm for song in setlist.songs})
+    span = f"{tempos[0]:g}" if len(tempos) == 1 else f"{tempos[0]:g} to {tempos[-1]:g}"
     findings.append(
-        Finding(Level.OK, SHOW, f"{path.name}: {songs} song{'s' if songs != 1 else ''}, from disk")
+        Finding(
+            Level.OK,
+            SHOW,
+            f"{path.name}: {songs} song{'s' if songs != 1 else ''} at {span} BPM, from disk",
+        )
     )

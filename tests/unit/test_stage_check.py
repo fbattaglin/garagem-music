@@ -151,6 +151,34 @@ def test_a_playing_live_is_a_failure_with_the_space_bar_as_its_fix() -> None:
     assert "space bar" in next(f.fix for f in findings if f.kind == "live_playing")
 
 
+def test_a_track_in_solo_is_named_with_the_click_that_undoes_it() -> None:
+    names = [track.name for track in load_session(SESSION).tracks]
+    findings = check(probes(matching_daw(soloed=[name == "KEYS" for name in names])))
+    assert kinds(findings) == {"track_soloed"}
+    soloed = next(f for f in findings if f.kind == "track_soloed")
+    assert "KEYS" in soloed.what
+    assert "lit S" in soloed.fix
+    assert not ready(findings)
+
+
+def test_a_track_switched_off_is_named_with_the_click_that_undoes_it() -> None:
+    names = [track.name for track in load_session(SESSION).tracks]
+    off = [name in ("BASS", "LEAD") for name in names]
+    findings = check(probes(matching_daw(muted=off)))
+    assert kinds(findings) == {"track_off"}
+    switched = next(f for f in findings if f.kind == "track_off")
+    assert "BASS, LEAD" in switched.what
+    assert "grey number" in switched.fix
+    assert not ready(findings)
+
+
+def test_fix_leaves_a_solo_for_the_person_who_pressed_it() -> None:
+    count = len(load_session(SESSION).tracks)
+    daw = matching_daw(soloed=[True] * count)
+    assert kinds(check(probes(daw), fix=True)) == {"track_soloed"}
+    assert daw.track_soloed(0) is True
+
+
 def test_every_divergence_is_listed_with_who_fixes_it() -> None:
     names = [track.instrument for track in load_session(SESSION).tracks]
     names[4] = "Grand Piano"
@@ -238,10 +266,13 @@ def test_a_setlist_that_cannot_be_read(tmp_path: Path) -> None:
     assert kinds(check(setlist=broken)) == {"setlist_unreadable"}
 
 
-def test_a_setlist_baked_at_another_tempo(tmp_path: Path) -> None:
+def test_a_setlist_at_another_tempo_is_not_a_problem(tmp_path: Path) -> None:
+    """The show sets each song's tempo itself, so the Set's own is not the setlist's."""
     other = tmp_path / "show.json"
     save_setlist(load_setlist(BAKED).model_copy(update={"bpm": 120.0}), other)
-    assert kinds(check(setlist=other)) == {"setlist_tempo"}
+    findings = check(setlist=other)
+    assert kinds(findings) == set()
+    assert any("3 songs at 132 BPM, from disk" in finding.what for finding in findings)
 
 
 # ------------------------------------------------------------------------------ at once

@@ -51,7 +51,9 @@ from garagem.daw.abletonosc import (
     GET_SONG_TIME,
     GET_TEMPO,
     GET_TRACK_ARM,
+    GET_TRACK_MUTE,
     GET_TRACK_NAMES,
+    GET_TRACK_SOLO,
     GET_VOLUME,
     REMOVE_NOTES,
     SET_CLIP_LEGATO,
@@ -95,6 +97,8 @@ HEALTHY: dict[str, tuple[OscArg, ...]] = {
     GET_HAS_CLIP: (3, 1, True),
     GET_HAS_MIDI_INPUT: (3, True),
     GET_TRACK_ARM: (3, False),
+    GET_TRACK_MUTE: (3, True),
+    GET_TRACK_SOLO: (3, False),
     GET_LOOP: (False,),
     GET_CLIP_LEGATO: (3, 1, True),
     GET_CLIP_LENGTH: (3, 1, 16.0),
@@ -189,6 +193,8 @@ def test_track_and_clip_getters_drop_the_echoed_index() -> None:
     assert daw.meter_level(3) == pytest.approx(0.42)
     assert daw.accepts_midi(3) is True
     assert daw.track_armed(3) is False
+    assert daw.track_muted(3) is True
+    assert daw.track_soloed(3) is False
 
 
 def test_setting_the_tempo_sends_it_and_then_reads_it_back() -> None:

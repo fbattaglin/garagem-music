@@ -623,13 +623,14 @@ def main() -> int:
     for number, song in enumerate(planned, start=1):
         seconds = sum(section.total_seconds() for section in song.form)
         sys.stderr.write(
-            f"{number}. {song.spec.title}: {song.spec.feel}, key {song.spec.key} "
+            f"{number}. {song.spec.title}: {song.form[0].bpm:g} BPM, {song.spec.feel}, "
+            f"key {song.spec.key} "
             f"{song.spec.scale}, {seconds:.0f}s, {len(song.form)} sections, "
             f"{len(song.asked)} to ask\n"
         )
     themes = len(planned) if songwriter else 0
     sys.stderr.write(
-        f"{len(planned)} songs, {minutes:.1f} minutes at {bpm:g} BPM, {sections} sections: "
+        f"{len(planned)} songs, {minutes:.1f} minutes, {sections} sections: "
         f"{calls + themes} calls to {model.id}"
         + (f" ({themes} themes, {calls} sections)\n" if songwriter else "\n")
     )

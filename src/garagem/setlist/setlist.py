@@ -89,6 +89,8 @@ class SongSpec(BaseModel):
     feel: Feel = Feel.STRAIGHT8
     seconds: float = Field(gt=0.0)
     seed: int = Field(ge=0)
+    # Its own tempo (ADR-028). Left out, the song is at the Set's.
+    bpm: float | None = Field(default=None, gt=0.0)
 
 
 class SetlistSpec(BaseModel):
@@ -110,9 +112,13 @@ def load_spec(path: Path) -> SetlistSpec:
 
 
 def arranged(song: SongSpec, bpm: float) -> tuple[tuple[Section, ...], tuple[Ending, ...]]:
-    """The song's form and endings, exactly as `jam.py` arranges one: climax and all."""
+    """The song's form and endings, as `jam.py` arranges one: at its own tempo, or at `bpm`."""
     brief_ = SongBrief(
-        key=song.key, scale=song.scale, bpm=bpm, feel=song.feel, minimum_seconds=song.seconds
+        key=song.key,
+        scale=song.scale,
+        bpm=bpm if song.bpm is None else song.bpm,
+        feel=song.feel,
+        minimum_seconds=song.seconds,
     )
     form = with_climax(arrange(brief_, song.seed))
     return form, endings_for(form)
@@ -206,6 +212,11 @@ class Song(BaseModel):
                 raise ValueError(f"{self.title}: two takes for the briefing at {take.section}")
             seen.add(take.briefing)
         return self
+
+    @property
+    def bpm(self) -> float:
+        """The tempo the song was baked at. One per song: the form never changes it."""
+        return self.form[0].bpm
 
     def total_seconds(self) -> float:
         return sum(section.total_seconds() for section in self.form)

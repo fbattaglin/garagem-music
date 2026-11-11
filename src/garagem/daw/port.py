@@ -218,6 +218,14 @@ class DawPort(Protocol):
 
     def set_track_armed(self, track: int, armed: bool) -> None: ...
 
+    def track_muted(self, track: int) -> bool:
+        """Is the track switched off, its number button grey? It keeps playing, in silence."""
+        ...
+
+    def track_soloed(self, track: int) -> bool:
+        """Is the track soloed? Then every track that is not is silent."""
+        ...
+
     def scene_count(self) -> int: ...
 
     # -- clips
